@@ -49,7 +49,7 @@ python -m uvicorn main:app --reload
 |---|---|---|
 | GET | `/health` | 200 |
 | GET | `/api/products` (opcional `?category=`) | 200, 422 |
-| GET | `/api/products/{id}` | 200, 404 |
+| GET | `/api/products/{id}` | 200, 404, 422 |
 | POST | `/api/orders` | 201, 404, 409, 422 |
 | GET | `/api/orders` | 200 |
 

@@ -1,4 +1,4 @@
-# Guía de Git – Kiosco El Rápido
+# Guía de Git – Kiosko El Rápido
 
 ## Ramas
 - `main`: solo versiones entregables.

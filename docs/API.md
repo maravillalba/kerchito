@@ -23,7 +23,7 @@ Los mensajes de error están en inglés tal cual los devuelve la API.
 |---|---|---|---|
 | GET | `/health` | Estado del servidor | 200 |
 | GET | `/api/products` | Lista los productos; con `?category=` filtra por categoría | 200, 422 |
-| GET | `/api/products/{id}` | Un producto | 200, 404 |
+| GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
 | POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
 | GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo | 200 |
 
@@ -325,6 +325,8 @@ GET /api/orders
 | 422 Unprocessable Entity | Datos inválidos: `category` que no existe | lista con `"type": "literal_error"` |
 | 422 Unprocessable Entity | Datos inválidos: `quantity` menor a 1 (por ejemplo `0`) | lista con `"type": "greater_than_equal"` |
 | 422 Unprocessable Entity | Datos inválidos: `items` vacío (`[]`) | lista con `"type": "too_short"` |
+| 422 Unprocessable Entity | Datos inválidos: falta el campo `items` en el pedido | lista con `"type": "missing"` |
+| 422 Unprocessable Entity | Datos inválidos: `product_id` que no es un número entero (por ejemplo `"abc"`, o `/api/products/abc` en la URL) | lista con `"type": "int_parsing"` |
 | 500 Internal Server Error | Error inesperado de la base de datos (queda registrado en el log del servidor) | `"Internal server error"` |
 
 ## 4. Cómo probar a mano

@@ -73,7 +73,7 @@ El backend no los conoce:
 |---|---|---|---|
 | GET | `/health` | Estado del servidor | 200 |
 | GET |  `/api/products `|  Lista los productos; con?category=<valor> filtra por categoría (valor inválido: 422) | 200, 422 |
-| GET | `/api/products/{id}` | Un producto | 200, 404 |
+| GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
 | POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
 | GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo (`id` descendente); si no hay pedidos devuelve `[]` | 200 |
 

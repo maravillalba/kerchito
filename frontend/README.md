@@ -2,7 +2,7 @@
 
 Frontend de la tienda online **Kiosko El Rápido**. Permite ver el catálogo de productos, filtrarlos por categoría, ver el detalle de cada uno, armar un carrito y finalizar el pedido.
 
-Está hecho con React 19, TypeScript, Vite, React Router y Context API (para el carrito). Por ahora los productos salen de datos mock y el pedido es simulado: la conexión con el backend (FastAPI) llega en la Parte 2.
+Está hecho con React 19, TypeScript, Vite, React Router y Context API (para el carrito). Los productos y los pedidos se manejan a través de la API del backend (FastAPI), que tiene que estar levantado (ver [`backend/README.md`](../backend/README.md)).
 
 El contrato de datos entre frontend y backend está en [`docs/CONTRATO.md`](../docs/CONTRATO.md).
 
@@ -37,9 +37,13 @@ npm ci
 ```text
 src/
 ├── components/   Componentes reutilizables y su CSS: Header, Footer, Layout,
-│                 ProductCard y CartItem.
+│                 ProductCard, CartItem, Loading y ErrorMessage.
 ├── context/      CartContext.tsx: estado global del carrito y el hook useCart().
-├── data/         products.ts: productos mock (se reemplaza por la API en la Parte 2).
+├── hooks/        useCheckout.ts: envía el pedido a la API y devuelve 'success',
+│                 'outdated' o 'error'.
+├── services/     api.ts: llamadas a la API (productos y pedidos) y manejo de
+│                 errores (ApiError).
+├── assets/       logo.png.
 ├── pages/        Una página por ruta, con su CSS: Home, Products, ProductDetail,
 │                 Cart y NotFound.
 ├── types/        index.ts: tipos del contrato (Product, Category, CartItem, pedidos).
@@ -63,20 +67,20 @@ Todas las rutas se renderizan dentro de `Layout` (Header + contenido + Footer).
 | `/products`              | `Products`      | Catálogo completo de productos.                                     |
 | `/products?category=...` | `Products`      | Catálogo filtrado por categoría (por ejemplo, `?category=bebidas`). |
 | `/products/:id`          | `ProductDetail` | Detalle de un producto y selector de cantidad.                      |
-| `/cart`                  | `Cart`          | Carrito: cantidades, totales y finalizar pedido (simulado).         |
+| `/cart`                  | `Cart`          | Carrito: cantidades, totales y finalizar pedido (lo crea en la API). |
 | `*`                      | `NotFound`      | Página 404 para cualquier otra ruta.                                |
 
 Valores válidos de `category`: `bebidas`, `golosinas_snacks`, `lacteos`, `almacen`, `limpieza`, `cigarrillos`.
 
 ## Variables de entorno
 
-| Variable       | Ejemplo                 | Uso                                         |
-| -------------- | ----------------------- | ------------------------------------------- |
-| `VITE_API_URL` | `http://localhost:8000` | URL base del backend. Se usa en la Parte 2. |
+| Variable       | Ejemplo                 | Uso                                                        |
+| -------------- | ----------------------- | ---------------------------------------------------------- |
+| `VITE_API_URL` | `http://localhost:8000` | URL base del backend. Por defecto: `http://localhost:8000`. |
 
-Hoy **ningún archivo de `src/` la lee**: los productos salen de `src/data/products.ts` y "Finalizar pedido" no llama a ninguna API.
+La lee `src/services/api.ts`. Si no la definís, usa `http://localhost:8000`, así que solo necesitás un `.env` si el backend corre en otra dirección.
 
-Para dejarla configurada, copiá `.env.example` como `.env` dentro de `frontend/`. El archivo `.env` está en el `.gitignore` y no se sube al repositorio.
+Para cambiarla, copiá `.env.example` como `.env` dentro de `frontend/`. El archivo `.env` está en el `.gitignore` y no se sube al repositorio.
 
 ## Tests
 
