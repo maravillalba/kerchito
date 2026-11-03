@@ -15,14 +15,16 @@ pip install -r requirements.txt
 ```
 
 ## Variables de entorno
-El backend lee dos variables del entorno. Las dos son opcionales: si no las definís, usa estos valores por defecto (los mismos de `.env.example`).
+El backend lee cuatro variables del entorno. Todas son opcionales: si no las definís, usa estos valores por defecto (los mismos de `.env.example`).
 
 | Variable | Valor por defecto | Qué hace |
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///./kiosco.db` | Base de datos que usa la API. La ruta es relativa a la carpeta desde donde se arranca el servidor. |
 | `FRONTEND_ORIGIN` | `http://localhost:5173` | Origen del frontend al que CORS le permite llamar a la API. También se permite `http://127.0.0.1:5173`. |
+| `BOT_API_KEY` | vacía | Clave de la API de Anthropic. Si está definida, KioscoBot responde con IA; si falta o la IA falla, responde con las reglas de siempre. Es secreta: va solo en tu `.env`, nunca en git. |
+| `BOT_MODEL` | `claude-haiku-5-5` | Modelo de Claude que usa KioscoBot cuando hay `BOT_API_KEY`. |
 
-**Importante:** el backend **no lee el archivo `.env`**; `.env.example` solo documenta las variables. Para cambiar un valor, definilo en la terminal antes de arrancar:
+Al arrancar, el backend lee el archivo `backend/.env` si existe (copiá `.env.example` como `.env` y completalo). El `.env` está en el `.gitignore`. Las variables definidas en la terminal tienen prioridad sobre las del archivo; por ejemplo, para cambiar un valor solo por esta vez:
 
 ```powershell
 $env:FRONTEND_ORIGIN = "http://localhost:5174"

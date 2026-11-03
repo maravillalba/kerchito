@@ -321,6 +321,8 @@ Manda una pregunta a KioscoBot y devuelve su respuesta. `message` tiene que tene
 
 Es solo de consulta: nunca crea pedidos ni modifica productos. Los precios y el stock salen de la base, igual que en `GET /api/products`. Si no entiende la pregunta responde 200 con un texto fijo que explica en qué puede ayudar, y si la base no responde también devuelve 200, con el texto `"Ahora no puedo consultar los productos. Probá de nuevo en un rato."` (no devuelve 500). Horarios y medios de pago son texto fijo del backend. Todavía no hay límite de mensajes por minuto (no existe el 429).
 
+Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422. Los ejemplos de abajo son respuestas por reglas (sin `BOT_API_KEY`).
+
 **Pedido**
 
 ```

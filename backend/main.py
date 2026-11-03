@@ -1,6 +1,14 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Lee backend/.env antes de importar los módulos que usan variables de entorno
+# (database.py lee DATABASE_URL al importarse). Las variables definidas en la
+# terminal tienen prioridad sobre las del archivo.
+load_dotenv(Path(__file__).with_name(".env"), override=False)
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

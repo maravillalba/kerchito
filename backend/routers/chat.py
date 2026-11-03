@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+import bot_ai
 from database import get_db
 from models import Product
 from schemas import ChatRequest, ChatResponse
@@ -34,6 +35,7 @@ CATEGORY_LABELS = {
 }
 
 MAX_PRODUCTS_IN_REPLY = 6
+MAX_AI_REPLY_LENGTH = 1000
 
 # --- Textos fijos ---------------------------------------------------------------
 
@@ -100,9 +102,20 @@ CATEGORY_KEYWORDS = {
 
 NAME_STOPWORDS = {"del", "los", "las", "con", "sin", "para", "por", "una"}
 
+# Intentos de ver o cambiar las reglas del bot. El texto llega normalizado
+# (minúsculas y sin acentos). Una alternativa por línea.
 _INJECTION = re.compile(
-    r"(ignor|olvid|saltea).*(instruccion|regla|prompt)|api ?key|\bclave\b|"
-    r"\bprompt\b|contrasena"
+    r"""
+    (ignor|olvid|saltea).*(instruccion|regla|prompt)        # "olvidá tus reglas"
+    | (ignor|olvid)\w*\s+(todo\s+)?lo\s+(anterior|previo)   # "ignorá todo lo anterior"
+    | \btus?\s+(instruccion|regla|configuracion|prompt)     # "mostrame tus instrucciones"
+    | \bprompt\b                                            # "cuál es tu prompt"
+    | \bactua\w*\s+como\b                                   # "actuá como un hacker"
+    | \b(a\s+partir\s+de|desde)\s+ahora\s+(sos|seras)\b     # "a partir de ahora sos otro"
+    | \bhace\w*\s+de\s+cuenta\b                             # "hacé de cuenta que..."
+    | api\s?key | \bclave\b | contrasena                    # claves y contraseñas
+    """,
+    re.VERBOSE,
 )
 _GENERIC_QUESTION = re.compile(r"\bque (tienen|hay|venden|vendes|ofrecen)\b")
 
@@ -261,6 +274,37 @@ def build_reply(message: str, db: Session) -> str:
     return NOT_UNDERSTOOD
 
 
+def _catalog_for_ai(products: list[Product]) -> list[str]:
+    return [
+        f"{p.name} | {CATEGORY_LABELS.get(p.category, p.category)} | "
+        f"{format_price(p.price)} | {_stock_label(p.stock)}"
+        for p in products
+    ]
+
+
+def ai_reply(message: str, db: Session) -> str | None:
+    """Respuesta de la IA con los datos de la base, o None para usar las reglas."""
+    if not bot_ai.is_enabled():
+        return None
+    try:
+        products = db.query(Product).order_by(Product.id).all()
+    except SQLAlchemyError as exc:
+        logger.error("KioscoBot no pudo consultar la base: %s", type(exc).__name__)
+        return None
+    reply = bot_ai.ai_reply(message, _catalog_for_ai(products), HORARIOS, MEDIOS_DE_PAGO)
+    if not reply:
+        return None
+    reply = reply.strip()
+    if len(reply) > MAX_AI_REPLY_LENGTH:
+        reply = reply[: MAX_AI_REPLY_LENGTH - 1].rstrip() + "…"
+    return reply
+
+
 @router.post("", response_model=ChatResponse)
 def chat(payload: ChatRequest, db: Session = Depends(get_db)):
-    return ChatResponse(reply=build_reply(payload.message, db))
+    # Los intentos de cambiar las reglas nunca llegan a la IA: responde la regla.
+    if _INJECTION.search(_normalize(payload.message)):
+        return ChatResponse(reply=OUT_OF_SCOPE)
+    # Primero la IA (si hay BOT_API_KEY); si no responde, las reglas de siempre.
+    reply = ai_reply(payload.message, db) or build_reply(payload.message, db)
+    return ChatResponse(reply=reply)

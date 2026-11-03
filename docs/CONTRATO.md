@@ -108,6 +108,7 @@ Notas de `POST /api/chat`:
 - Es solo de consulta: nunca llama a `POST /api/orders` ni modifica productos.
 - Los datos de productos (precio, stock, categoría) salen de la base, igual que `GET /api/products`.
 - Si no entiende la pregunta, o si la base no responde, devuelve 200 con un texto fijo. El 422 es solo por mensaje vacío o de más de 500 caracteres.
+- Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422.
 - Horarios y medios de pago son texto fijo del backend.
 - Todavía no hay límite de mensajes por minuto (no existe el 429).
 

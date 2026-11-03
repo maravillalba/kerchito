@@ -8,6 +8,12 @@ from main import app
 from database import Base, get_db
 
 
+@pytest.fixture(autouse=True)
+def no_bot_api_key(monkeypatch):
+    # Ningún test llama a la API real de la IA, aunque haya un .env con clave.
+    monkeypatch.setenv("BOT_API_KEY", "")
+
+
 @pytest.fixture()
 def db_session():
     engine = create_engine(

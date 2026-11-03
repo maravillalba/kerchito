@@ -36,11 +36,11 @@ KioscoBot es un chat de ayuda dentro de la tienda. Responde preguntas cortas de 
 
 ## 4. Seguridad de la API key
 
-KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que necesita una API key. Reglas:
+KioscoBot usa un modelo de lenguaje externo (Claude, de la API de Anthropic; lo pendiente está en §6), que necesita una API key. Reglas:
 
-1. **La key vive solo en el backend**, en una variable de entorno, por ejemplo `BOT_API_KEY` **(propuesta de nombre)**. El código la lee con `os.getenv`, como hoy se lee `DATABASE_URL`.
+1. **La key vive solo en el backend**, en una variable de entorno, `BOT_API_KEY`. El código la lee con `os.getenv`, como hoy se lee `DATABASE_URL`.
 2. **Nunca en el frontend.** Toda variable `VITE_*` termina dentro del JavaScript que descarga el navegador, así que la key **no** puede ser una variable `VITE_` ni estar escrita en ningún archivo de `frontend/`.
-3. **Nunca en git.** El `.gitignore` ya ignora `.env` y `.env.*` y deja subir solo `.env.example`. En `backend/.env.example` va solo un valor de ejemplo (`BOT_API_KEY=poné-tu-key-acá`), nunca una key real. Cada integrante tiene su propio `.env` local.
+3. **Nunca en git.** El `.gitignore` ya ignora `.env` y `.env.*` y deja subir solo `.env.example`. En `backend/.env.example` la variable va vacía (`BOT_API_KEY=`), nunca con una key real. Cada integrante pone la suya en su propio `backend/.env` local. No hay que dejar un texto de relleno como valor: el backend lo tomaría como una key, el proveedor respondería 401 y el bot usaría las reglas.
 4. **El frontend llama a un endpoint propio del backend**, `POST /api/chat`, y el backend es el único que llama al modelo. El navegador nunca habla directo con el proveedor.
 5. **Límites de uso y de tamaño** **(propuesta, valores a acordar):**
    - Mensaje de hasta 500 caracteres; si es más largo, el backend responde 422.
@@ -81,13 +81,13 @@ KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que 
 
 ## 6. Pendientes / decisiones para el equipo
 
-- [ ] **Proveedor y modelo** de lenguaje a usar, y quién crea y administra la cuenta y la key.
+- [x] **Proveedor y modelo** de lenguaje a usar, y quién crea y administra la cuenta y la key. Decidido: Claude (API de Anthropic), modelo en `BOT_MODEL` (por defecto `claude-haiku-5-5`).
 - [x] **Endpoint del bot:** `POST /api/chat` aprobado y documentado en `CONTRATO.md` (cuerpo `{ "message": string }`, respuesta `{ "reply": string }`, 422 por mensaje vacío o de más de 500 caracteres). Falta el 429 (límite por minuto).
 - [x] **Estado del carrito:** el frontend no lo manda; el bot responde con texto fijo.
 - [x] **Horarios:** texto fijo en el backend (constantes `HORARIOS` y `MEDIOS_DE_PAGO` en `backend/routers/chat.py`). **Los valores actuales son de ejemplo: falta confirmarlos con el equipo.**
 - [ ] **Historial:** ¿el bot recuerda los mensajes anteriores de la conversación (enviados por el frontend) o cada mensaje es independiente?
   - Hoy el widget guarda la conversación en memoria solo para mostrarla (se pierde al recargar); el backend responde cada mensaje por separado y no recibe los anteriores. Falta decidir si el bot tiene que recordar la conversación.
 - [ ] **Valores de los límites:** largo máximo del mensaje, mensajes por minuto y tope de gasto.
-- [ ] **Dependencias nuevas:** el cliente HTTP o SDK del proveedor y el control de límites agregan dependencias al backend; hay que aprobarlas.
+- [x] **Dependencias nuevas:** el cliente HTTP o SDK del proveedor y el control de límites agregan dependencias al backend; hay que aprobarlas. Decidido: httpx directo (sin SDK) y python-dotenv para leer el `.env`.
 - [ ] **Tests:** cómo testear el endpoint sin llamar al modelo real (reemplazarlo por uno falso en Pytest, igual que hoy se reemplaza `get_db`).
 - [x] **Diseño del chat** en el frontend (botón flotante, página aparte, etc.), con la paleta actual. Hecho: botón flotante en todas las páginas, con "Escribiendo…" y error con "Reintentar".
