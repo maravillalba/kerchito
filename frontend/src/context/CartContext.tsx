@@ -32,6 +32,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
             : item,
         );
       }
+      // Sin stock no se crea el renglón (quedaría con cantidad 0).
+      if (product.stock <= 0) {
+        return prev;
+      }
       return [
         ...prev,
         { product, quantity: Math.min(quantity, product.stock) },

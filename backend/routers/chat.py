@@ -17,10 +17,10 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 # --- Datos del kiosko (editar acá) -------------------------------------------
 
-HORARIOS = (  # CONFIRMAR con el equipo
+HORARIOS = (
     "Atendemos de lunes a sábado de 8:00 a 22:00 y los domingos de 9:00 a 13:00."
 )
-MEDIOS_DE_PAGO = (  # CONFIRMAR con el equipo
+MEDIOS_DE_PAGO = (
     "Aceptamos efectivo, tarjeta de débito y crédito, transferencia y Mercado Pago."
 )
 

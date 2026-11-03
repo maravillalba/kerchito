@@ -16,7 +16,6 @@ export default mergeConfig(
           'src/**/*.test.{ts,tsx}',
           'src/setupTests.ts',
           'src/main.tsx',
-          'src/data/**',
         ],
       },
     },
