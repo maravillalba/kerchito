@@ -323,6 +323,8 @@ Es solo de consulta: nunca crea pedidos ni modifica productos. Los precios y el 
 
 Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422. Los ejemplos de abajo son respuestas por reglas (sin `BOT_API_KEY`).
 
+Si la IA falla, incluso con un error inesperado, el chat responde 200 con las reglas.
+
 **Pedido**
 
 ```

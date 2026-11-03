@@ -306,5 +306,11 @@ def chat(payload: ChatRequest, db: Session = Depends(get_db)):
     if _INJECTION.search(_normalize(payload.message)):
         return ChatResponse(reply=OUT_OF_SCOPE)
     # Primero la IA (si hay BOT_API_KEY); si no responde, las reglas de siempre.
-    reply = ai_reply(payload.message, db) or build_reply(payload.message, db)
+    try:
+        reply = ai_reply(payload.message, db)
+    except Exception as exc:  # noqa: BLE001 - la IA nunca debe romper el chat
+        # Solo el tipo de error: ni el texto de la excepción, ni la clave, ni el mensaje.
+        logger.warning("KioscoBot IA: error inesperado (%s); se usan las reglas.", type(exc).__name__)
+        reply = None
+    reply = reply or build_reply(payload.message, db)
     return ChatResponse(reply=reply)
