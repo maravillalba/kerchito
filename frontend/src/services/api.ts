@@ -1,4 +1,11 @@
-import type { Category, OrderCreate, OrderResponse, Product } from '../types';
+import type {
+  Category,
+  ChatRequest,
+  ChatResponse,
+  OrderCreate,
+  OrderResponse,
+  Product,
+} from '../types';
 
 const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -96,5 +103,14 @@ export function createOrder(order: OrderCreate): Promise<OrderResponse> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(order),
+  });
+}
+
+export function sendChatMessage(message: string): Promise<ChatResponse> {
+  const body: ChatRequest = { message };
+  return request<ChatResponse>('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 }

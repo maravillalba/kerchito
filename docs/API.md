@@ -26,6 +26,7 @@ Los mensajes de error están en inglés tal cual los devuelve la API.
 | GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
 | POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
 | GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo | 200 |
+| POST | `/api/chat` | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
 
 ### GET /health
 
@@ -314,11 +315,108 @@ GET /api/orders
 ]
 ```
 
+### POST /api/chat
+
+Manda una pregunta a KioscoBot y devuelve su respuesta. `message` tiene que tener entre 1 y 500 caracteres; los espacios del principio y del final no cuentan. La respuesta (`reply`) es un texto en español que puede tener saltos de línea (`\n`).
+
+Es solo de consulta: nunca crea pedidos ni modifica productos. Los precios y el stock salen de la base, igual que en `GET /api/products`. Si no entiende la pregunta responde 200 con un texto fijo que explica en qué puede ayudar, y si la base no responde también devuelve 200, con el texto `"Ahora no puedo consultar los productos. Probá de nuevo en un rato."` (no devuelve 500). Horarios y medios de pago son texto fijo del backend. Todavía no hay límite de mensajes por minuto (no existe el 429).
+
+**Pedido**
+
+```
+POST /api/chat
+Content-Type: application/json
+```
+
+```json
+{ "message": "¿Cuánto sale la Coca?" }
+```
+
+**200 OK** (precio)
+
+```json
+{
+  "reply": "Coca-Cola 500ml sale $ 1.200 y hay 25 unidades."
+}
+```
+
+**200 OK** (stock)
+
+```json
+{ "message": "¿Tienen leche?" }
+```
+
+```json
+{
+  "reply": "Leche entera 1L sale $ 1.300 y hay 20 unidades. El stock puede cambiar hasta que confirmes el pedido."
+}
+```
+
+**200 OK** (categoría, con saltos de línea)
+
+```json
+{ "message": "¿Qué bebidas tienen?" }
+```
+
+```json
+{
+  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)"
+}
+```
+
+**200 OK** (saludo)
+
+```json
+{ "message": "Hola" }
+```
+
+```json
+{
+  "reply": "¡Hola! Soy KioscoBot. Puedo ayudarte con precios, stock, categorías, horarios, medios de pago y cómo hacer un pedido. ¿Qué necesitás?"
+}
+```
+
+**422 Unprocessable Entity** (mensaje vacío; con solo espacios, como `"   "`, responde lo mismo)
+
+```json
+{ "message": "" }
+```
+
+```json
+{
+  "detail": [
+    {
+      "type": "string_too_short",
+      "loc": ["body", "message"],
+      "msg": "String should have at least 1 character",
+      "input": "",
+      "ctx": { "min_length": 1 }
+    }
+  ]
+}
+```
+
+**422 Unprocessable Entity** (mensaje de más de 500 caracteres; `input` trae el mensaje completo, acá se acortó)
+
+```json
+{
+  "detail": [
+    {
+      "type": "string_too_long",
+      "loc": ["body", "message"],
+      "msg": "String should have at most 500 characters",
+      "input": "aaaa…",
+      "ctx": { "max_length": 500 }
+    }
+  ]
+}
+```
+
 ## 3. Códigos de respuesta
 
 | Código | Cuándo | `detail` |
 |---|---|---|
-| 200 OK | Lectura correcta (`GET`) | — |
+| 200 OK | Lectura correcta (`GET`) o respuesta de KioscoBot (`POST /api/chat`) | — |
 | 201 Created | Pedido creado (`POST /api/orders`) | — |
 | 404 Not Found | El producto no existe (`GET /api/products/{id}` o un `product_id` de `POST /api/orders`) | `"Product 999 not found"` |
 | 409 Conflict | No alcanza el stock de un producto del pedido | `"Insufficient stock for product 1"` |
@@ -327,7 +425,9 @@ GET /api/orders
 | 422 Unprocessable Entity | Datos inválidos: `items` vacío (`[]`) | lista con `"type": "too_short"` |
 | 422 Unprocessable Entity | Datos inválidos: falta el campo `items` en el pedido | lista con `"type": "missing"` |
 | 422 Unprocessable Entity | Datos inválidos: `product_id` que no es un número entero (por ejemplo `"abc"`, o `/api/products/abc` en la URL) | lista con `"type": "int_parsing"` |
-| 500 Internal Server Error | Error inesperado de la base de datos (queda registrado en el log del servidor) | `"Internal server error"` |
+| 422 Unprocessable Entity | Datos inválidos: `message` del chat vacío o con solo espacios | lista con `"type": "string_too_short"` |
+| 422 Unprocessable Entity | Datos inválidos: `message` del chat de más de 500 caracteres | lista con `"type": "string_too_long"` |
+| 500 Internal Server Error | Error inesperado de la base de datos (queda registrado en el log del servidor). No aplica a `POST /api/chat`, que en ese caso responde 200 con un texto fijo | `"Internal server error"` |
 
 ## 4. Cómo probar a mano
 

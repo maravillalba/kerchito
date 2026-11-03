@@ -1,6 +1,6 @@
 # KioscoBot – Chatbot de soporte de Kiosko El Rápido
 
-> **Estado.** La primera versión del bot (solo con reglas, sin modelo de IA) ya está implementada en `POST /api/chat` (ver [`CONTRATO.md`](CONTRATO.md)). Lo marcado como **(propuesta)** todavía no existe: la capa de IA opcional, el límite de mensajes por minuto y el historial de conversación. Hay que acordarlo y, si se aprueba, agregarlo a [`CONTRATO.md`](CONTRATO.md) y [`API.md`](API.md) antes de programarlo.
+> **Estado.** La primera versión del bot (solo con reglas, sin modelo de IA) ya está implementada en `POST /api/chat` (ver [`CONTRATO.md`](CONTRATO.md)), y el widget del chat ya existe en el frontend. Lo marcado como **(propuesta)** todavía no existe: la capa de IA opcional, el límite de mensajes por minuto y el historial del lado del bot. Hay que acordarlo y, si se aprueba, agregarlo a [`CONTRATO.md`](CONTRATO.md) y [`API.md`](API.md) antes de programarlo.
 
 ## 1. Qué es y para qué sirve
 
@@ -86,7 +86,8 @@ KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que 
 - [x] **Estado del carrito:** el frontend no lo manda; el bot responde con texto fijo.
 - [x] **Horarios:** texto fijo en el backend (constantes `HORARIOS` y `MEDIOS_DE_PAGO` en `backend/routers/chat.py`). **Los valores actuales son de ejemplo: falta confirmarlos con el equipo.**
 - [ ] **Historial:** ¿el bot recuerda los mensajes anteriores de la conversación (enviados por el frontend) o cada mensaje es independiente?
+  - Hoy el widget guarda la conversación en memoria solo para mostrarla (se pierde al recargar); el backend responde cada mensaje por separado y no recibe los anteriores. Falta decidir si el bot tiene que recordar la conversación.
 - [ ] **Valores de los límites:** largo máximo del mensaje, mensajes por minuto y tope de gasto.
 - [ ] **Dependencias nuevas:** el cliente HTTP o SDK del proveedor y el control de límites agregan dependencias al backend; hay que aprobarlas.
 - [ ] **Tests:** cómo testear el endpoint sin llamar al modelo real (reemplazarlo por uno falso en Pytest, igual que hoy se reemplaza `get_db`).
-- [ ] **Diseño del chat** en el frontend (botón flotante, página aparte, etc.), con la paleta actual.
+- [x] **Diseño del chat** en el frontend (botón flotante, página aparte, etc.), con la paleta actual. Hecho: botón flotante en todas las páginas, con "Escribiendo…" y error con "Reintentar".
