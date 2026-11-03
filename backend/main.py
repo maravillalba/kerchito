@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from routers import orders, products
+from routers import chat, orders, products
 from seed import seed
 
 logger = logging.getLogger("uvicorn.error")
@@ -34,7 +34,7 @@ app.add_middleware(
 
 app.include_router(products.router)
 app.include_router(orders.router)
-
+app.include_router(chat.router)
 
 @app.exception_handler(SQLAlchemyError)
 async def database_error_handler(request: Request, exc: SQLAlchemyError):

@@ -43,3 +43,11 @@ export interface OrderResponse {
   total: number;
   items: OrderItemResponse[];
 }
+
+export interface ChatRequest {
+  message: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+}

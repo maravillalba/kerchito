@@ -1,6 +1,6 @@
 # KioscoBot – Chatbot de soporte de Kiosko El Rápido
 
-> **Borrador.** Este documento es una propuesta para discutir en el equipo. Nada de lo que está acá está implementado todavía. Lo marcado como **(propuesta)** no existe en la API actual: hay que acordarlo y, si se aprueba, agregarlo a [`CONTRATO.md`](CONTRATO.md) y [`API.md`](API.md) antes de programarlo.
+> **Estado.** La primera versión del bot (solo con reglas, sin modelo de IA) ya está implementada en `POST /api/chat` (ver [`CONTRATO.md`](CONTRATO.md)). Lo marcado como **(propuesta)** todavía no existe: la capa de IA opcional, el límite de mensajes por minuto y el historial de conversación. Hay que acordarlo y, si se aprueba, agregarlo a [`CONTRATO.md`](CONTRATO.md) y [`API.md`](API.md) antes de programarlo.
 
 ## 1. Qué es y para qué sirve
 
@@ -19,8 +19,8 @@ KioscoBot es un chat de ayuda dentro de la tienda. Responde preguntas cortas de 
 | Productos por categoría | "¿Qué bebidas tienen?", "Mostrame los lácteos" | Lista de productos de esa categoría con precio. | `GET /api/products?category=<valor>` |
 | Categorías | "¿Qué venden?", "¿Qué categorías hay?" | Las 6 categorías: Bebidas, Golosinas y snacks, Lácteos, Almacén, Limpieza, Cigarrillos. | Valores fijos de [`CONTRATO.md`](CONTRATO.md) §3 |
 | Cómo hacer un pedido | "¿Cómo compro?", "¿Cómo finalizo el pedido?" | Los pasos: elegir productos → "Agregar al carrito" → ir a Carrito → "Finalizar pedido". Aclara que el stock se confirma al finalizar. | Texto fijo (flujo actual de la app) |
-| Estado del carrito | "¿Qué tengo en el carrito?", "¿Cuánto llevo gastado?" | Productos, cantidades y total del carrito. | El carrito vive solo en el frontend (`CartContext`): el frontend tendría que mandarlo junto con el mensaje **(propuesta, ver §6)** |
-| Horarios | "¿A qué hora abren?", "¿Abren el domingo?" | Los horarios del kiosko. | **No existe en la API.** Texto fijo a definir por el equipo (ver §6) |
+| Estado del carrito | "¿Qué tengo en el carrito?", "¿Cuánto llevo gastado?" | Productos, cantidades y total del carrito. | El carrito vive solo en el frontend (`CartContext`) y el frontend no lo manda: el bot responde con un texto fijo que indica ir a la sección Carrito. |
+| Horarios | "¿A qué hora abren?", "¿Abren el domingo?" | Los horarios del kiosko. | **No existe en la API.** Texto fijo en el backend (ver §6) |
 | Ayuda general | "Hola", "¿Qué podés hacer?", "Gracias" | Saludo y lista corta de lo que puede responder. | Texto fijo |
 
 ## 3. Límites (qué NO hace)
@@ -41,7 +41,7 @@ KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que 
 1. **La key vive solo en el backend**, en una variable de entorno, por ejemplo `BOT_API_KEY` **(propuesta de nombre)**. El código la lee con `os.getenv`, como hoy se lee `DATABASE_URL`.
 2. **Nunca en el frontend.** Toda variable `VITE_*` termina dentro del JavaScript que descarga el navegador, así que la key **no** puede ser una variable `VITE_` ni estar escrita en ningún archivo de `frontend/`.
 3. **Nunca en git.** El `.gitignore` ya ignora `.env` y `.env.*` y deja subir solo `.env.example`. En `backend/.env.example` va solo un valor de ejemplo (`BOT_API_KEY=poné-tu-key-acá`), nunca una key real. Cada integrante tiene su propio `.env` local.
-4. **El frontend llama a un endpoint propio del backend**, `POST /api/bot/messages` **(propuesta)**, y el backend es el único que llama al modelo. El navegador nunca habla directo con el proveedor.
+4. **El frontend llama a un endpoint propio del backend**, `POST /api/chat`, y el backend es el único que llama al modelo. El navegador nunca habla directo con el proveedor.
 5. **Límites de uso y de tamaño** **(propuesta, valores a acordar):**
    - Mensaje de hasta 500 caracteres; si es más largo, el backend responde 422.
    - Un máximo de mensajes por minuto por cliente (por ejemplo, 10); si se pasa, responde 429.
@@ -56,12 +56,12 @@ KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que 
 
 ## 5. Flujo y ejemplos de conversación
 
-**Flujo propuesto**
+**Flujo**
 
 1. El cliente escribe en el chat del frontend.
-2. El frontend envía `POST /api/bot/messages` **(propuesta)** con `{ "message": "..." }` (y, si se aprueba, el resumen del carrito).
-3. El backend valida el tamaño, consulta los productos en la base (los mismos datos que `GET /api/products`) y arma el pedido al modelo con esos datos y las reglas de §3.
-4. El modelo arma la respuesta; el backend la devuelve como `{ "reply": "..." }` **(propuesta)**.
+2. El frontend envía `POST /api/chat` con `{ "message": "..." }`.
+3. El backend valida el tamaño, consulta los productos en la base (los mismos datos que `GET /api/products`) y arma la respuesta según las reglas de §3.
+4. El backend arma la respuesta con reglas (y, cuando exista la capa de IA, con el modelo, usando las reglas como fallback) y la devuelve como `{ "reply": "..." }`. Puede tener saltos de línea (`\n`).
 5. El frontend la muestra en el chat.
 
 **Ejemplo 1 – precio y stock**
@@ -82,9 +82,9 @@ KioscoBot usa un modelo de lenguaje externo (proveedor a definir, ver §6), que 
 ## 6. Pendientes / decisiones para el equipo
 
 - [ ] **Proveedor y modelo** de lenguaje a usar, y quién crea y administra la cuenta y la key.
-- [ ] **Endpoint del bot:** aprobar `POST /api/bot/messages` (cuerpo `{ "message": string }`, respuesta `{ "reply": string }`, errores 422 y 429) y agregarlo a `CONTRATO.md` y `API.md`.
-- [ ] **Estado del carrito:** ¿el frontend manda el carrito con cada mensaje (`cart: { product_id, quantity }[]`) o el bot no responde sobre el carrito?
-- [ ] **Horarios:** definir los horarios reales y dónde viven (texto fijo en el backend, o un dato nuevo).
+- [x] **Endpoint del bot:** `POST /api/chat` aprobado y documentado en `CONTRATO.md` (cuerpo `{ "message": string }`, respuesta `{ "reply": string }`, 422 por mensaje vacío o de más de 500 caracteres). Falta el 429 (límite por minuto).
+- [x] **Estado del carrito:** el frontend no lo manda; el bot responde con texto fijo.
+- [x] **Horarios:** texto fijo en el backend (constantes `HORARIOS` y `MEDIOS_DE_PAGO` en `backend/routers/chat.py`). **Los valores actuales son de ejemplo: falta confirmarlos con el equipo.**
 - [ ] **Historial:** ¿el bot recuerda los mensajes anteriores de la conversación (enviados por el frontend) o cada mensaje es independiente?
 - [ ] **Valores de los límites:** largo máximo del mensaje, mensajes por minuto y tope de gasto.
 - [ ] **Dependencias nuevas:** el cliente HTTP o SDK del proveedor y el control de límites agregan dependencias al backend; hay que aprobarlas.

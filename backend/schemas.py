@@ -49,3 +49,12 @@ class OrderOut(BaseModel):
     created_at: datetime
     total: float
     items: list[OrderItemOut]
+    
+class ChatRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    message: str = Field(min_length=1, max_length=500)
+
+
+class ChatResponse(BaseModel):
+    reply: str

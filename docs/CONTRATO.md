@@ -75,6 +75,7 @@ El backend no los conoce:
 | GET |  `/api/products `|  Lista los productos; con?category=<valor> filtra por categoría (valor inválido: 422) | 200, 422 |
 | GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
 | POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
+| POST | `/api/chat` | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
 | GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo (`id` descendente); si no hay pedidos devuelve `[]` | 200 |
 
 Notas de `POST /api/orders`:
@@ -86,6 +87,31 @@ Notas de `POST /api/orders`:
 
 La búsqueda se hace en el frontend. El filtro por categoría puede hacerse en el frontend o con el parámetro opcional ?category=.
 
+Notas de `GET /api/orders`:
+### Chat (KioscoBot)
+
+`POST /api/chat` recibe un mensaje y devuelve la respuesta del bot.
+
+**Lo que envía el frontend**
+
+| Campo | TypeScript | Pydantic | Regla |
+|---|---|---|---|
+| `message` | `string` | `str` | entre 1 y 500 caracteres (se ignoran los espacios del principio y del final) |
+
+**Lo que responde el backend**
+
+| Campo | TypeScript | Pydantic | Regla |
+|---|---|---|---|
+| `reply` | `string` | `str` | texto en español; puede tener saltos de línea (`\n`) |
+
+Notas:
+
+- Es solo de consulta: nunca llama a `POST /api/orders` ni modifica productos.
+- Los datos de productos (precio, stock, categoría) salen de la base, igual que `GET /api/products`.
+- Si no entiende la pregunta, o si la base no responde, devuelve 200 con un texto fijo. El 422 es solo por mensaje vacío o de más de 500 caracteres.
+- Horarios y medios de pago son texto fijo del backend.
+- Todavía no hay límite de mensajes por minuto (no existe el 429).
+
 ## 8. Ejemplos JSON
 
 **POST /api/orders (pedido)**
@@ -96,6 +122,16 @@ La búsqueda se hace en el frontend. El filtro por categoría puede hacerse en e
     { "product_id": 4, "quantity": 1 }
   ]
 }
+```
+
+**POST /api/chat (pregunta)**
+```json
+{ "message": "¿Cuánto sale la Coca?" }
+```
+
+**200 OK**
+```json
+{ "reply": "Coca-Cola 500ml sale $ 1.200 y hay 25 unidades." }
 ```
 
 **201 Created**
