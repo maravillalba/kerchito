@@ -59,6 +59,14 @@ describe('CartContext', () => {
     expect(result.current.items[0].quantity).toBe(5);
   });
 
+  it('addToCart con un producto sin stock no crea ningún renglón', () => {
+    const { result } = renderCart();
+    act(() => result.current.addToCart({ ...coca, stock: 0 }));
+    expect(result.current.items).toEqual([]);
+    expect(result.current.totalItems).toBe(0);
+    expect(result.current.totalPrice).toBe(0);
+  });
+
   it('updateQuantity cambia la cantidad sin pasar del stock', () => {
     const { result } = renderCart();
     act(() => result.current.addToCart(coca, 1));
