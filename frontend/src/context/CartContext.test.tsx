@@ -101,3 +101,79 @@ describe('CartContext', () => {
     expect(result.current.totalPrice).toBe(2 * 1200 + 3 * 1100);
   });
 });
+
+describe('CartContext.syncStock', () => {
+  const leche: Product = {
+    id: 5,
+    name: 'Leche entera 1L',
+    category: 'lacteos',
+    price: 1300,
+    stock: 20,
+  };
+
+  // Carrito con 4 Coca-Cola, 3 alfajores y 2 leches.
+  function renderFilledCart() {
+    const rendered = renderCart();
+    act(() => rendered.result.current.addToCart(coca, 4));
+    act(() => rendered.result.current.addToCart(alfajor, 3));
+    act(() => rendered.result.current.addToCart(leche, 2));
+    return rendered;
+  }
+
+  it('baja la cantidad al stock disponible', () => {
+    const { result } = renderFilledCart();
+    act(() =>
+      result.current.syncStock([{ ...coca, stock: 2 }, alfajor, leche]),
+    );
+    expect(result.current.items[0]).toEqual({
+      product: { ...coca, stock: 2 },
+      quantity: 2,
+    });
+  });
+
+  it('quita los productos con stock 0', () => {
+    const { result } = renderFilledCart();
+    act(() =>
+      result.current.syncStock([coca, { ...alfajor, stock: 0 }, leche]),
+    );
+    expect(result.current.items.map((item) => item.product.id)).toEqual([1, 5]);
+  });
+
+  it('quita los productos que ya no existen', () => {
+    const { result } = renderFilledCart();
+    act(() => result.current.syncStock([coca, leche]));
+    expect(result.current.items.map((item) => item.product.id)).toEqual([1, 5]);
+  });
+
+  it('deja intactos los productos que siguen con stock suficiente', () => {
+    const { result } = renderFilledCart();
+    act(() =>
+      result.current.syncStock([{ ...coca, stock: 1 }, alfajor, leche]),
+    );
+    expect(result.current.items.slice(1)).toEqual([
+      { product: alfajor, quantity: 3 },
+      { product: leche, quantity: 2 },
+    ]);
+  });
+
+  it('reemplaza el producto por el del backend, con el precio actual', () => {
+    const { result } = renderFilledCart();
+    act(() =>
+      result.current.syncStock([coca, alfajor, { ...leche, price: 1500 }]),
+    );
+    expect(result.current.items[2].product.price).toBe(1500);
+    expect(result.current.totalPrice).toBe(4 * 1200 + 3 * 1100 + 2 * 1500);
+  });
+
+  it('actualiza totalItems y totalPrice después de ajustar', () => {
+    const { result } = renderFilledCart();
+    act(() =>
+      result.current.syncStock([
+        { ...coca, stock: 1 },
+        { ...alfajor, stock: 0 },
+      ]),
+    );
+    expect(result.current.totalItems).toBe(1);
+    expect(result.current.totalPrice).toBe(1200);
+  });
+});
