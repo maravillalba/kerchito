@@ -1,0 +1,98 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import { CartProvider, useCart } from '../context/CartContext';
+import type { Product } from '../types';
+import Header from './Header';
+
+const coca: Product = {
+  id: 1,
+  name: 'Coca-Cola 500ml',
+  category: 'bebidas',
+  price: 1200,
+  stock: 5,
+};
+
+// Botón auxiliar de test: agrega 2 unidades al carrito.
+function AddTwo() {
+  const { addToCart } = useCart();
+  return (
+    <button type="button" onClick={() => addToCart(coca, 2)}>
+      Agregar de prueba
+    </button>
+  );
+}
+
+function renderHeader(path = '/') {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <CartProvider>
+        <Header />
+        <AddTwo />
+      </CartProvider>
+    </MemoryRouter>,
+  );
+}
+
+describe('Header', () => {
+  it('muestra los links Inicio, Productos y Carrito', () => {
+    renderHeader();
+    expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+      'href',
+      '/',
+    );
+    expect(screen.getByRole('link', { name: 'Productos' })).toHaveAttribute(
+      'href',
+      '/products',
+    );
+    expect(screen.getByRole('link', { name: /Carrito/ })).toHaveAttribute(
+      'href',
+      '/cart',
+    );
+  });
+
+  it('el logo es un link a la página de inicio', () => {
+    renderHeader('/products');
+    expect(
+      screen.getByRole('link', { name: 'Kiosko El Rápido' }),
+    ).toHaveAttribute('href', '/');
+  });
+
+  it('el carrito muestra (N) y se actualiza al agregar un producto', async () => {
+    const user = userEvent.setup();
+    renderHeader();
+    expect(screen.getByRole('link', { name: 'Carrito (0)' })).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Agregar de prueba' }));
+    expect(screen.getByRole('link', { name: 'Carrito (2)' })).toBeVisible();
+  });
+
+  it.each([
+    ['/', 'Inicio'],
+    ['/products', 'Productos'],
+    ['/cart', 'Carrito (0)'],
+  ])('en %s marca como activo el link %s', (path, activo) => {
+    renderHeader(path);
+    const links = ['Inicio', 'Productos', 'Carrito (0)'];
+    for (const name of links) {
+      const link = screen.getByRole('link', { name });
+      if (name === activo) {
+        expect(link).toHaveAttribute('aria-current', 'page');
+        expect(link).toHaveClass('active');
+      } else {
+        expect(link).not.toHaveAttribute('aria-current');
+      }
+    }
+  });
+
+  it('en el detalle de un producto sigue activo Productos', () => {
+    renderHeader('/products/1');
+    expect(screen.getByRole('link', { name: 'Productos' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Inicio' })).not.toHaveAttribute(
+      'aria-current',
+    );
+  });
+});

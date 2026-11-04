@@ -1,0 +1,11 @@
+.footer {
+  color: var(--color-fondo);
+  background: var(--color-marca);
+}
+
+.footer__text {
+  margin: 0 auto;
+  padding-block: var(--espacio-3);
+  font-size: var(--texto-chico);
+  text-align: center;
+}

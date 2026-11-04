@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Builds
+dist/
+build/
+
+# Variables de entorno (NUNCA subir)
+.env
+.env.*
+!.env.example
+
+# Base de datos local
+*.db
+*.sqlite3
+
+# Editor / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs y tests
+*.log
+.pytest_cache/
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml

@@ -1,0 +1,201 @@
+.chat-widget__toggle {
+  position: fixed;
+  right: var(--espacio-3);
+  bottom: var(--espacio-3);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  font-size: 1.6rem;
+  color: var(--color-marca-oscuro);
+  background: var(--color-primario);
+  border: 2px solid var(--color-marca);
+  border-radius: 50%;
+  box-shadow: var(--sombra-media);
+  cursor: pointer;
+}
+
+.chat-widget__toggle:hover {
+  background: var(--color-primario-hover);
+}
+
+/* En el celular el panel ocupa el ancho de la pantalla, con margen. */
+.chat-widget__panel {
+  position: fixed;
+  right: var(--espacio-2);
+  bottom: var(--espacio-2);
+  left: var(--espacio-2);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2 * var(--espacio-2));
+  max-height: calc(100dvh - 2 * var(--espacio-2));
+  background: var(--color-superficie);
+  border: 2px solid var(--color-marca);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra-media);
+}
+
+.chat-widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espacio-2) var(--espacio-3);
+  color: #fff;
+  background: var(--color-marca);
+  border-radius: calc(var(--radio-grande) - 2px) calc(var(--radio-grande) - 2px)
+    0 0;
+}
+
+.chat-widget__title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: inherit;
+}
+
+.chat-widget__close {
+  width: 44px;
+  height: 44px;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: inherit;
+  background: transparent;
+  border: none;
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+.chat-widget__close:focus-visible {
+  outline-color: #fff;
+}
+
+.chat-widget__log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  min-height: 12rem;
+  max-height: 24rem;
+  padding: var(--espacio-3);
+  overflow-y: auto;
+  background: var(--color-fondo);
+}
+
+.chat-widget__message {
+  max-width: 85%;
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-grande);
+  overflow-wrap: break-word;
+  white-space: pre-line;
+}
+
+.chat-widget__message--bot {
+  align-self: flex-start;
+  color: var(--color-texto);
+  background: var(--color-marca-suave);
+  border: 1px solid var(--color-borde);
+  border-bottom-left-radius: var(--espacio-1);
+}
+
+.chat-widget__message--user {
+  align-self: flex-end;
+  color: #fff;
+  background: var(--color-marca);
+  border-bottom-right-radius: var(--espacio-1);
+}
+
+.chat-widget__typing {
+  align-self: flex-start;
+  margin: 0;
+  font-size: var(--texto-chico);
+  font-style: italic;
+  color: var(--color-texto-suave);
+}
+
+.chat-widget__error {
+  padding: var(--espacio-2) var(--espacio-3) 0;
+}
+
+/* El panel es angosto: el error va siempre en columna. */
+.chat-widget__error .error-message {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-3);
+  font-size: var(--texto-chico);
+}
+
+.chat-widget__form {
+  display: flex;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+  border-top: 1px solid var(--color-borde);
+}
+
+.chat-widget__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--espacio-2) var(--espacio-3);
+  font: inherit;
+  color: var(--color-texto);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+}
+
+.chat-widget__input:disabled {
+  background: var(--color-fondo);
+}
+
+.chat-widget__send {
+  min-height: 44px;
+  padding: var(--espacio-2) var(--espacio-3);
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  background: var(--color-primario);
+  border: 1px solid var(--color-primario);
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+.chat-widget__send:hover:not(:disabled) {
+  background: var(--color-primario-hover);
+}
+
+.chat-widget__send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chat-widget__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 480px) {
+  .chat-widget__panel {
+    right: var(--espacio-3);
+    bottom: var(--espacio-3);
+    left: auto;
+    width: 360px;
+    max-height: calc(100vh - 2 * var(--espacio-3));
+    max-height: calc(100dvh - 2 * var(--espacio-3));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chat-widget__log {
+    scroll-behavior: smooth;
+  }
+}

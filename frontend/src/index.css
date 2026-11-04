@@ -1,0 +1,112 @@
+:root {
+  /* Colores de marca */
+  --color-primario: #ff8a00; /* naranja: solo fondo de botones principales */
+  --color-primario-hover: #ffa033;
+  --color-acento: #ffd700; /* amarillo: solo fondos */
+  --color-marca: #247a16; /* verde: texto, bordes y fondos */
+  --color-marca-oscuro: #143d0c; /* texto sobre naranja o amarillo */
+  --color-marca-suave: #e9f3e6;
+
+  /* Colores de interfaz */
+  --color-fondo: #faf9f2; /* crema */
+  --color-superficie: #fff;
+  --color-borde: #d9dccf;
+  --color-texto: #1f2a1c;
+  --color-texto-suave: #4f5e4a;
+  --color-foco: var(--color-marca);
+
+  /* Tipografía */
+  --fuente-base: system-ui, sans-serif;
+  --texto-base: 1rem;
+  --texto-chico: 0.875rem;
+  --interlineado: 1.5;
+
+  /* Espaciados */
+  --espacio-1: 0.25rem;
+  --espacio-2: 0.5rem;
+  --espacio-3: 1rem;
+  --espacio-4: 1.5rem;
+  --espacio-5: 2rem;
+
+  /* Radios */
+  --radio: 8px;
+  --radio-grande: 12px;
+
+  /* Sombras */
+  --sombra-chica: 0 1px 3px rgb(20 61 12 / 0.1);
+  --sombra-media: 0 4px 12px rgb(20 61 12 / 0.15);
+
+  /* Layout */
+  --ancho-maximo: 1100px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente-base);
+  font-size: var(--texto-base);
+  line-height: var(--interlineado);
+  color: var(--color-texto);
+  background: var(--color-fondo);
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  color: var(--color-marca-oscuro);
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--color-marca);
+}
+
+a:hover {
+  color: var(--color-marca-oscuro);
+}
+
+button {
+  font: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin-inline: auto;
+  padding-inline: var(--espacio-3);
+}
+
+main.container {
+  flex: 1;
+  padding-block: var(--espacio-4);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-inline: var(--espacio-4);
+  }
+}
