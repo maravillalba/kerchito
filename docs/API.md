@@ -56,7 +56,7 @@ Devuelve todos los productos. Con el parámetro opcional `category` devuelve sol
 GET /api/products
 ```
 
-**200 OK** (devuelve los 10 productos del seed; acá se muestran los dos primeros)
+**200 OK** (devuelve los 35 productos del seed; acá se muestran los dos primeros)
 
 ```json
 [
@@ -67,7 +67,7 @@ GET /api/products
     "price": 1200.0,
     "stock": 25,
     "description": "Gaseosa clásica",
-    "image": null
+    "image": "/productos/coca-cola.webp"
   },
   {
     "id": 2,
@@ -76,7 +76,7 @@ GET /api/products
     "price": 800.0,
     "stock": 40,
     "description": "Agua sin gas",
-    "image": null
+    "image": "/productos/agua-mineral.webp"
   }
 ]
 ```
@@ -95,6 +95,33 @@ Productos que carga el seed con una base nueva:
 | 8 | Galletitas de agua | `almacen` | 1000.0 | 35 |
 | 9 | Lavandina 1L | `limpieza` | 1600.0 | 15 |
 | 10 | Cigarrillos | `cigarrillos` | 2500.0 | 20 |
+| 11 | Yerba mate 500 g | `almacen` | 1900.0 | 30 |
+| 12 | Azúcar 1 kg | `almacen` | 1100.0 | 25 |
+| 13 | Aceite de girasol 900 ml | `almacen` | 2100.0 | 20 |
+| 14 | Arroz largo fino 1 kg | `almacen` | 1300.0 | 25 |
+| 15 | Puré de tomate 520 g | `almacen` | 800.0 | 30 |
+| 16 | Gaseosa lima-limón 500 ml | `bebidas` | 1100.0 | 30 |
+| 17 | Jugo de naranja 1 L | `bebidas` | 1500.0 | 20 |
+| 18 | Agua saborizada pomelo 500 ml | `bebidas` | 1000.0 | 25 |
+| 19 | Cerveza rubia lata 473 ml | `bebidas` | 1700.0 | 40 |
+| 20 | Fernet 750 ml | `bebidas` | 9500.0 | 10 |
+| 21 | Vino tinto malbec 750 ml | `bebidas` | 3800.0 | 12 |
+| 22 | Alfajor triple de dulce de leche | `golosinas_snacks` | 1300.0 | 40 |
+| 23 | Caramelos masticables x 10 | `golosinas_snacks` | 500.0 | 40 |
+| 24 | Chicles de menta x 5 | `golosinas_snacks` | 600.0 | 35 |
+| 25 | Turrón de maní 25 g | `golosinas_snacks` | 400.0 | 40 |
+| 26 | Queso cremoso 500 g | `lacteos` | 4500.0 | 10 |
+| 27 | Manteca 200 g | `lacteos` | 2300.0 | 15 |
+| 28 | Dulce de leche 400 g | `lacteos` | 2400.0 | 20 |
+| 29 | Crema de leche 200 ml | `lacteos` | 1600.0 | 12 |
+| 30 | Detergente 500 ml | `limpieza` | 1400.0 | 20 |
+| 31 | Jabón en polvo 800 g | `limpieza` | 3200.0 | 12 |
+| 32 | Papel higiénico x 4 | `limpieza` | 2600.0 | 20 |
+| 33 | Esponja doble faz | `limpieza` | 600.0 | 30 |
+| 34 | Cigarrillos mentolados x 20 | `cigarrillos` | 2700.0 | 15 |
+| 35 | Tabaco para armar 30 g | `cigarrillos` | 3000.0 | 8 |
+
+Cada producto del seed trae en `image` la ruta de su foto, por ejemplo `/productos/coca-cola.webp`. Es una ruta del frontend, no del backend: los archivos están en `frontend/public/productos/` y los sirve Vite. Si `image` es `null` o la foto no carga, el frontend muestra la imagen de la categoría.
 
 **Pedido con filtro**
 
@@ -102,7 +129,7 @@ Productos que carga el seed con una base nueva:
 GET /api/products?category=bebidas
 ```
 
-**200 OK**
+**200 OK** (devuelve los 8 productos de `bebidas` del seed; acá se muestran los dos primeros)
 
 ```json
 [
@@ -113,7 +140,7 @@ GET /api/products?category=bebidas
     "price": 1200.0,
     "stock": 25,
     "description": "Gaseosa clásica",
-    "image": null
+    "image": "/productos/coca-cola.webp"
   },
   {
     "id": 2,
@@ -122,7 +149,7 @@ GET /api/products?category=bebidas
     "price": 800.0,
     "stock": 40,
     "description": "Agua sin gas",
-    "image": null
+    "image": "/productos/agua-mineral.webp"
   }
 ]
 ```
@@ -169,7 +196,7 @@ GET /api/products/1
   "price": 1200.0,
   "stock": 25,
   "description": "Gaseosa clásica",
-  "image": null
+  "image": "/productos/coca-cola.webp"
 }
 ```
 
@@ -352,11 +379,11 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "Leche entera 1L sale $ 1.300 y hay 20 unidades. El stock puede cambiar hasta que confirmes el pedido."
+  "reply": "Encontré estos productos:\n- Leche entera 1L: $ 1.300 (20 unidades)\n- Alfajor triple de dulce de leche: $ 1.300 (40 unidades)\n- Dulce de leche 400 g: $ 2.400 (20 unidades)\n- Crema de leche 200 ml: $ 1.600 (12 unidades)\nEl stock puede cambiar hasta que confirmes el pedido."
 }
 ```
 
-**200 OK** (categoría, con saltos de línea)
+**200 OK** (categoría, con saltos de línea; el bot muestra hasta 6 productos y resume el resto con "… y N más")
 
 ```json
 { "message": "¿Qué bebidas tienen?" }
@@ -364,7 +391,7 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)"
+  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)\n- Gaseosa lima-limón 500 ml: $ 1.100 (30 unidades)\n- Jugo de naranja 1 L: $ 1.500 (20 unidades)\n- Agua saborizada pomelo 500 ml: $ 1.000 (25 unidades)\n- Cerveza rubia lata 473 ml: $ 1.700 (40 unidades)\n… y 2 más."
 }
 ```
 

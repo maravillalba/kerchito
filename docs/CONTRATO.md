@@ -37,7 +37,7 @@ Valores permitidos para `category`:
 | `price` | `number` | `float` | mayor a 0 |
 | `stock` | `number` | `int` | mayor o igual a 0 |
 | `description` | `string \| null (opcional)` | `str \| None` | |
-| `image` | `string \| null (opcional)` | `str \| None` | |
+| `image` | `string \| null (opcional)` | `str \| None` | ruta de la foto que sirve el frontend desde `frontend/public/` (por ejemplo `/productos/coca-cola.webp`); sin foto, el frontend muestra la imagen de la categoría |
 
 ## 5. Pedido
 

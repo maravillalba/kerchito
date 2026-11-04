@@ -5,6 +5,7 @@ import Loading from '../components/Loading';
 import { useCart } from '../context/CartContext';
 import { ApiError, getProductById } from '../services/api';
 import type { Product } from '../types';
+import ProductImage from '../components/ProductImage';
 import { CATEGORY_LABELS, formatPrice } from '../utils/format';
 import './ProductDetail.css';
 
@@ -68,6 +69,7 @@ function ProductInfo({ product }: { product: Product }) {
       >
         Volver
       </button>
+      <ProductImage product={product} size="detail" />
       <span className="product-detail__category">
         {CATEGORY_LABELS[product.category]}
       </span>

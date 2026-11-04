@@ -83,6 +83,15 @@ def test_stock_de_un_producto(client, productos, ia_sin_clave):
     )
 
 
+def test_stock_de_varios_productos_aclara_en_una_linea_aparte(client, productos, ia_sin_clave):
+    assert preguntar(client, "¿Tienen coca o agua?") == (
+        "Encontré estos productos:\n"
+        "- Coca-Cola 500ml: $ 1.200 (25 unidades)\n"
+        "- Agua mineral 500ml: $ 800 (40 unidades)\n"
+        "El stock puede cambiar hasta que confirmes el pedido."
+    )
+
+
 def test_producto_sin_stock(client, productos, ia_sin_clave):
     respuesta = preguntar(client, "¿Hay alfajores?")
     assert respuesta.startswith("Alfajor Jorgito sale $ 1.100, pero por ahora está sin stock.")
