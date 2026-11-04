@@ -54,26 +54,31 @@ python -m uvicorn main:app --reload
 | GET | `/api/products/{id}` | 200, 404, 422 |
 | POST | `/api/orders` | 201, 404, 409, 422 |
 | GET | `/api/orders` | 200 |
+| POST | `/api/chat` | 200, 422 |
 
-Si falla la base de datos, cualquier endpoint responde 500. Los ejemplos de pedidos y respuestas están en [`docs/API.md`](../docs/API.md), y los campos en [`docs/CONTRATO.md`](../docs/CONTRATO.md).
+Si falla la base de datos, cualquier endpoint responde 500, salvo `POST /api/chat`, que responde 200 con un aviso. Los ejemplos de pedidos y respuestas están en [`docs/API.md`](../docs/API.md), y los campos en [`docs/CONTRATO.md`](../docs/CONTRATO.md).
 
 ## Tests
 Desde `backend/`, con el entorno virtual activado:
 ```powershell
 python -m pytest -v
+python -m pytest --cov=. --cov-report=term-missing
 ```
-Los tests usan una base SQLite en memoria, así que no tocan `kiosco.db`.
+Los tests usan una base SQLite en memoria, así que no tocan `kiosco.db`, y nunca llaman a la API real de IA.
 
 ## Estructura
 - `main.py`: app FastAPI, creación de tablas y seed al arrancar, CORS, routers, manejo de errores de base de datos (500) y `GET /health`.
 - `database.py`: conexión a SQLite (`engine`, `SessionLocal`, `Base`), `PRAGMA foreign_keys=ON` y `get_db`.
 - `models.py`: modelos de la base (`Product`, `Order` y `OrderItem`).
-- `schemas.py`: esquemas Pydantic de productos y pedidos (ver `docs/CONTRATO.md`).
+- `schemas.py`: esquemas Pydantic de productos, pedidos y chat (ver `docs/CONTRATO.md`).
 - `seed.py`: los 10 productos iniciales y la función `seed()`.
+- `bot_ai.py`: capa de IA opcional de KioscoBot (usa `BOT_API_KEY` y `BOT_MODEL`).
 - `routers/products.py`: `GET /api/products` y `GET /api/products/{id}`.
 - `routers/orders.py`: `POST /api/orders` (descuenta stock en una sola transacción) y `GET /api/orders`.
-- `tests/`: `conftest.py` (cliente de prueba y base en memoria) y `test_health.py`.
+- `routers/chat.py`: `POST /api/chat` (KioscoBot: reglas y, si hay `BOT_API_KEY`, IA).
+- `tests/`: `conftest.py` (cliente de prueba y base en memoria), `test_health.py`, `test_products.py`, `test_orders.py`, `test_chat.py` y `test_bot_ai.py`.
 - `pytest.ini`: configuración de Pytest.
+- `.coveragerc`: configuración de la cobertura (excluye `tests/` y `.venv/`).
 - `requirements.txt`: dependencias.
 - `.env.example`: variables de entorno de ejemplo.
 

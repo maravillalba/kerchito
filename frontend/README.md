@@ -8,7 +8,7 @@ El contrato de datos entre frontend y backend está en [`docs/CONTRATO.md`](../d
 
 ## Requisitos
 
-- **Node.js** `^20.19.0` o `>=22.12.0` (lo que exige Vite 8).
+- **Node.js** 22 (`22.22.2` o más) o 24 (`24.15.0` o más) (lo que exigen Vitest y jsdom).
 - **npm** `11.12.1` (la versión que usa el equipo).
 
 ## Instalación
@@ -30,6 +30,7 @@ npm ci
 | `npm run lint`       | Corre ESLint sobre todo el proyecto.                                     |
 | `npm test`           | Corre los tests una vez con Vitest (`vitest run`).                       |
 | `npm run test:watch` | Corre Vitest en modo watch: vuelve a correr los tests al guardar.        |
+| `npm run coverage`   | Corre los tests con cobertura: tabla en la terminal y HTML en `coverage/`. |
 | `npm run preview`    | Sirve localmente el build de `dist/` (hay que correr `build` antes).     |
 
 ## Estructura de `src/`
@@ -37,11 +38,11 @@ npm ci
 ```text
 src/
 ├── components/   Componentes reutilizables y su CSS: Header, Footer, Layout,
-│                 ProductCard, CartItem, Loading y ErrorMessage.
+│                 ProductCard, CartItem, Loading, ErrorMessage y ChatWidget.
 ├── context/      CartContext.tsx: estado global del carrito y el hook useCart().
 ├── hooks/        useCheckout.ts: envía el pedido a la API y devuelve 'success',
 │                 'outdated' o 'error'.
-├── services/     api.ts: llamadas a la API (productos y pedidos) y manejo de
+├── services/     api.ts: llamadas a la API (productos, pedidos y chat) y manejo de
 │                 errores (ApiError).
 ├── assets/       logo.png.
 ├── pages/        Una página por ruta, con su CSS: Home, Products, ProductDetail,
@@ -52,14 +53,15 @@ src/
 ├── main.tsx      Punto de entrada: BrowserRouter + CartProvider + App.
 ├── index.css     Variables CSS (:root) y estilos globales.
 ├── setupTests.ts Configuración de los tests (jest-dom y limpieza entre tests).
-└── smoke.test.tsx Tests básicos de la app.
+└── smoke.test.tsx Tests básicos de la app (el resto de los *.test.ts(x) está al
+                  lado de cada archivo que prueban).
 ```
 
 Cada componente o página que tiene estilos los lleva en su propio `.css`, al lado del `.tsx` (por ejemplo, `ProductCard.tsx` y `ProductCard.css`).
 
 ## Rutas
 
-Todas las rutas se renderizan dentro de `Layout` (Header + contenido + Footer).
+Todas las rutas se renderizan dentro de `Layout` (Header + contenido + Footer + ChatWidget).
 
 | Ruta                     | Página          | Descripción                                                         |
 | ------------------------ | --------------- | ------------------------------------------------------------------- |
@@ -89,6 +91,7 @@ Se usa **Vitest** con **jsdom** y **Testing Library**. La configuración está e
 ```bash
 npm test             # una sola corrida
 npm run test:watch   # modo watch
+npm run coverage     # con cobertura
 ```
 
 A tener en cuenta al escribir tests:
