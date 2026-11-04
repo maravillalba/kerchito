@@ -28,7 +28,7 @@ kiosco-el-rapido/
 │   ├── database.py        conexión a SQLite
 │   ├── models.py          tablas products, orders y order_items
 │   ├── schemas.py         esquemas Pydantic (ver docs/CONTRATO.md)
-│   ├── seed.py            los 10 productos iniciales
+│   ├── seed.py            los 35 productos iniciales
 │   ├── bot_ai.py          capa de IA opcional de KioscoBot
 │   ├── routers/           products, orders y chat
 │   ├── tests/             tests de Pytest
@@ -93,7 +93,7 @@ python -m uvicorn main:app --reload
 - API: http://localhost:8000
 - Documentación interactiva (Swagger): http://localhost:8000/docs
 - Prueba rápida: http://localhost:8000/health responde `{"status":"ok"}`.
-- Al arrancar, crea la base `kiosco.db` y carga los 10 productos de ejemplo si la tabla de productos está vacía. La base se crea en la carpeta desde donde se arranca el servidor: por eso hay que correrlo siempre desde `backend/`.
+- Al arrancar, crea la base `kiosco.db` y carga los 35 productos de ejemplo si la tabla de productos está vacía. La base se crea en la carpeta desde donde se arranca el servidor: por eso hay que correrlo siempre desde `backend/`.
 - Para volver al stock original: frená el servidor (`Ctrl+C`), borrá `backend/kiosco.db` y volvé a arrancarlo.
 
 ## Frontend: instalación y ejecución

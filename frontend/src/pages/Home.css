@@ -23,15 +23,25 @@
   margin-bottom: var(--espacio-3);
 }
 
-.home__hero h1 {
-  margin: 0 0 var(--espacio-2);
-  font-size: 1.75rem;
-  color: var(--color-marca);
+/* Oculto a la vista pero leído por lectores de pantalla. */
+.home__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .home__tagline {
   margin: 0 0 var(--espacio-4);
-  color: var(--color-texto-suave);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  color: var(--color-marca-oscuro);
+  text-align: center;
 }
 
 .home__cta {
@@ -53,9 +63,10 @@
   margin: 0 0 var(--espacio-3);
 }
 
+/* Categorías: 2 columnas en celular, 3 desde 768px (2 filas). */
 .home__category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: 1fr;
   gap: var(--espacio-3);
   margin: 0;
@@ -70,10 +81,12 @@
 .home__category-grid a {
   display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: var(--espacio-2);
   align-items: center;
-  justify-content: center;
-  padding: var(--espacio-4) var(--espacio-3);
-  font-weight: 600;
+  justify-content: flex-start;
+  padding: var(--espacio-5) var(--espacio-3);
+  font-weight: 700;
   color: var(--color-marca);
   text-align: center;
   text-decoration: none;
@@ -83,10 +96,83 @@
   box-shadow: var(--sombra-chica);
 }
 
+.home__category-icon {
+  display: block;
+  width: 100%;
+  height: 100px;
+  object-fit: contain;
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+}
+
 .home__category-grid a:hover {
   color: var(--color-marca-oscuro);
   background: var(--color-acento);
   box-shadow: var(--sombra-media);
+}
+
+/* Cómo comprar: pasos apilados en celular, en fila desde 768px. */
+.home__steps h2 {
+  margin: 0 0 var(--espacio-3);
+}
+
+.home__step-list {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4) var(--espacio-3);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-chica);
+}
+
+.home__step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  background: var(--color-acento);
+  border-radius: 50%;
+}
+
+.home__step h3,
+.home__step p {
+  margin: 0;
+}
+
+.home__step p {
+  color: var(--color-texto-suave);
+}
+
+/* Banner de KioscoBot: solo texto, sobre amarillo con verde oscuro. */
+.home__bot {
+  padding: var(--espacio-4) var(--espacio-3);
+  color: var(--color-marca-oscuro);
+  background: var(--color-acento);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra-chica);
+}
+
+.home__bot h2 {
+  margin: 0 0 var(--espacio-2);
+  color: var(--color-marca-oscuro);
+}
+
+.home__bot p {
+  margin: 0;
 }
 
 @media (min-width: 768px) {
@@ -94,7 +180,24 @@
     padding: var(--espacio-5);
   }
 
-  .home__hero h1 {
-    font-size: 2.5rem;
+  .home__category-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .home__category-grid a {
+    padding: var(--espacio-5) var(--espacio-4);
+    font-size: 1.0625rem;
+  }
+
+  .home__category-icon {
+    height: 140px;
+  }
+
+  .home__step-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .home__bot {
+    padding: var(--espacio-4) var(--espacio-5);
   }
 }

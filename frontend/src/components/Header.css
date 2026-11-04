@@ -9,7 +9,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--espacio-2);
-  padding-block: var(--espacio-2);
+  /* 2px menos que --espacio-2: compensa el logo de 48px y el Header no cambia de alto. */
+  padding-block: calc(var(--espacio-2) - 2px);
 }
 
 .header__brand {
@@ -20,7 +21,7 @@
 .header__brand img {
   display: block;
   width: auto;
-  height: 44px;
+  height: 48px;
 }
 
 .header__nav {

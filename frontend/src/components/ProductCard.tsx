@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
 import { CATEGORY_LABELS, formatPrice } from '../utils/format';
+import ProductImage from './ProductImage';
 import './ProductCard.css';
 
 interface ProductCardProps {
@@ -11,6 +12,7 @@ interface ProductCardProps {
 function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
     <article className="product-card">
+      <ProductImage product={product} size="card" />
       <span className="product-card__category">
         {CATEGORY_LABELS[product.category]}
       </span>

@@ -1,0 +1,19 @@
+/* Foto del producto o, si no hay, la de su categoría: se ve entera, sobre
+   fondo blanco y sin recorte. */
+.product-image {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  background: var(--color-superficie);
+  border-radius: var(--radio);
+}
+
+.product-image--card {
+  height: 140px;
+}
+
+.product-image--detail {
+  max-width: 320px;
+  height: 240px;
+  border: 1px solid var(--color-borde);
+}

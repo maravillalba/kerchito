@@ -202,7 +202,9 @@ def _product_reply(hits: list[Product], words: set[str]) -> str:
     else:
         text = "Encontré estos productos:\n" + _list_lines(hits)
     if words & STOCK_WORDS:
-        text += " El stock puede cambiar hasta que confirmes el pedido."
+        # Después de una lista va en su propia línea; después de una oración, a continuación.
+        separator = "\n" if len(hits) > 1 else " "
+        text += separator + "El stock puede cambiar hasta que confirmes el pedido."
     return text
 
 
