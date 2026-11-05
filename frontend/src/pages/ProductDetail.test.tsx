@@ -215,6 +215,27 @@ describe('ProductDetail', () => {
     expect(screen.getByText('Lista de productos')).toBeInTheDocument();
   });
 
+  it('las migas de pan llevan a Inicio, Productos y la categoría del producto', async () => {
+    vi.mocked(getProductById).mockResolvedValue(makeProduct());
+    renderDetail('/products/1');
+    await screen.findByRole('heading', { name: 'Coca-Cola Original' });
+
+    const migas = screen.getByRole('navigation', { name: 'Migas de pan' });
+    expect(within(migas).getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+      'href',
+      '/',
+    );
+    expect(
+      within(migas).getByRole('link', { name: 'Productos' }),
+    ).toHaveAttribute('href', '/products');
+    expect(
+      within(migas).getByRole('link', { name: 'Bebidas' }),
+    ).toHaveAttribute('href', '/products?category=bebidas');
+    expect(
+      within(migas).getByRole('button', { name: 'Volver' }),
+    ).toBeInTheDocument();
+  });
+
   describe('indicador de stock', () => {
     it.each([
       [22, 'En stock · 22 unidades', ''],
