@@ -1,0 +1,236 @@
+/* Pantalla completa, sin Header ni Footer. Celular primero: Kerchi arriba,
+   achicada, y las opciones debajo. */
+.bienvenida {
+  display: grid;
+  flex: 1;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bienvenida__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--espacio-3) var(--espacio-3) 0;
+  overflow: hidden;
+  background: var(--color-acento);
+}
+
+/* Círculos de fondo. */
+.bienvenida__panel::before,
+.bienvenida__panel::after {
+  position: absolute;
+  content: '';
+  border-radius: 50%;
+}
+
+.bienvenida__panel::before {
+  bottom: -160px;
+  left: -120px;
+  width: 520px;
+  height: 520px;
+  background: #ffe55c;
+}
+
+.bienvenida__panel::after {
+  top: -80px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  background: rgb(242 80 8 / 0.2);
+}
+
+.bienvenida__logo {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  width: auto;
+  height: 44px;
+  padding: 4px 10px;
+  background: var(--color-superficie);
+  border-radius: 14px;
+}
+
+.bienvenida__globo {
+  position: absolute;
+  top: var(--espacio-3);
+  right: var(--espacio-3);
+  z-index: 2;
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-marca-oscuro);
+  background: var(--color-superficie);
+  border-radius: 22px 22px 22px 4px;
+  box-shadow: var(--sombra-media);
+}
+
+.bienvenida__kerchi {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+}
+
+.bienvenida__contenido {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--espacio-4) var(--espacio-3);
+}
+
+.bienvenida__marca {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--color-marca);
+}
+
+.bienvenida__titulo {
+  margin: 0.75rem 0 0.625rem;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.bienvenida__texto {
+  margin: 0 0 var(--espacio-4);
+  font-size: 1.0625rem;
+  color: var(--color-texto-suave);
+}
+
+.bienvenida__opcion {
+  display: flex;
+  gap: var(--espacio-3);
+  align-items: center;
+  margin-bottom: 0.875rem;
+  padding: var(--espacio-3);
+  color: inherit;
+  text-decoration: none;
+  background: var(--color-superficie);
+  border: 2px solid var(--color-borde);
+  border-radius: 20px;
+}
+
+.bienvenida__opcion:hover {
+  color: inherit;
+  border-color: var(--color-marca);
+}
+
+.bienvenida__opcion--principal {
+  border-color: var(--color-marca);
+  box-shadow: 0 8px 22px rgb(36 122 22 / 0.15);
+}
+
+.bienvenida__icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  font-size: 1.75rem;
+  border-radius: 16px;
+}
+
+.bienvenida__icono--verde {
+  background: var(--color-marca-suave);
+}
+
+.bienvenida__icono--amarillo {
+  background: #fff1b8;
+}
+
+.bienvenida__opcion-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--espacio-2);
+  align-items: center;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+}
+
+.bienvenida__opcion-texto {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+.bienvenida__puntos {
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #fff1b8;
+  border-radius: 999px;
+}
+
+.bienvenida__flecha {
+  margin-left: auto;
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--color-marca);
+}
+
+.bienvenida__personal {
+  margin: var(--espacio-3) 0 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+.bienvenida__personal a {
+  font-weight: 600;
+  color: var(--color-marca-oscuro);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bienvenida__opcion {
+    transition: border-color 0.15s ease;
+  }
+}
+
+@media (min-width: 768px) {
+  .bienvenida {
+    grid-template-rows: auto;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .bienvenida__panel {
+    justify-content: space-between;
+    padding: 36px 48px 0;
+  }
+
+  .bienvenida__logo {
+    height: 60px;
+    padding: 6px 12px;
+  }
+
+  .bienvenida__globo {
+    top: 150px;
+    right: 60px;
+    padding: var(--espacio-3) 1.375rem;
+    font-size: 1.375rem;
+  }
+
+  /* El alto manda: Kerchi crece con la ventana sin meterse bajo el globito. */
+  .bienvenida__kerchi .mascota {
+    width: min(100%, 547px, 60vh);
+    margin-inline: auto;
+  }
+
+  .bienvenida__kerchi {
+    width: 100%;
+  }
+
+  .bienvenida__contenido {
+    padding: var(--espacio-5) clamp(2rem, 6vw, 5rem);
+  }
+
+  .bienvenida__titulo {
+    font-size: clamp(2.25rem, 3.4vw, 2.875rem);
+  }
+
+  .bienvenida__opcion {
+    padding: 20px 22px;
+    gap: 18px;
+  }
+}

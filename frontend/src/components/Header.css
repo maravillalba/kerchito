@@ -171,3 +171,24 @@
     font-size: 0.9375rem;
   }
 }
+
+/* Celular angosto: con "Ingresar" sigue entrando todo en una línea. */
+@media (max-width: 399px) {
+  .header__inner {
+    column-gap: var(--espacio-2);
+  }
+
+  .header__nav {
+    gap: var(--espacio-1);
+  }
+
+  .header__link,
+  .header__salir,
+  .header__cart {
+    font-size: var(--texto-chico);
+  }
+
+  .header__cart {
+    padding-inline: var(--espacio-2);
+  }
+}
