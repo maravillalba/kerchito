@@ -1,0 +1,25 @@
+/* Fondo que scrollea: en una pantalla baja el diálogo entero sigue a mano. */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  padding: var(--espacio-3);
+  overflow-y: auto;
+  background: rgb(20 61 12 / 0.55);
+}
+
+.modal__dialogo {
+  width: 100%;
+  max-width: 560px;
+  margin: auto;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border-radius: 18px;
+  box-shadow: var(--sombra-media);
+}
+
+.modal__titulo {
+  margin: 0;
+  font-size: 1.375rem;
+}

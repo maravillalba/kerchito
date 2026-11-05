@@ -1,0 +1,18 @@
+.admin-proximamente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--espacio-5);
+  text-align: center;
+}
+
+.admin-proximamente__titulo {
+  margin: var(--espacio-3) 0 0;
+  font-size: 1.75rem;
+}
+
+.admin-proximamente p {
+  margin: var(--espacio-1) 0 0;
+  font-size: 1.125rem;
+  color: var(--color-texto-suave);
+}

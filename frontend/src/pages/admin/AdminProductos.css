@@ -1,0 +1,78 @@
+.admin-productos__arriba {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-productos__titulo {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.admin-productos__aviso {
+  margin: var(--espacio-2) 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+/* relative: si no, los .sr-only de la tabla (absolutos) escapan de este scroll y
+   ensanchan toda la página. */
+.admin-productos__scroll {
+  position: relative;
+  overflow-x: auto;
+  border-radius: var(--radio);
+}
+
+.admin-productos__scroll:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+.admin-productos__tabla {
+  min-width: 680px;
+}
+
+.admin-productos__nombre {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-productos__nombre .product-image {
+  flex: none;
+  width: 44px;
+  height: 44px;
+}
+
+.admin-productos__stock-bajo {
+  font-weight: 700;
+  color: var(--color-alerta);
+}
+
+.admin-productos__editar {
+  min-height: 44px;
+  padding: var(--espacio-1) var(--espacio-2);
+  font-weight: 700;
+  color: var(--color-marca);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radio);
+}
+
+.admin-productos__editar:hover {
+  color: var(--color-marca-oscuro);
+  text-decoration: underline;
+}
+
+/* Celular: la tabla scrollea de costado, pero "Editar" queda siempre a mano. */
+@media (max-width: 767px) {
+  .admin-productos__tabla th:last-child,
+  .admin-productos__tabla td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--color-superficie);
+  }
+}

@@ -1,0 +1,19 @@
+.producto-modal__grilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--espacio-3);
+}
+
+.producto-modal__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: var(--espacio-4);
+}
+
+@media (min-width: 480px) {
+  .producto-modal__grilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

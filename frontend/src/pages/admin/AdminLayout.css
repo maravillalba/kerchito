@@ -1,0 +1,198 @@
+/* Celular primero: barra superior; desde 768px, sidebar a la izquierda. */
+.admin {
+  display: grid;
+  flex: 1;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.admin__lateral {
+  color: #fff;
+  background: var(--color-marca-oscuro);
+}
+
+.admin__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espacio-2) var(--espacio-3);
+}
+
+.admin__logo {
+  display: block;
+  padding: 4px 10px;
+  background: var(--color-superficie);
+  border-radius: var(--radio-grande);
+}
+
+.admin__logo img {
+  display: block;
+  width: auto;
+  height: 36px;
+}
+
+.admin__menu-boton {
+  min-height: 44px;
+  padding: var(--espacio-2) var(--espacio-3);
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  cursor: pointer;
+  background: var(--color-acento);
+  border: 0;
+  border-radius: var(--radio-grande);
+}
+
+.admin__menu {
+  display: none;
+  padding: 0 var(--espacio-3) var(--espacio-3);
+}
+
+.admin__menu--abierto {
+  display: block;
+}
+
+.admin__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin__link {
+  padding: 11px 14px;
+  font-size: 0.9375rem;
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--radio-grande);
+}
+
+.admin__link:hover {
+  color: #fff;
+  background: var(--color-marca);
+}
+
+.admin__link.active {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  background: var(--color-acento);
+}
+
+/* El foco del proyecto es verde: sobre el verde oscuro no se vería. */
+.admin__lateral a:focus-visible,
+.admin__lateral button:focus-visible {
+  outline-color: var(--color-acento);
+}
+
+.admin__usuario {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: var(--espacio-3);
+  font-size: 0.8125rem;
+}
+
+.admin__usuario p {
+  margin: 0;
+}
+
+.admin__avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  background: var(--color-acento);
+  border-radius: 50%;
+}
+
+.admin__salir {
+  padding: 0;
+  font-size: 0.8125rem;
+  color: #fff;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.admin__contenido {
+  min-width: 0;
+  padding: var(--espacio-3);
+}
+
+/* Piezas compartidas por las secciones del panel. */
+.admin-caja {
+  padding: 20px;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 18px;
+}
+
+.admin-caja__titulo {
+  margin: 0 0 14px;
+  font-size: 1.0625rem;
+}
+
+.admin-tabla {
+  width: 100%;
+  font-size: var(--texto-chico);
+  border-collapse: collapse;
+}
+
+.admin-tabla th {
+  padding: var(--espacio-2) 6px;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-align: left;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.admin-tabla td {
+  padding: var(--espacio-2) 6px;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+@media (min-width: 768px) {
+  .admin {
+    grid-template-rows: auto;
+    grid-template-columns: 230px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  /* Fijo al scrollear, así "Cerrar sesión" no se va al final de una tabla larga. */
+  .admin__lateral {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 22px var(--espacio-3);
+    overflow-y: auto;
+  }
+
+  .admin__barra {
+    margin-bottom: 18px;
+    padding: 0;
+  }
+
+  .admin__logo img {
+    height: 36px;
+  }
+
+  .admin__menu-boton {
+    display: none;
+  }
+
+  .admin__menu {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .admin__usuario {
+    margin-top: auto;
+    padding-top: var(--espacio-3);
+  }
+
+  .admin__contenido {
+    padding: 28px 36px;
+  }
+}
