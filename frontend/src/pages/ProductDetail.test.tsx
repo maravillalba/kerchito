@@ -69,7 +69,7 @@ describe('ProductDetail', () => {
     vi.mocked(getProductById).mockResolvedValue(makeProduct());
     renderDetail('/products/1');
     expect(
-      await screen.findByRole('heading', { name: 'Original' }),
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' }),
     ).toBeInTheDocument();
     expect(getProductById).toHaveBeenCalledWith(1);
     expect(screen.getByText('Gaseosa clásica')).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('ProductDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Original' }),
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' }),
     ).toBeInTheDocument();
     expect(getProductById).toHaveBeenCalledTimes(2);
   });
@@ -208,7 +208,7 @@ describe('ProductDetail', () => {
     const user = userEvent.setup();
     vi.mocked(getProductById).mockResolvedValue(makeProduct());
     renderDetail('/products/1');
-    await screen.findByRole('heading', { name: 'Original' });
+    await screen.findByRole('heading', { name: 'Coca-Cola Original' });
 
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
@@ -323,7 +323,7 @@ describe('ProductDetail', () => {
       vi.mocked(getProducts).mockResolvedValue([makeProduct()]);
       renderDetail('/products/1');
 
-      await screen.findByRole('heading', { name: 'Original' });
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' });
       await waitFor(() => expect(getProducts).toHaveBeenCalled());
       expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
     });
@@ -335,7 +335,7 @@ describe('ProductDetail', () => {
       );
       renderDetail('/products/1');
 
-      await screen.findByRole('heading', { name: 'Original' });
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' });
       await waitFor(() => expect(getProducts).toHaveBeenCalled());
       expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();

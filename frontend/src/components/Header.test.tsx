@@ -87,6 +87,19 @@ describe('Header', () => {
     }
   });
 
+  it('es fijo arriba (sticky) y el contador del carrito siempre está a la vista', async () => {
+    const user = userEvent.setup();
+    renderHeader('/products');
+    // La clase header--fijo aplica position: sticky; top: 0 (Header.css).
+    expect(screen.getByRole('banner')).toHaveClass('header', 'header--fijo');
+
+    const carrito = screen.getByRole('link', { name: 'Carrito (0)' });
+    expect(carrito).toBeVisible();
+    expect(carrito).toHaveClass('header__cart');
+    await user.click(screen.getByRole('button', { name: 'Agregar de prueba' }));
+    expect(screen.getByRole('link', { name: 'Carrito (2)' })).toBeVisible();
+  });
+
   it('en el detalle de un producto sigue activo Productos', () => {
     renderHeader('/products/1');
     expect(screen.getByRole('link', { name: 'Productos' })).toHaveAttribute(

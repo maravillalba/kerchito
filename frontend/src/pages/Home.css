@@ -1,56 +1,64 @@
 .home {
+  /* Amarillo suave: el acento de la paleta aclarado sobre blanco. */
+  --color-amarillo-suave: color-mix(
+    in srgb,
+    var(--color-acento) 22%,
+    var(--color-superficie)
+  );
+
   display: flex;
   flex-direction: column;
   gap: var(--espacio-5);
 }
 
+.home h2 {
+  margin: 0 0 var(--espacio-3);
+}
+
+/* Hero: bienvenida con Kerchi a la izquierda y tarjeta de KioscoBot a la derecha. */
 .home__hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--espacio-4) var(--espacio-3);
-  text-align: center;
-  background: var(--color-fondo);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-grande);
-  box-shadow: var(--sombra-chica);
+  display: grid;
+  gap: var(--espacio-3);
 }
 
-.home__logo {
-  display: block;
-  width: 100%;
-  max-width: 360px;
-  margin-bottom: var(--espacio-3);
-}
-
-/* Oculto a la vista pero leído por lectores de pantalla. */
-.home__sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Kerchi arriba de la frase en celular; a su costado desde 768px. */
 .home__welcome {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 20px;
+}
+
+.home__welcome-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--espacio-2);
-  margin-bottom: var(--espacio-4);
+}
+
+.home__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-marca);
+  text-transform: uppercase;
+}
+
+.home__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-marca-oscuro);
 }
 
 .home__tagline {
-  margin: 0;
-  font-size: 1.1875rem;
-  font-weight: 600;
-  color: var(--color-marca-oscuro);
-  text-align: center;
+  margin: 0 0 var(--espacio-2);
+  color: var(--color-texto-suave);
 }
 
 .home__cta {
@@ -66,6 +74,91 @@
 .home__cta:hover {
   color: var(--color-marca-oscuro);
   background: var(--color-primario-hover);
+}
+
+/* Tarjeta de KioscoBot: amarillo con verde oscuro. */
+.home__bot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
+  color: var(--color-marca-oscuro);
+  background: var(--color-acento);
+  border-radius: 20px;
+}
+
+.home__bot h2 {
+  margin: 0;
+  color: var(--color-marca-oscuro);
+}
+
+.home__bot p {
+  margin: 0;
+}
+
+.home__bot-button {
+  min-height: 44px;
+  margin-top: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-4);
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-marca-oscuro);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.home__bot-button:hover {
+  background: var(--color-marca);
+}
+
+.home__bot-button:focus-visible {
+  outline-color: var(--color-marca-oscuro);
+}
+
+/* Cómo comprar: 3 tarjetas amarillo suave; apiladas en celular, en fila desde 768px. */
+.home__step-list {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background: var(--color-amarillo-suave);
+  border-radius: var(--radio-grande);
+}
+
+.home__step-number {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-marca-oscuro);
+  border-radius: 50%;
+}
+
+.home__step h3 {
+  margin: 0 0 var(--espacio-1);
+  font-size: 1rem;
+  color: var(--color-marca-oscuro);
+}
+
+.home__step p {
+  margin: 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
 }
 
 .home__categories h2 {
@@ -246,111 +339,86 @@
   object-fit: contain;
 }
 
-/* Productos destacados: 3 tarjetas centradas (2 en celular). */
-.home__featured h2 {
-  margin: 0 0 var(--espacio-3);
-}
-
-.home__featured-grid {
+/* Ofertas de la semana: panel blanco con Kerchi "aprobado" sobre amarillo y
+   hasta 3 cards de producto. */
+.home__ofertas-panel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--espacio-3);
-  max-width: 860px;
-  margin-inline: auto;
-}
-
-.home__featured-grid > :nth-child(n + 3) {
-  display: none;
-}
-
-/* Cómo comprar: pasos apilados en celular, en fila desde 768px. */
-.home__steps h2 {
-  margin: 0 0 var(--espacio-3);
-}
-
-.home__step-list {
-  display: grid;
-  gap: var(--espacio-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.home__step {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-2);
-  padding: var(--espacio-4) var(--espacio-3);
+  gap: var(--espacio-4);
+  padding: var(--espacio-3);
   background: var(--color-superficie);
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
-  box-shadow: var(--sombra-chica);
+  border-radius: 20px;
 }
 
-.home__step-number {
+.home__ofertas-kerchi {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-marca-oscuro);
-  background: var(--color-acento);
-  border-radius: 50%;
-}
-
-.home__step h3,
-.home__step p {
-  margin: 0;
-}
-
-.home__step p {
-  color: var(--color-texto-suave);
-}
-
-/* Banner de KioscoBot: solo texto, sobre amarillo con verde oscuro. */
-.home__bot {
+  justify-content: flex-end;
   padding: var(--espacio-4) var(--espacio-3);
   color: var(--color-marca-oscuro);
+  text-align: center;
   background: var(--color-acento);
   border-radius: var(--radio-grande);
-  box-shadow: var(--sombra-chica);
 }
 
-.home__bot h2 {
-  margin: 0 0 var(--espacio-2);
-  color: var(--color-marca-oscuro);
+.home__ofertas-title {
+  margin: var(--espacio-3) 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.home__bot p {
-  margin: 0;
+.home__ofertas-subtitle {
+  margin: var(--espacio-1) 0 0;
+  font-size: var(--texto-chico);
+}
+
+.home__ofertas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-4) var(--espacio-3);
 }
 
 @media (min-width: 768px) {
   .home__hero {
-    padding: var(--espacio-5);
+    grid-template-columns: 1.6fr 1fr;
   }
 
   .home__welcome {
     flex-direction: row;
-    gap: var(--espacio-3);
+    justify-content: space-between;
+    padding: var(--espacio-5);
   }
 
-  .home__welcome .home__tagline {
-    text-align: left;
+  .home__title {
+    font-size: 2.5rem;
+  }
+
+  .home__bot {
+    padding: var(--espacio-5);
+  }
+
+  .home__step-list {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .home__category-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
-  .home__featured-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .home__ofertas-panel {
+    grid-template-columns: 220px minmax(0, 1fr);
+    padding: var(--espacio-4);
   }
 
-  .home__featured-grid > :nth-child(n + 3) {
-    display: flex;
+  .home__ofertas-kerchi {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .home__ofertas-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   /* Banners chicos: texto a la izquierda y placa blanca a la derecha. */
@@ -376,14 +444,6 @@
   .home-banner--amarillo .home-banner__photo,
   .home-banner--naranja .home-banner__photo {
     height: 100px;
-  }
-
-  .home__step-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .home__bot {
-    padding: var(--espacio-4) var(--espacio-5);
   }
 }
 

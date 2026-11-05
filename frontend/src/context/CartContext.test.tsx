@@ -112,6 +112,14 @@ describe('CartContext', () => {
     expect(result.current.totalItems).toBe(5);
     expect(result.current.totalPrice).toBe(2 * 1200 + 3 * 1100);
   });
+
+  it('totalPrice usa el precio de oferta si el producto tiene offer_price', () => {
+    const { result } = renderCart();
+    act(() => result.current.addToCart({ ...coca, offer_price: 1000 }, 2));
+    act(() => result.current.addToCart(alfajor, 1));
+    // Coca en oferta: 2 x 1000 (no 2 x 1200); alfajor sin oferta: 1100.
+    expect(result.current.totalPrice).toBe(2 * 1000 + 1100);
+  });
 });
 
 describe('CartContext.syncStock', () => {

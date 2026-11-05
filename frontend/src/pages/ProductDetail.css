@@ -77,6 +77,7 @@
 }
 
 .product-detail__media {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,21 +124,49 @@
   border-radius: 999px;
 }
 
+.product-detail__badge,
+.product-detail__related-badge {
+  position: absolute;
+  top: var(--espacio-3);
+  left: var(--espacio-3);
+}
+
+.product-detail__related-badge {
+  top: var(--espacio-1);
+  left: var(--espacio-1);
+}
+
+.product-detail__badge:empty,
+.product-detail__related-badge:empty {
+  display: none;
+}
+
+/* Marca: mayúsculas chicas, verde, con letter-spacing (como en las cards). */
+.product-detail__brand {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-marca);
+  text-transform: uppercase;
+}
+
+.product-detail__info .product-detail__brand {
+  margin-bottom: calc(-1 * var(--espacio-2));
+}
+
 .product-detail__name {
   margin: 0;
   font-size: 1.75rem;
   color: var(--color-marca-oscuro);
 }
 
-.product-detail__description {
+.product-detail__info .product-detail__unit {
+  margin-top: calc(-1 * var(--espacio-2));
   color: var(--color-texto-suave);
 }
 
-.product-detail__price {
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--color-marca);
+.product-detail__description {
+  color: var(--color-texto-suave);
 }
 
 /* Indicador de stock: punto de color y texto. */
@@ -309,6 +338,7 @@
 }
 
 .product-detail__related-media {
+  position: relative;
   display: block;
   margin-bottom: var(--espacio-1);
   padding: var(--espacio-2);
@@ -322,14 +352,28 @@
   mix-blend-mode: multiply;
 }
 
+.product-detail__related-brand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-marca);
+  text-transform: uppercase;
+}
+
 .product-detail__related-name {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
   overflow-wrap: break-word;
 }
 
-.product-detail__related-price {
-  font-weight: 700;
-  color: var(--color-marca);
+.product-detail__related-unit {
+  margin-bottom: var(--espacio-1);
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+.product-detail__related-card .price--card .price__current {
+  font-size: 1.25rem;
 }
 
 /* Oculto a la vista pero leído por lectores de pantalla. */
@@ -362,10 +406,6 @@
 
   .product-detail__name {
     font-size: 2.25rem;
-  }
-
-  .product-detail__price {
-    font-size: 2.75rem;
   }
 
   .product-detail__related-list {

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,6 +11,7 @@ import {
   sendChatMessage,
 } from '../services/api';
 import type { Product } from '../types';
+import { openKioscoBot } from '../utils/kioscobot';
 import ChatWidget from './ChatWidget';
 
 // Nunca sale a la red: se reemplazan todas las funciones de la API que usan
@@ -71,9 +72,7 @@ function renderApp(path = '/') {
 }
 
 async function openChat(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    screen.getByRole('button', { name: 'Abrir chat de KioscoBot' }),
-  );
+  await user.click(screen.getByRole('button', { name: 'Abrir KioscoBot' }));
   return screen.getByRole('dialog', { name: 'KioscoBot' });
 }
 
@@ -91,9 +90,59 @@ describe('ChatWidget', () => {
   it('arranca cerrado, solo con el botón flotante', () => {
     renderWidget();
     expect(
-      screen.getByRole('button', { name: 'Abrir chat de KioscoBot' }),
+      screen.getByRole('button', { name: 'Abrir KioscoBot' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  describe('botón flotante con Kerchi', () => {
+    it('es un <button> con aria-label y Kerchi pensando como imagen decorativa', () => {
+      renderWidget();
+      const toggle = screen.getByRole('button', { name: 'Abrir KioscoBot' });
+
+      expect(toggle.tagName).toBe('BUTTON');
+      expect(toggle).toHaveAttribute('aria-haspopup', 'dialog');
+      const img = toggle.querySelector('img');
+      expect(img?.getAttribute('src')).toContain('kerchi-pensando');
+      expect(img).toHaveAttribute('alt', '');
+      expect(img).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('abre el chat y el globito "¿Te ayudo?" se oculta', async () => {
+      const user = renderWidget();
+      expect(screen.getByText('¿Te ayudo?')).toBeInTheDocument();
+      expect(screen.getByText('Preguntale a KioscoBot')).toBeInTheDocument();
+
+      const dialog = await openChat(user);
+
+      expect(dialog).toBeInTheDocument();
+      expect(screen.queryByText('¿Te ayudo?')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Abrir KioscoBot' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('el encabezado del chat muestra a Kerchi pensando junto al título', async () => {
+      const user = renderWidget();
+      const dialog = await openChat(user);
+      const header = within(dialog)
+        .getByRole('heading', { name: 'KioscoBot' })
+        .closest('.chat-widget__header') as HTMLElement;
+      const img = header.querySelector('.chat-widget__avatar img');
+
+      expect(img?.getAttribute('src')).toContain('kerchi-pensando');
+      expect(img).toHaveAttribute('alt', '');
+      expect(img).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('se abre también con openKioscoBot() (el "Abrir chat" del Inicio)', async () => {
+      renderWidget();
+      act(() => openKioscoBot());
+      expect(
+        await screen.findByRole('dialog', { name: 'KioscoBot' }),
+      ).toBeInTheDocument();
+      expect(input()).toHaveFocus();
+    });
   });
 
   it('al abrirlo muestra la bienvenida y pone el foco en el campo', async () => {
@@ -228,7 +277,7 @@ describe('ChatWidget', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Abrir chat de KioscoBot' }),
+      screen.getByRole('button', { name: 'Abrir KioscoBot' }),
     ).toHaveFocus();
   });
 
@@ -266,7 +315,7 @@ describe('ChatWidget en el Layout', () => {
     (path) => {
       renderApp(path);
       expect(
-        screen.getByRole('button', { name: 'Abrir chat de KioscoBot' }),
+        screen.getByRole('button', { name: 'Abrir KioscoBot' }),
       ).toBeInTheDocument();
     },
   );

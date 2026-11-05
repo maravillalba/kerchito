@@ -13,15 +13,35 @@
   flex: 1 1 200px;
 }
 
+.cart-item__brand {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-marca);
+  text-transform: uppercase;
+}
+
 .cart-item__name {
   margin: 0;
   font-size: 1.1rem;
+  color: var(--color-marca-oscuro);
+}
+
+.cart-item__unit {
+  margin: 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
 }
 
 .cart-item__unit-price {
   margin: var(--espacio-1) 0 0;
   font-size: 0.85rem;
   color: var(--color-texto-suave);
+}
+
+.cart-item__regular {
+  margin-right: var(--espacio-1);
 }
 
 .cart-item__quantity {

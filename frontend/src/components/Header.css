@@ -1,58 +1,90 @@
 .header {
   background: var(--color-superficie);
-  border-bottom: 2px solid var(--color-marca);
-  box-shadow: var(--sombra-chica);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+/* Fijo arriba al scrollear, por encima del contenido (el chat de KioscoBot,
+   con z-index 100, queda por encima del header). */
+.header--fijo {
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 .header__inner {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--espacio-2);
-  /* 2px menos que --espacio-2: compensa el logo de 48px y el Header no cambia de alto. */
-  padding-block: calc(var(--espacio-2) - 2px);
+  align-items: center;
+  gap: var(--espacio-3);
+  padding-block: var(--espacio-2);
 }
 
 .header__brand {
   display: block;
+  flex-shrink: 0;
   border-radius: var(--radio);
 }
 
 .header__brand img {
   display: block;
   width: auto;
-  height: 48px;
+  height: 40px;
 }
 
 .header__nav {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
-  gap: var(--espacio-2);
+  align-items: center;
+  gap: var(--espacio-1) var(--espacio-3);
 }
 
-.header__nav a {
-  padding: var(--espacio-1) var(--espacio-3);
+/* Links de texto; el activo lleva un subrayado naranja. */
+.header__link {
+  padding: var(--espacio-2) var(--espacio-1);
   font-weight: 600;
-  color: var(--color-marca);
+  color: var(--color-texto-suave);
   text-decoration: none;
-  border: 1px solid transparent;
-  border-radius: var(--radio);
+  border-bottom: 3px solid transparent;
 }
 
-.header__nav a:hover {
-  color: var(--color-marca);
-  border-color: var(--color-marca);
+.header__link:hover {
+  color: var(--color-marca-oscuro);
 }
 
-.header__nav a.active {
+.header__link.active {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  border-bottom-color: var(--color-primario);
+}
+
+/* Carrito: píldora verde oscuro a la derecha, siempre visible. */
+.header__cart {
+  margin-left: auto;
+  padding: var(--espacio-2) var(--espacio-3);
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  text-decoration: none;
+  background: var(--color-marca-oscuro);
+  border-radius: 999px;
+}
+
+.header__cart:hover,
+.header__cart.active {
   color: #fff;
   background: var(--color-marca);
 }
 
+.header__nav a:focus-visible {
+  outline-offset: 3px;
+}
+
 @media (min-width: 768px) {
   .header__inner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    gap: var(--espacio-5);
+  }
+
+  .header__brand img {
+    height: 44px;
   }
 }

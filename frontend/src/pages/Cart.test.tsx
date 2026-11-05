@@ -104,6 +104,51 @@ describe('Cart', () => {
     vi.resetAllMocks();
   });
 
+  it('cada fila muestra marca, unidad y el precio efectivo; el total usa la oferta', async () => {
+    const user = userEvent.setup();
+    const cocaEnOferta = { ...coca, offer_price: 1000 };
+    function FillOferta() {
+      const { addToCart } = useCart();
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            addToCart(cocaEnOferta, 2);
+            addToCart(alfajor, 1);
+          }}
+        >
+          Cargar con oferta
+        </button>
+      );
+    }
+    render(
+      <MemoryRouter>
+        <CartProvider>
+          <FillOferta />
+          <Cart />
+        </CartProvider>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Cargar con oferta' }));
+
+    const fila = itemRow('Original');
+    expect(fila.getByText('Coca-Cola')).toBeInTheDocument();
+    expect(fila.getByText('500 ml')).toBeInTheDocument();
+    // Precio normal tachado y precio de oferta por unidad; subtotal 2 x 1000.
+    expect(fila.getByText(/Precio normal:/).closest('del')).toHaveTextContent(
+      '$ 1.200',
+    );
+    expect(fila.getByText(/1\.000 c\/u/)).toBeInTheDocument();
+    expect(fila.getByText('$ 2.000')).toBeInTheDocument();
+
+    const sinOferta = itemRow('Alfajor');
+    expect(sinOferta.getByText('55 g')).toBeInTheDocument();
+    expect(sinOferta.queryByText(/Precio normal:/)).not.toBeInTheDocument();
+
+    // Total: 2 x 1000 + 1100 = 3100 (no 2 x 1200 + 1100).
+    expect(screen.getByText(/^Total:/)).toHaveTextContent('Total: $ 3.100');
+  });
+
   it('con el carrito vacío muestra el aviso y no ofrece finalizar el pedido', async () => {
     await renderCart({ fill: false });
     expect(screen.getByText('Tu carrito está vacío')).toBeInTheDocument();
@@ -322,7 +367,7 @@ describe('Cart', () => {
 
       await user.click(
         itemRow('Original').getByRole('button', {
-          name: 'Restar una unidad de Original',
+          name: 'Restar una unidad de Coca-Cola Original 500 ml',
         }),
       );
 
