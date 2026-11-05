@@ -9,8 +9,7 @@ import type { Usuario } from '../types';
 const CLAVE_SESION = 'kiosko.sesion';
 
 export type ResultadoAuth =
-  | { ok: true; usuario: Usuario }
-  | { ok: false; error: string };
+  { ok: true; usuario: Usuario } | { ok: false; error: string };
 
 interface AuthContextValue {
   usuario: Usuario | null;

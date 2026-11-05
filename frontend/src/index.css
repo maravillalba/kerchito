@@ -18,6 +18,7 @@
   --color-borde: #d9dccf;
   --color-texto: #1f2a1c;
   --color-texto-suave: #4f5e4a;
+  --color-alerta: #b42318; /* errores y stock bajo */
   --color-foco: var(--color-marca);
 
   /* Tipografía */
@@ -93,7 +94,8 @@ button {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 3px solid var(--color-foco);
   outline-offset: 2px;
 }

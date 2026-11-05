@@ -1,0 +1,204 @@
+/* Pantalla completa, sin Header ni Footer. Celular primero: panel verde con
+   Kerchi arriba, achicada, y la card debajo. */
+.login {
+  display: grid;
+  flex: 1;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.login__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--espacio-3);
+  overflow: hidden;
+  color: #fff;
+  background: var(--color-marca-oscuro);
+}
+
+/* Círculo de fondo. */
+.login__panel::before {
+  position: absolute;
+  top: -120px;
+  right: -140px;
+  width: 420px;
+  height: 420px;
+  content: '';
+  background: var(--color-marca);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.login__kerchi {
+  position: relative;
+  align-self: center;
+}
+
+.login__kerchi .mascota {
+  width: 130px;
+}
+
+.login__titulo {
+  position: relative;
+  margin: var(--espacio-2) 0 0;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.login__texto {
+  position: relative;
+  margin: var(--espacio-2) 0 var(--espacio-3);
+  color: rgb(255 255 255 / 0.9);
+}
+
+.login__pasos {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.login__pasos li {
+  display: flex;
+  gap: 0.875rem;
+  align-items: center;
+  margin-bottom: 0.625rem;
+  counter-increment: paso;
+}
+
+.login__pasos li::before {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-weight: 800;
+  color: var(--color-marca-oscuro);
+  content: counter(paso);
+  background: var(--color-acento);
+  border-radius: 50%;
+}
+
+.login__lado {
+  display: grid;
+  place-items: center;
+  padding: var(--espacio-4) var(--espacio-3);
+}
+
+.login__card {
+  width: 100%;
+  max-width: 430px;
+  padding: var(--espacio-4);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 24px;
+}
+
+.login__pestanas {
+  display: flex;
+  margin-bottom: var(--espacio-3);
+  padding: 5px;
+  background: var(--color-fondo);
+  border-radius: 14px;
+}
+
+.login__pestana {
+  flex: 1;
+  min-height: 44px;
+  padding: 0.625rem;
+  font-weight: 700;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+}
+
+.login__pestana[aria-selected='true'] {
+  color: #fff;
+  background: var(--color-marca);
+}
+
+.login__error {
+  margin-top: var(--espacio-3);
+}
+
+.login__enviar {
+  width: 100%;
+  margin-top: var(--espacio-4);
+}
+
+.login__nota {
+  margin: var(--espacio-3) 0 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+  text-align: center;
+}
+
+.login__nota--pegada {
+  margin-top: var(--espacio-2);
+}
+
+.login__nota a,
+.login__nota span {
+  font-weight: 600;
+  color: var(--color-marca-oscuro);
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .login {
+    grid-template-rows: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 100vh;
+  }
+
+  .login__panel {
+    justify-content: center;
+    padding: 48px;
+  }
+
+  .login__kerchi {
+    position: absolute;
+    right: 24px;
+    bottom: 0;
+  }
+
+  .login__kerchi .mascota {
+    width: min(293px, 22vw, 38vh);
+  }
+
+  .login__titulo {
+    max-width: 420px;
+    margin: 0;
+    font-size: clamp(2rem, 3vw, 2.375rem);
+  }
+
+  .login__texto {
+    max-width: 400px;
+    margin: 0.75rem 0 1.625rem;
+    font-size: 1.0625rem;
+  }
+
+  .login__pasos li {
+    margin-bottom: 0.875rem;
+  }
+
+  .login__lado {
+    padding: 40px;
+  }
+
+  .login__card {
+    padding: 34px;
+  }
+}
+
+/* Ventana baja: el texto sube para no chocar con Kerchi, que va abajo. */
+@media (min-width: 768px) and (max-height: 760px) {
+  .login__panel {
+    justify-content: flex-start;
+  }
+}
