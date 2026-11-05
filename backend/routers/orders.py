@@ -37,10 +37,12 @@ def create_order(order_in: OrderCreate, db: Session = Depends(get_db)):
                     status_code=409, detail=f"Insufficient stock for product {item.product_id}"
                 )
 
+            # El precio lo decide siempre el backend: el de oferta si existe, si no el normal.
+            unit_price = product.effective_price
             items.append(
-                OrderItem(product_id=product.id, quantity=item.quantity, unit_price=product.price)
+                OrderItem(product_id=product.id, quantity=item.quantity, unit_price=unit_price)
             )
-            total += item.quantity * product.price
+            total += item.quantity * unit_price
 
         order = Order(total=round(total, 2), items=items)
         db.add(order)

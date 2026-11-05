@@ -15,7 +15,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product>): Product {
   return {
     id: 1,
+    brand: 'Marca',
     name: 'Producto',
+    unit: '1 u.',
     category: 'almacen',
     price: 1000,
     stock: 10,
@@ -26,15 +28,41 @@ function makeProduct(overrides: Partial<Product>): Product {
 }
 
 const CATALOG: Product[] = [
-  makeProduct({ id: 1, name: 'Coca-Cola 500ml', category: 'bebidas' }),
-  makeProduct({ id: 2, name: 'Agua mineral 500ml', category: 'bebidas' }),
+  makeProduct({
+    id: 1,
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
+    category: 'bebidas',
+  }),
+  makeProduct({
+    id: 2,
+    brand: 'Villa del Sur',
+    name: 'Agua mineral',
+    unit: '500 ml',
+    category: 'bebidas',
+  }),
   makeProduct({
     id: 3,
-    name: 'Papas Lays Clásicas',
+    brand: "Lay's",
+    name: 'Papas fritas clásicas',
+    unit: '1 u.',
     category: 'golosinas_snacks',
   }),
-  makeProduct({ id: 4, name: 'Alfajor Jorgito', category: 'golosinas_snacks' }),
-  makeProduct({ id: 5, name: 'Leche entera 1L', category: 'lacteos' }),
+  makeProduct({
+    id: 4,
+    brand: 'Jorgito',
+    name: 'Alfajor',
+    unit: '55 g',
+    category: 'golosinas_snacks',
+  }),
+  makeProduct({
+    id: 5,
+    brand: 'La Serenísima',
+    name: 'Leche entera',
+    unit: '1 L',
+    category: 'lacteos',
+  }),
 ];
 
 function renderHome() {
@@ -152,7 +180,7 @@ describe('Home', () => {
   });
 
   describe('productos destacados', () => {
-    it('muestra 3 tarjetas fijas: Coca-Cola, Alfajor Jorgito y Leche entera', async () => {
+    it('muestra 3 tarjetas fijas: Coca-Cola, Alfajor y Leche entera', async () => {
       renderHome();
       const section = (
         await screen.findByRole('heading', { name: 'Productos destacados' })
@@ -160,9 +188,9 @@ describe('Home', () => {
       const cards = within(section).getAllByRole('article');
 
       expect(cards).toHaveLength(3);
-      expect(cards[0]).toHaveTextContent('Coca-Cola 500ml');
-      expect(cards[1]).toHaveTextContent('Alfajor Jorgito');
-      expect(cards[2]).toHaveTextContent('Leche entera 1L');
+      expect(cards[0]).toHaveTextContent('Original');
+      expect(cards[1]).toHaveTextContent('Alfajor');
+      expect(cards[2]).toHaveTextContent('Leche entera');
       expect(
         within(cards[0]).getByRole('button', { name: 'Agregar al carrito' }),
       ).toBeInTheDocument();
@@ -170,7 +198,7 @@ describe('Home', () => {
 
     it('si falta uno, usa el siguiente del catálogo', async () => {
       vi.mocked(getProducts).mockResolvedValue(
-        CATALOG.filter((p) => p.name !== 'Alfajor Jorgito'),
+        CATALOG.filter((p) => p.name !== 'Alfajor'),
       );
       renderHome();
       const section = (
@@ -179,7 +207,7 @@ describe('Home', () => {
       const cards = within(section).getAllByRole('article');
 
       expect(cards).toHaveLength(3);
-      expect(cards[1]).toHaveTextContent('Agua mineral 500ml');
+      expect(cards[1]).toHaveTextContent('Agua mineral');
     });
 
     it('si falla la carga no se muestra ni aparece un error', async () => {

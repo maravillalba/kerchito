@@ -45,6 +45,14 @@ python -m uvicorn main:app --reload
 - `kiosco.db` se crea en la carpeta desde donde se corre el servidor. Por eso hay que correrlo **siempre desde `backend/`**; si se arranca desde otra carpeta (por ejemplo con `--app-dir backend` desde la raíz), se crea otra `kiosco.db` en esa carpeta, con el stock original y sin los pedidos guardados.
 - Para empezar de cero (por ejemplo, para recuperar el stock original): frená el servidor (`Ctrl+C`), borrá `backend/kiosco.db` y volvé a arrancarlo.
 - `kiosco.db` está en el `.gitignore`: no se sube al repositorio.
+- **Si tu `kiosco.db` es anterior a los campos `brand`, `unit` y `offer_price`**, el servidor no arranca y muestra un mensaje que pide borrarla (no hay migraciones). Frená el servidor, borrá `backend/kiosco.db` y volvé a arrancarlo: se crea la base nueva con el seed. Se pierden los pedidos guardados.
+
+## Productos: marca, presentación y ofertas
+- Cada producto tiene `brand` (marca), `name` (solo el producto, sin la marca ni la presentación) y `unit` (capacidad o presentación: `"500 ml"`, `"1 kg"`, `"x 20"`). Ejemplo: `brand="Coca-Cola"`, `name="Original"`, `unit="500 ml"`. Los tres son obligatorios y no pueden estar vacíos.
+- `offer_price` es opcional (`null` = sin oferta). Si está, tiene que ser mayor a 0 y menor que `price`. Lo validan `ProductIn` (en `schemas.py`) y una restricción `CHECK` de la base.
+- **Precio que se cobra:** al crear un pedido, `unit_price` y `total` usan `offer_price` si existe, si no `price` (`Product.effective_price`). El precio lo calcula siempre el backend: el frontend solo manda `product_id` y `quantity`.
+- KioscoBot nombra los productos con `brand` + `name` + `unit` y, si hay oferta, dice el precio de oferta con el normal entre paréntesis.
+- El seed tiene 4 productos en oferta: Coca-Cola Original, yerba Cruz de Malta, detergente Cif y mayonesa Hellmann's.
 
 ## Endpoints
 | Método | Ruta | Respuestas |
@@ -71,12 +79,12 @@ Los tests usan una base SQLite en memoria, así que no tocan `kiosco.db`, y nunc
 - `database.py`: conexión a SQLite (`engine`, `SessionLocal`, `Base`), `PRAGMA foreign_keys=ON` y `get_db`.
 - `models.py`: modelos de la base (`Product`, `Order` y `OrderItem`).
 - `schemas.py`: esquemas Pydantic de productos, pedidos y chat (ver `docs/CONTRATO.md`).
-- `seed.py`: los 54 productos iniciales y la función `seed()`.
+- `seed.py`: los 54 productos iniciales (con marca, presentación y 4 ofertas) y la función `seed()`, que valida cada producto con `ProductIn` y avisa si la base es de una versión anterior.
 - `bot_ai.py`: capa de IA opcional de KioscoBot (usa `BOT_API_KEY` y `BOT_MODEL`).
 - `routers/products.py`: `GET /api/products` y `GET /api/products/{id}`.
 - `routers/orders.py`: `POST /api/orders` (descuenta stock en una sola transacción) y `GET /api/orders`.
 - `routers/chat.py`: `POST /api/chat` (KioscoBot: reglas y, si hay `BOT_API_KEY`, IA).
-- `tests/`: `conftest.py` (cliente de prueba y base en memoria), `test_health.py`, `test_products.py`, `test_orders.py`, `test_chat.py` y `test_bot_ai.py`.
+- `tests/`: `conftest.py` (cliente de prueba y base en memoria), `test_health.py`, `test_products.py`, `test_orders.py`, `test_chat.py`, `test_bot_ai.py` y `test_seed.py`.
 - `pytest.ini`: configuración de Pytest.
 - `.coveragerc`: configuración de la cobertura (excluye `tests/` y `.venv/`).
 - `requirements.txt`: dependencias.

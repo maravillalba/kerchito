@@ -14,7 +14,9 @@ vi.mock('../services/api', async (importOriginal) => {
 
 const coca: Product = {
   id: 1,
-  name: 'Coca-Cola 500ml',
+  brand: 'Coca-Cola',
+  name: 'Original',
+  unit: '500 ml',
   category: 'bebidas',
   price: 1200,
   stock: 25,
@@ -23,7 +25,9 @@ const coca: Product = {
 };
 const yogur: Product = {
   id: 2,
+  brand: 'La Serenísima',
   name: 'Yogur frutilla',
+  unit: '1 u.',
   category: 'lacteos',
   price: 900,
   stock: 10,
@@ -32,7 +36,9 @@ const yogur: Product = {
 };
 const lavandina: Product = {
   id: 3,
-  name: 'Lavandina 1L',
+  brand: 'Ayudín',
+  name: 'Lavandina',
+  unit: '1 L',
   category: 'limpieza',
   price: 900,
   stock: 0,
@@ -64,15 +70,13 @@ describe('Products', () => {
   it('muestra "Cargando productos…" mientras espera la respuesta', () => {
     vi.mocked(getProducts).mockReturnValue(new Promise(() => {}));
     renderProducts();
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Cargando productos…',
-    );
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando productos…');
   });
 
   it('muestra los productos y pide la lista sin filtro', async () => {
     vi.mocked(getProducts).mockResolvedValue([coca, yogur]);
     renderProducts();
-    expect(await screen.findByText('Coca-Cola 500ml')).toBeInTheDocument();
+    expect(await screen.findByText('Original')).toBeInTheDocument();
     expect(screen.getByText('Yogur frutilla')).toBeInTheDocument();
     expect(getProducts).toHaveBeenCalledWith(undefined);
     expect(screen.getByRole('button', { name: 'Todos' })).toHaveAttribute(
@@ -84,7 +88,7 @@ describe('Products', () => {
   it('con ?category=bebidas pide al backend esa categoría', async () => {
     vi.mocked(getProducts).mockResolvedValue([coca]);
     renderProducts('/products?category=bebidas');
-    expect(await screen.findByText('Coca-Cola 500ml')).toBeInTheDocument();
+    expect(await screen.findByText('Original')).toBeInTheDocument();
     expect(getProducts).toHaveBeenCalledWith('bebidas');
     expect(screen.getByRole('button', { name: /bebidas/i })).toHaveAttribute(
       'aria-pressed',
@@ -96,7 +100,7 @@ describe('Products', () => {
     const user = userEvent.setup();
     vi.mocked(getProducts).mockResolvedValue([coca, yogur]);
     renderProducts();
-    await screen.findByText('Coca-Cola 500ml');
+    await screen.findByText('Original');
 
     vi.mocked(getProducts).mockResolvedValue([coca]);
     await user.click(screen.getByRole('button', { name: /bebidas/i }));
@@ -114,7 +118,7 @@ describe('Products', () => {
   it('con una categoría inválida pide todos y deja "Todos" marcado', async () => {
     vi.mocked(getProducts).mockResolvedValue([coca, yogur]);
     renderProducts('/products?category=xyz');
-    await screen.findByText('Coca-Cola 500ml');
+    await screen.findByText('Original');
     expect(getProducts).toHaveBeenCalledWith(undefined);
     expect(getProducts).not.toHaveBeenCalledWith('xyz');
     expect(screen.getByRole('button', { name: 'Todos' })).toHaveAttribute(
@@ -146,7 +150,7 @@ describe('Products', () => {
 
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
-    expect(await screen.findByText('Coca-Cola 500ml')).toBeInTheDocument();
+    expect(await screen.findByText('Original')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(getProducts).toHaveBeenCalledTimes(2);
   });
@@ -175,7 +179,7 @@ describe('Products', () => {
     const user = userEvent.setup();
     vi.mocked(getProducts).mockResolvedValue([coca]);
     renderProducts();
-    await screen.findByText('Coca-Cola 500ml');
+    await screen.findByText('Original');
 
     await user.click(
       screen.getByRole('button', { name: 'Agregar al carrito' }),
@@ -187,7 +191,7 @@ describe('Products', () => {
   it('cada producto enlaza a su detalle', async () => {
     vi.mocked(getProducts).mockResolvedValue([coca]);
     renderProducts();
-    const link = await screen.findByRole('link', { name: 'Coca-Cola 500ml' });
+    const link = await screen.findByRole('link', { name: 'Original' });
     expect(link).toHaveAttribute('href', '/products/1');
   });
 });

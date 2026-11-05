@@ -25,10 +25,14 @@ CLAVE_FALSA = "clave-falsa-solo-para-tests"
 def productos(db_session):
     db_session.add_all(
         [
-            Product(id=1, name="Coca-Cola 500ml", category="bebidas", price=1200, stock=25),
-            Product(id=2, name="Agua mineral 500ml", category="bebidas", price=800, stock=40),
-            Product(id=3, name="Leche entera 1L", category="lacteos", price=1300, stock=20),
-            Product(id=4, name="Alfajor Jorgito", category="golosinas_snacks", price=1100, stock=0),
+            Product(id=1, brand="Coca-Cola", name="Original", unit="500 ml",
+                    category="bebidas", price=1200, stock=25),
+            Product(id=2, brand="Villa del Sur", name="Agua mineral", unit="500 ml",
+                    category="bebidas", price=800, stock=40),
+            Product(id=3, brand="La Serenísima", name="Leche entera", unit="1 L",
+                    category="lacteos", price=1300, stock=20),
+            Product(id=4, brand="Jorgito", name="Alfajor", unit="55 g",
+                    category="golosinas_snacks", price=1100, stock=0),
         ]
     )
     db_session.commit()
@@ -72,13 +76,13 @@ def preguntar(client, mensaje):
 
 def test_precio_de_un_producto(client, productos, ia_sin_clave):
     assert preguntar(client, "¿Cuánto sale la Coca?") == (
-        "Coca-Cola 500ml sale $ 1.200 y hay 25 unidades."
+        "Coca-Cola Original 500 ml sale $ 1.200 y hay 25 unidades."
     )
 
 
 def test_stock_de_un_producto(client, productos, ia_sin_clave):
     assert preguntar(client, "¿Tienen leche?") == (
-        "Leche entera 1L sale $ 1.300 y hay 20 unidades. "
+        "La Serenísima Leche entera 1 L sale $ 1.300 y hay 20 unidades. "
         "El stock puede cambiar hasta que confirmes el pedido."
     )
 
@@ -86,15 +90,15 @@ def test_stock_de_un_producto(client, productos, ia_sin_clave):
 def test_stock_de_varios_productos_aclara_en_una_linea_aparte(client, productos, ia_sin_clave):
     assert preguntar(client, "¿Tienen coca o agua?") == (
         "Encontré estos productos:\n"
-        "- Coca-Cola 500ml: $ 1.200 (25 unidades)\n"
-        "- Agua mineral 500ml: $ 800 (40 unidades)\n"
+        "- Coca-Cola Original 500 ml: $ 1.200 (25 unidades)\n"
+        "- Villa del Sur Agua mineral 500 ml: $ 800 (40 unidades)\n"
         "El stock puede cambiar hasta que confirmes el pedido."
     )
 
 
 def test_producto_sin_stock(client, productos, ia_sin_clave):
     respuesta = preguntar(client, "¿Hay alfajores?")
-    assert respuesta.startswith("Alfajor Jorgito sale $ 1.100, pero por ahora está sin stock.")
+    assert respuesta.startswith("Jorgito Alfajor 55 g sale $ 1.100, pero por ahora está sin stock.")
 
 
 def test_producto_que_no_existe(client, productos, ia_sin_clave):
@@ -104,8 +108,8 @@ def test_producto_que_no_existe(client, productos, ia_sin_clave):
 def test_productos_por_categoria_con_saltos_de_linea(client, productos, ia_sin_clave):
     assert preguntar(client, "¿Qué bebidas tienen?") == (
         "En Bebidas tengo:\n"
-        "- Coca-Cola 500ml: $ 1.200 (25 unidades)\n"
-        "- Agua mineral 500ml: $ 800 (40 unidades)"
+        "- Coca-Cola Original 500 ml: $ 1.200 (25 unidades)\n"
+        "- Villa del Sur Agua mineral 500 ml: $ 800 (40 unidades)"
     )
 
 
@@ -146,6 +150,45 @@ def test_gracias(client, productos, ia_sin_clave):
 
 def test_mensaje_que_no_entiende(client, productos, ia_sin_clave):
     assert preguntar(client, "El cielo está azul") == NOT_UNDERSTOOD
+
+
+# --- Ofertas -------------------------------------------------------------------
+
+
+def poner_oferta(db_session, product_id, offer_price):
+    db_session.get(Product, product_id).offer_price = offer_price
+    db_session.commit()
+
+
+def test_precio_en_oferta_muestra_el_normal_entre_parentesis(client, db_session, productos, ia_sin_clave):
+    poner_oferta(db_session, 1, 1000)
+    assert preguntar(client, "¿Cuánto sale la Coca?") == (
+        "Coca-Cola Original 500 ml sale $ 1.000 en oferta (precio normal $ 1.200) "
+        "y hay 25 unidades."
+    )
+
+
+def test_oferta_en_una_lista_y_sin_oferta_queda_igual(client, db_session, productos, ia_sin_clave):
+    poner_oferta(db_session, 1, 1000)
+    assert preguntar(client, "¿Qué bebidas tienen?") == (
+        "En Bebidas tengo:\n"
+        "- Coca-Cola Original 500 ml: $ 1.000 en oferta (precio normal $ 1.200), 25 unidades\n"
+        "- Villa del Sur Agua mineral 500 ml: $ 800 (40 unidades)"
+    )
+
+
+def test_oferta_sin_stock(client, db_session, productos, ia_sin_clave):
+    poner_oferta(db_session, 4, 900)
+    assert preguntar(client, "¿Cuánto sale el alfajor?") == (
+        "Jorgito Alfajor 55 g sale $ 900 en oferta (precio normal $ 1.100), "
+        "pero por ahora está sin stock."
+    )
+
+
+def test_se_busca_tambien_por_la_marca(client, productos, ia_sin_clave):
+    assert preguntar(client, "¿Cuánto sale la Serenísima?").startswith(
+        "La Serenísima Leche entera 1 L sale $ 1.300"
+    )
 
 
 # --- Validación ----------------------------------------------------------------
@@ -219,10 +262,22 @@ def test_con_clave_responde_la_ia(client, productos, con_clave, monkeypatch):
     assert len(ia.llamadas) == 1
     llamada = ia.llamadas[0]
     assert llamada["message"] == "¿Cuánto sale la Coca?"
-    assert "Coca-Cola 500ml | Bebidas | $ 1.200 | 25 unidades" in llamada["catalog"]
-    assert "Alfajor Jorgito | Golosinas y snacks | $ 1.100 | sin stock" in llamada["catalog"]
+    assert "Coca-Cola Original 500 ml | Bebidas | $ 1.200 | 25 unidades" in llamada["catalog"]
+    assert "Jorgito Alfajor 55 g | Golosinas y snacks | $ 1.100 | sin stock" in llamada["catalog"]
     assert llamada["horarios"] == HORARIOS
     assert llamada["medios"] == MEDIOS_DE_PAGO
+
+
+def test_la_ia_recibe_el_precio_de_oferta_y_el_normal(client, db_session, productos, con_clave, monkeypatch):
+    poner_oferta(db_session, 1, 1000)
+    ia = IAFalsa("ok")
+    monkeypatch.setattr(bot_ai, "ai_reply", ia)
+
+    preguntar(client, "¿Cuánto sale la Coca?")
+    assert (
+        "Coca-Cola Original 500 ml | Bebidas | $ 1.000 en oferta (precio normal $ 1.200) | 25 unidades"
+        in ia.llamadas[0]["catalog"]
+    )
 
 
 def test_respuesta_larga_de_la_ia_se_recorta(client, productos, con_clave, monkeypatch):
@@ -291,7 +346,7 @@ def test_logs_no_muestran_la_clave_ni_el_mensaje(client, productos, con_clave, m
     monkeypatch.setattr(bot_ai.httpx, "post", post_que_falla)
     caplog.set_level(logging.DEBUG)
 
-    assert preguntar(client, mensaje).startswith("Coca-Cola 500ml sale $ 1.200")
+    assert preguntar(client, mensaje).startswith("Coca-Cola Original 500 ml sale $ 1.200")
     assert "401" in caplog.text  # se registró la falla...
     assert CLAVE_FALSA not in caplog.text  # ...sin la clave
     assert "mensaje-privado-del-cliente" not in caplog.text  # ...ni el mensaje

@@ -7,7 +7,9 @@ import ProductCard from './ProductCard';
 
 const alfajor: Product = {
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 50,

@@ -8,9 +8,15 @@ export type Category =
 
 export interface Product {
   id: number;
+  brand: string;
+  // Solo el producto, sin la marca ni la presentación: "Original".
   name: string;
+  // Capacidad o presentación: "1,5 L", "1 kg", "500 ml".
+  unit: string;
   category: Category;
   price: number;
+  // Precio de oferta; null o ausente = sin oferta. Siempre menor que price.
+  offer_price?: number | null;
   stock: number;
   description?: string | null;
   image?: string | null;

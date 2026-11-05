@@ -16,7 +16,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
     id: 1,
-    name: 'Coca-Cola 500ml',
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
     category: 'bebidas',
     price: 1200,
     stock: 5,
@@ -27,7 +29,9 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
 const coca = makeProduct();
 const alfajor = makeProduct({
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 10,
@@ -169,7 +173,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hay stock suficiente de "Coca-Cola 500ml".',
+      'No hay stock suficiente de "Original".',
     );
     expect(screen.getByText('En el carrito: 1x3, 4x2')).toBeInTheDocument();
     expect(screen.queryByText(/¡Pedido confirmado!/)).not.toBeInTheDocument();
@@ -188,7 +192,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('status')).toHaveTextContent(
-      '"Coca-Cola 500ml" bajó de 3 a 1 unidades. "Alfajor Jorgito" se quitó porque ya no hay stock.',
+      '"Original" bajó de 3 a 1 unidades. "Alfajor" se quitó porque ya no hay stock.',
     );
     expect(getProducts).toHaveBeenCalledTimes(1);
     expect(getProducts).toHaveBeenCalledWith();
@@ -205,10 +209,10 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      '"Alfajor Jorgito" ya no está disponible.',
+      '"Alfajor" ya no está disponible.',
     );
     expect(await screen.findByRole('status')).toHaveTextContent(
-      '"Alfajor Jorgito" se quitó porque ya no hay stock.',
+      '"Alfajor" se quitó porque ya no hay stock.',
     );
     expect(screen.getByText('En el carrito: 1x3')).toBeInTheDocument();
   });
@@ -225,7 +229,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hay stock suficiente de "Coca-Cola 500ml".',
+      'No hay stock suficiente de "Original".',
     );
     expect(getProducts).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -317,8 +321,8 @@ describe('Cart', () => {
       const user = await renderWithErrorAndNotice();
 
       await user.click(
-        itemRow('Coca-Cola 500ml').getByRole('button', {
-          name: 'Restar una unidad de Coca-Cola 500ml',
+        itemRow('Original').getByRole('button', {
+          name: 'Restar una unidad de Original',
         }),
       );
 
@@ -331,7 +335,7 @@ describe('Cart', () => {
       const user = await renderWithErrorAndNotice();
 
       await user.click(
-        itemRow('Alfajor Jorgito').getByRole('button', { name: 'Quitar' }),
+        itemRow('Alfajor').getByRole('button', { name: 'Quitar' }),
       );
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();

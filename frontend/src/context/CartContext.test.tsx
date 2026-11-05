@@ -5,7 +5,9 @@ import { CartProvider, useCart } from './CartContext';
 
 const coca: Product = {
   id: 1,
-  name: 'Coca-Cola 500ml',
+  brand: 'Coca-Cola',
+  name: 'Original',
+  unit: '500 ml',
   category: 'bebidas',
   price: 1200,
   stock: 5,
@@ -13,7 +15,9 @@ const coca: Product = {
 
 const alfajor: Product = {
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 10,
@@ -113,7 +117,9 @@ describe('CartContext', () => {
 describe('CartContext.syncStock', () => {
   const leche: Product = {
     id: 5,
-    name: 'Leche entera 1L',
+    brand: 'La Serenísima',
+    name: 'Leche entera',
+    unit: '1 L',
     category: 'lacteos',
     price: 1300,
     stock: 20,

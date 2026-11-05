@@ -62,18 +62,24 @@ GET /api/products
 [
   {
     "id": 1,
-    "name": "Coca-Cola 500ml",
+    "brand": "Coca-Cola",
+    "name": "Original",
+    "unit": "500 ml",
     "category": "bebidas",
     "price": 1200.0,
+    "offer_price": 1000.0,
     "stock": 25,
     "description": "Gaseosa clásica",
     "image": "/productos/coca-cola.webp"
   },
   {
     "id": 2,
-    "name": "Agua mineral 500ml",
+    "brand": "El Rápido",
+    "name": "Agua mineral sin gas",
+    "unit": "500 ml",
     "category": "bebidas",
     "price": 800.0,
+    "offer_price": null,
     "stock": 40,
     "description": "Agua sin gas",
     "image": "/productos/agua-mineral.webp"
@@ -83,62 +89,66 @@ GET /api/products
 
 Productos que carga el seed con una base nueva:
 
-| `id` | `name` | `category` | `price` | `stock` |
-|---|---|---|---|---|
-| 1 | Coca-Cola 500ml | `bebidas` | 1200.0 | 25 |
-| 2 | Agua mineral 500ml | `bebidas` | 800.0 | 40 |
-| 3 | Papas Lays Clásicas | `golosinas_snacks` | 1500.0 | 30 |
-| 4 | Alfajor Jorgito | `golosinas_snacks` | 1100.0 | 50 |
-| 5 | Leche entera 1L | `lacteos` | 1300.0 | 20 |
-| 6 | Yogur firme frutilla | `lacteos` | 900.0 | 18 |
-| 7 | Fideos tirabuzón 500g | `almacen` | 1400.0 | 30 |
-| 8 | Galletitas de agua | `almacen` | 1000.0 | 35 |
-| 9 | Lavandina Ayudín clásica 1 L | `limpieza` | 1600.0 | 15 |
-| 10 | Cigarrillos | `cigarrillos` | 2500.0 | 20 |
-| 11 | Yerba mate Cruz de Malta 500 g | `almacen` | 1900.0 | 30 |
-| 12 | Azúcar Chasqui 1 kg | `almacen` | 1390.0 | 25 |
-| 13 | Aceite de girasol Marolio 900 ml | `almacen` | 2100.0 | 20 |
-| 14 | Arroz Lucchetti largo fino 1 kg | `almacen` | 2270.0 | 25 |
-| 15 | Puré de tomate De la Huerta 530 g | `almacen` | 1120.0 | 30 |
-| 16 | Gaseosa Sprite lima-limón 500 ml | `bebidas` | 1100.0 | 30 |
-| 17 | Jugo Watt's naranja 1 L | `bebidas` | 1500.0 | 20 |
-| 18 | Agua saborizada Aquarius pomelo 500 ml | `bebidas` | 1000.0 | 25 |
-| 19 | Cerveza Andes Origen rubia lata 473 ml | `bebidas` | 1700.0 | 40 |
-| 20 | Fernet Branca 750 ml | `bebidas` | 9500.0 | 10 |
-| 21 | Vino tinto Muñeco Rebelde malbec 750 ml | `bebidas` | 3800.0 | 12 |
-| 22 | Alfajor Milka Mousse triple | `golosinas_snacks` | 1300.0 | 40 |
-| 23 | Caramelos Pico Dulce | `golosinas_snacks` | 1500.0 | 40 |
-| 24 | Chicles Beldent menta x 6 | `golosinas_snacks` | 600.0 | 35 |
-| 25 | Turrón y maní Arcor | `golosinas_snacks` | 400.0 | 40 |
-| 26 | Queso cremoso La Paulina 500 g | `lacteos` | 4500.0 | 10 |
-| 27 | Manteca Cremigal 200 g | `lacteos` | 2300.0 | 15 |
-| 28 | Dulce de leche Vacalin 400 g | `lacteos` | 2400.0 | 20 |
-| 29 | Crema de leche Cremac | `lacteos` | 1600.0 | 12 |
-| 30 | Detergente Cif Active Gel limón 500 ml | `limpieza` | 1400.0 | 20 |
-| 31 | Jabón en polvo Ala Matic 800 g | `limpieza` | 3200.0 | 12 |
-| 32 | Papel higiénico Higienol Texturado 4 x 30 m | `limpieza` | 1870.0 | 20 |
-| 33 | Esponjas de cocina Piur x 2 | `limpieza` | 600.0 | 30 |
-| 34 | Cigarrillos Melbourne mentolados x 20 | `cigarrillos` | 2700.0 | 15 |
-| 35 | Tabaco para armar JBR Original 30 g | `cigarrillos` | 3000.0 | 8 |
-| 36 | Leche La Serenísima zero lactosa 1 L | `lacteos` | 2960.0 | 12 |
-| 37 | Fideos Favorita tallarín 500 g | `almacen` | 1170.0 | 30 |
-| 38 | Fideos Matarazzo spaghetti 500 g | `almacen` | 1960.0 | 30 |
-| 39 | Harina Favorita 000 1 kg | `almacen` | 1260.0 | 25 |
-| 40 | Galletitas Traviata x5 | `almacen` | 3610.0 | 30 |
-| 41 | Sal fina Celusal 500 g | `almacen` | 1530.0 | 25 |
-| 42 | Lentejas La Española 400 g | `almacen` | 1660.0 | 20 |
-| 43 | Mayonesa Hellmann's clásica 475 g | `almacen` | 3100.0 | 15 |
-| 44 | Café Bonafide Sensaciones intenso (sobres) | `almacen` | 4510.0 | 15 |
-| 45 | Papel higiénico Higienol Fresh 4 x 30 m | `limpieza` | 2340.0 | 20 |
-| 46 | Papel higiénico Higienol Plus doble hoja 4 x 30 m | `limpieza` | 3450.0 | 15 |
-| 47 | Papel higiénico Higienol Max hoja simple 4 x 50 m | `limpieza` | 3500.0 | 15 |
-| 48 | Rollo de cocina Sussex clásico x 3 | `limpieza` | 2660.0 | 18 |
-| 49 | Lavandina en gel Ayudín cítrica 700 ml | `limpieza` | 3810.0 | 12 |
-| 50 | Quitamanchas Ayudín ropa colores vivos 400 ml | `limpieza` | 1940.0 | 15 |
-| 51 | Alcohol etílico San Iginio 96° 500 ml | `limpieza` | 2250.0 | 20 |
-| 52 | Esponja Virulana lisa | `limpieza` | 950.0 | 30 |
-| 53 | Trapo de piso gris Media Naranja reforzado | `limpieza` | 2130.0 | 15 |
-| 54 | Bolsas de consorcio 60 x 90 x 10 u. | `limpieza` | 1700.0 | 25 |
+| `id` | `brand` | `name` | `unit` | `category` | `price` | `offer_price` | `stock` |
+|---|---|---|---|---|---|---|---|
+| 1 | Coca-Cola | Original | 500 ml | `bebidas` | 1200.0 | 1000.0 | 25 |
+| 2 | El Rápido | Agua mineral sin gas | 500 ml | `bebidas` | 800.0 |  | 40 |
+| 3 | Lay's | Papas fritas clásicas | 1 u. | `golosinas_snacks` | 1500.0 |  | 30 |
+| 4 | Jorgito | Alfajor | 55 g | `golosinas_snacks` | 1100.0 |  | 50 |
+| 5 | El Rápido | Leche entera | 1 L | `lacteos` | 1300.0 |  | 20 |
+| 6 | El Rápido | Yogur firme frutilla | 1 u. | `lacteos` | 900.0 |  | 18 |
+| 7 | Don Felipe | Fideos tirabuzón al huevo | 500 g | `almacen` | 1400.0 |  | 30 |
+| 8 | El Rápido | Galletitas de agua | 1 u. | `almacen` | 1000.0 |  | 35 |
+| 9 | Ayudín | Lavandina clásica | 1 L | `limpieza` | 1600.0 |  | 15 |
+| 10 | Benson | Cigarrillos | x 20 | `cigarrillos` | 2500.0 |  | 20 |
+| 11 | Cruz de Malta | Yerba mate | 500 g | `almacen` | 1900.0 | 1600.0 | 30 |
+| 12 | Chasqui | Azúcar | 1 kg | `almacen` | 1390.0 |  | 25 |
+| 13 | Marolio | Aceite de girasol | 900 ml | `almacen` | 2100.0 |  | 20 |
+| 14 | Lucchetti | Arroz largo fino | 1 kg | `almacen` | 2270.0 |  | 25 |
+| 15 | De la Huerta | Puré de tomate | 530 g | `almacen` | 1120.0 |  | 30 |
+| 16 | Sprite | Gaseosa lima-limón | 500 ml | `bebidas` | 1100.0 |  | 30 |
+| 17 | Watt's | Jugo de naranja | 1 L | `bebidas` | 1500.0 |  | 20 |
+| 18 | Aquarius | Agua saborizada pomelo | 500 ml | `bebidas` | 1000.0 |  | 25 |
+| 19 | Andes Origen | Cerveza rubia en lata | 473 ml | `bebidas` | 1700.0 |  | 40 |
+| 20 | Branca | Fernet | 750 ml | `bebidas` | 9500.0 |  | 10 |
+| 21 | Muñeco Rebelde | Vino tinto malbec | 750 ml | `bebidas` | 3800.0 |  | 12 |
+| 22 | Milka | Alfajor Mousse triple | 1 u. | `golosinas_snacks` | 1300.0 |  | 40 |
+| 23 | Pico Dulce | Caramelos duros | 150 g | `golosinas_snacks` | 1500.0 |  | 40 |
+| 24 | Beldent | Chicles de menta | x 6 | `golosinas_snacks` | 600.0 |  | 35 |
+| 25 | Arcor | Turrón y maní | 25 g | `golosinas_snacks` | 400.0 |  | 40 |
+| 26 | La Paulina | Queso cremoso tradicional | 500 g | `lacteos` | 4500.0 |  | 10 |
+| 27 | Cremigal | Manteca | 200 g | `lacteos` | 2300.0 |  | 15 |
+| 28 | Vacalin | Dulce de leche | 400 g | `lacteos` | 2400.0 |  | 20 |
+| 29 | Cremac | Crema de leche | 1 u. | `lacteos` | 1600.0 |  | 12 |
+| 30 | Cif | Detergente Active Gel limón | 500 ml | `limpieza` | 1400.0 | 1200.0 | 20 |
+| 31 | Ala | Jabón en polvo Matic | 800 g | `limpieza` | 3200.0 |  | 12 |
+| 32 | Higienol | Papel higiénico Texturado | 4 x 30 m | `limpieza` | 1870.0 |  | 20 |
+| 33 | Piur | Esponjas de cocina | x 2 | `limpieza` | 600.0 |  | 30 |
+| 34 | Melbourne | Cigarrillos mentolados | x 20 | `cigarrillos` | 2700.0 |  | 15 |
+| 35 | JBR | Tabaco para armar Original | 30 g | `cigarrillos` | 3000.0 |  | 8 |
+| 36 | La Serenísima | Leche zero lactosa | 1 L | `lacteos` | 2960.0 |  | 12 |
+| 37 | Favorita | Fideos tallarín | 500 g | `almacen` | 1170.0 |  | 30 |
+| 38 | Matarazzo | Fideos spaghetti | 500 g | `almacen` | 1960.0 |  | 30 |
+| 39 | Favorita | Harina 000 | 1 kg | `almacen` | 1260.0 |  | 25 |
+| 40 | Traviata | Galletitas sabor original | x 5 | `almacen` | 3610.0 |  | 30 |
+| 41 | Celusal | Sal fina | 500 g | `almacen` | 1530.0 |  | 25 |
+| 42 | La Española | Lentejas | 400 g | `almacen` | 1660.0 |  | 20 |
+| 43 | Hellmann's | Mayonesa clásica | 475 g | `almacen` | 3100.0 | 2600.0 | 15 |
+| 44 | Bonafide | Café Sensaciones intenso en sobres | 20 x 5 g | `almacen` | 4510.0 |  | 15 |
+| 45 | Higienol | Papel higiénico Fresh | 4 x 30 m | `limpieza` | 2340.0 |  | 20 |
+| 46 | Higienol | Papel higiénico Plus doble hoja | 4 x 30 m | `limpieza` | 3450.0 |  | 15 |
+| 47 | Higienol | Papel higiénico Max hoja simple | 4 x 50 m | `limpieza` | 3500.0 |  | 15 |
+| 48 | Sussex | Rollo de cocina clásico | x 3 | `limpieza` | 2660.0 |  | 18 |
+| 49 | Ayudín | Lavandina en gel cítrica | 700 ml | `limpieza` | 3810.0 |  | 12 |
+| 50 | Ayudín | Quitamanchas ropa colores vivos | 400 ml | `limpieza` | 1940.0 |  | 15 |
+| 51 | San Iginio | Alcohol etílico 96° | 500 ml | `limpieza` | 2250.0 |  | 20 |
+| 52 | Virulana | Esponja lisa | 1 u. | `limpieza` | 950.0 |  | 30 |
+| 53 | Media Naranja | Trapo de piso gris reforzado | 48 x 60 cm | `limpieza` | 2130.0 |  | 15 |
+| 54 | El Rápido | Bolsas de consorcio 60 x 90 cm | x 10 | `limpieza` | 1700.0 |  | 25 |
+
+`offer_price` vacío en la tabla = `null` (sin oferta). Los 4 productos en oferta son el 1, el 11, el 30 y el 43.
+
+Cada producto trae `brand` (marca), `name` (solo el producto, sin la marca ni la presentación) y `unit` (capacidad o presentación). El nombre completo para mostrar es `brand` + `name` + `unit`, por ejemplo `Coca-Cola Original 500 ml`. `offer_price` es el precio de oferta: si no es `null`, es mayor a 0, menor que `price` y es el precio que se cobra en un pedido.
 
 Cada producto del seed trae en `image` la ruta de su foto, por ejemplo `/productos/coca-cola.webp`. Es una ruta del frontend, no del backend: los archivos están en `frontend/public/productos/` y los sirve Vite. Si `image` es `null` o la foto no carga, el frontend muestra la imagen de la categoría.
 
@@ -154,18 +164,24 @@ GET /api/products?category=bebidas
 [
   {
     "id": 1,
-    "name": "Coca-Cola 500ml",
+    "brand": "Coca-Cola",
+    "name": "Original",
+    "unit": "500 ml",
     "category": "bebidas",
     "price": 1200.0,
+    "offer_price": 1000.0,
     "stock": 25,
     "description": "Gaseosa clásica",
     "image": "/productos/coca-cola.webp"
   },
   {
     "id": 2,
-    "name": "Agua mineral 500ml",
+    "brand": "El Rápido",
+    "name": "Agua mineral sin gas",
+    "unit": "500 ml",
     "category": "bebidas",
     "price": 800.0,
+    "offer_price": null,
     "stock": 40,
     "description": "Agua sin gas",
     "image": "/productos/agua-mineral.webp"
@@ -210,9 +226,12 @@ GET /api/products/1
 ```json
 {
   "id": 1,
-  "name": "Coca-Cola 500ml",
+  "brand": "Coca-Cola",
+  "name": "Original",
+  "unit": "500 ml",
   "category": "bebidas",
   "price": 1200.0,
+  "offer_price": 1000.0,
   "stock": 25,
   "description": "Gaseosa clásica",
   "image": "/productos/coca-cola.webp"
@@ -233,7 +252,7 @@ GET /api/products/999
 
 ### POST /api/orders
 
-Crea un pedido y descuenta el stock de cada producto. `items` tiene que tener al menos un elemento y cada `quantity` tiene que ser mayor o igual a 1. El backend toma `unit_price` del precio actual del producto y calcula `total` como la suma de `quantity * unit_price`.
+Crea un pedido y descuenta el stock de cada producto. `items` tiene que tener al menos un elemento y cada `quantity` tiene que ser mayor o igual a 1. El backend toma `unit_price` del precio actual del producto: `offer_price` si el producto tiene oferta, si no `price`. El frontend no manda precios (si manda un campo de más, como `unit_price`, se ignora) y calcula `total` como la suma de `quantity * unit_price`.
 
 El descuento de stock y la creación del pedido se hacen en una sola transacción: si algún item falla (404 o 409), no se guarda el pedido ni se descuenta nada. Si hay varios errores, se responde el del primer item que falle. Si un `product_id` se repite, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
 
@@ -253,15 +272,15 @@ Content-Type: application/json
 }
 ```
 
-**201 Created**
+**201 Created** (el producto 1, Coca-Cola, está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
 
 ```json
 {
   "id": 1,
-  "created_at": "2026-10-29T16:07:18.832206",
-  "total": 3500.0,
+  "created_at": "2026-11-05T13:45:39.013674",
+  "total": 3100.0,
   "items": [
-    { "product_id": 1, "quantity": 2, "unit_price": 1200.0 },
+    { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
     { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
   ]
 }
@@ -351,10 +370,10 @@ GET /api/orders
 [
   {
     "id": 1,
-    "created_at": "2026-10-29T16:07:18.832206",
-    "total": 3500.0,
+    "created_at": "2026-11-05T13:45:39.013674",
+    "total": 3100.0,
     "items": [
-      { "product_id": 1, "quantity": 2, "unit_price": 1200.0 },
+      { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
       { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
     ]
   }
@@ -366,6 +385,8 @@ GET /api/orders
 Manda una pregunta a KioscoBot y devuelve su respuesta. `message` tiene que tener entre 1 y 500 caracteres; los espacios del principio y del final no cuentan. La respuesta (`reply`) es un texto en español que puede tener saltos de línea (`\n`).
 
 Es solo de consulta: nunca crea pedidos ni modifica productos. Los precios y el stock salen de la base, igual que en `GET /api/products`. Si no entiende la pregunta responde 200 con un texto fijo que explica en qué puede ayudar, y si la base no responde también devuelve 200, con el texto `"Ahora no puedo consultar los productos. Probá de nuevo en un rato."` (no devuelve 500). Horarios y medios de pago son texto fijo del backend. Todavía no hay límite de mensajes por minuto (no existe el 429).
+
+Nombra cada producto con su nombre completo (`brand` + `name` + `unit`). Si el producto tiene oferta, informa el precio de oferta y el normal entre paréntesis: `$ 1.000 en oferta (precio normal $ 1.200)`. En una lista, después de una oferta el stock va separado por una coma; sin oferta, el formato no cambia.
 
 Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422. Los ejemplos de abajo son respuestas por reglas (sin `BOT_API_KEY`).
 
@@ -382,11 +403,11 @@ Content-Type: application/json
 { "message": "¿Cuánto sale la Coca?" }
 ```
 
-**200 OK** (precio)
+**200 OK** (precio de un producto en oferta)
 
 ```json
 {
-  "reply": "Coca-Cola 500ml sale $ 1.200 y hay 25 unidades."
+  "reply": "Coca-Cola Original 500 ml sale $ 1.000 en oferta (precio normal $ 1.200) y hay 25 unidades."
 }
 ```
 
@@ -398,7 +419,7 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "Encontré estos productos:\n- Leche entera 1L: $ 1.300 (20 unidades)\n- Dulce de leche Vacalin 400 g: $ 2.400 (20 unidades)\n- Crema de leche Cremac: $ 1.600 (12 unidades)\n- Leche La Serenísima zero lactosa 1 L: $ 2.960 (12 unidades)\nEl stock puede cambiar hasta que confirmes el pedido."
+  "reply": "Encontré estos productos:\n- El Rápido Leche entera 1 L: $ 1.300 (20 unidades)\n- Vacalin Dulce de leche 400 g: $ 2.400 (20 unidades)\n- Cremac Crema de leche 1 u.: $ 1.600 (12 unidades)\n- La Serenísima Leche zero lactosa 1 L: $ 2.960 (12 unidades)\nEl stock puede cambiar hasta que confirmes el pedido."
 }
 ```
 
@@ -410,7 +431,7 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)\n- Gaseosa Sprite lima-limón 500 ml: $ 1.100 (30 unidades)\n- Jugo Watt's naranja 1 L: $ 1.500 (20 unidades)\n- Agua saborizada Aquarius pomelo 500 ml: $ 1.000 (25 unidades)\n- Cerveza Andes Origen rubia lata 473 ml: $ 1.700 (40 unidades)\n… y 2 más."
+  "reply": "En Bebidas tengo:\n- Coca-Cola Original 500 ml: $ 1.000 en oferta (precio normal $ 1.200), 25 unidades\n- El Rápido Agua mineral sin gas 500 ml: $ 800 (40 unidades)\n- Sprite Gaseosa lima-limón 500 ml: $ 1.100 (30 unidades)\n- Watt's Jugo de naranja 1 L: $ 1.500 (20 unidades)\n- Aquarius Agua saborizada pomelo 500 ml: $ 1.000 (25 unidades)\n- Andes Origen Cerveza rubia en lata 473 ml: $ 1.700 (40 unidades)\n… y 2 más."
 }
 ```
 
