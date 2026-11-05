@@ -1,15 +1,21 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartProvider, useCart } from '../context/CartContext';
-import { ApiError, getProductById } from '../services/api';
+import { ApiError, getProductById, getProducts } from '../services/api';
 import type { Product } from '../types';
 import ProductDetail from './ProductDetail';
 
 vi.mock('../services/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/api')>();
-  return { ...actual, getProductById: vi.fn() };
+  return { ...actual, getProductById: vi.fn(), getProducts: vi.fn() };
 });
 
 function makeProduct(overrides: Partial<Product> = {}): Product {
@@ -47,14 +53,14 @@ function renderDetail(url: string) {
 describe('ProductDetail', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    // Por defecto no hay otros productos de la categoría.
+    vi.mocked(getProducts).mockResolvedValue([]);
   });
 
   it('muestra "Cargando producto…" mientras espera', () => {
     vi.mocked(getProductById).mockReturnValue(new Promise(() => {}));
     renderDetail('/products/1');
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Cargando producto…',
-    );
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando producto…');
   });
 
   it('muestra el detalle del producto y pide el id de la URL', async () => {
@@ -65,7 +71,7 @@ describe('ProductDetail', () => {
     ).toBeInTheDocument();
     expect(getProductById).toHaveBeenCalledWith(1);
     expect(screen.getByText('Gaseosa clásica')).toBeInTheDocument();
-    expect(screen.getByText('Stock disponible: 22')).toBeInTheDocument();
+    expect(screen.getByText('En stock · 22 unidades')).toBeInTheDocument();
   });
 
   it('con un 404 muestra "Producto no encontrado" y un enlace', async () => {
@@ -205,5 +211,134 @@ describe('ProductDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
     expect(screen.getByText('Lista de productos')).toBeInTheDocument();
+  });
+
+  describe('indicador de stock', () => {
+    it.each([
+      [22, 'En stock · 22 unidades', ''],
+      [6, 'En stock · 6 unidades', ''],
+      [5, 'Últimas unidades · 5', 'product-detail__stock--low'],
+      [1, 'Últimas unidades · 1', 'product-detail__stock--low'],
+      [0, 'Sin stock', 'product-detail__stock--out'],
+    ])('con stock %i muestra "%s"', async (stock, text, modifier) => {
+      vi.mocked(getProductById).mockResolvedValue(makeProduct({ stock }));
+      renderDetail('/products/1');
+
+      const indicator = await screen.findByText(text);
+      expect(indicator).toHaveClass('product-detail__stock');
+      if (modifier) {
+        expect(indicator).toHaveClass(modifier);
+      } else {
+        expect(indicator).not.toHaveClass(
+          'product-detail__stock--low',
+          'product-detail__stock--out',
+        );
+      }
+    });
+  });
+
+  describe('selector de cantidad', () => {
+    it('la etiqueta "Cantidad" sigue asociada al campo', async () => {
+      vi.mocked(getProductById).mockResolvedValue(makeProduct());
+      renderDetail('/products/1');
+      expect(await screen.findByLabelText('Cantidad')).toHaveValue(1);
+    });
+
+    it('"−" no baja de 1 y "+" no pasa del stock disponible', async () => {
+      const user = userEvent.setup();
+      vi.mocked(getProductById).mockResolvedValue(makeProduct({ stock: 3 }));
+      renderDetail('/products/1');
+      const input = await screen.findByRole('spinbutton');
+      const minus = screen.getByRole('button', { name: 'Disminuir cantidad' });
+      const plus = screen.getByRole('button', { name: 'Aumentar cantidad' });
+
+      expect(input).toHaveValue(1);
+      expect(minus).toBeDisabled();
+
+      await user.click(plus);
+      await user.click(plus);
+      expect(input).toHaveValue(3);
+      expect(plus).toBeDisabled();
+      expect(minus).toBeEnabled();
+
+      await user.click(minus);
+      expect(input).toHaveValue(2);
+    });
+
+    it('"+" respeta lo que ya está en el carrito y agrega lo elegido', async () => {
+      const user = userEvent.setup();
+      vi.mocked(getProductById).mockResolvedValue(makeProduct({ stock: 4 }));
+      renderDetail('/products/1');
+      const plus = await screen.findByRole('button', {
+        name: 'Aumentar cantidad',
+      });
+
+      await user.click(plus);
+      await user.click(
+        screen.getByRole('button', { name: 'Agregar al carrito' }),
+      );
+      expect(screen.getByText('Carrito: 2')).toBeInTheDocument();
+
+      // Quedan 2 disponibles: el "+" se frena en 2.
+      await user.click(plus);
+      expect(screen.getByRole('spinbutton')).toHaveValue(2);
+      expect(plus).toBeDisabled();
+    });
+  });
+
+  describe('sección "Más de…"', () => {
+    it('muestra hasta 4 productos de la categoría, sin el actual', async () => {
+      vi.mocked(getProductById).mockResolvedValue(makeProduct());
+      vi.mocked(getProducts).mockResolvedValue([
+        makeProduct(),
+        makeProduct({ id: 2, name: 'Sprite 500ml', price: 1100 }),
+        makeProduct({ id: 3, name: 'Fanta 500ml' }),
+        makeProduct({ id: 4, name: 'Agua 500ml' }),
+        makeProduct({ id: 5, name: 'Soda 1,5L' }),
+        makeProduct({ id: 6, name: 'Jugo 1L' }),
+      ]);
+      renderDetail('/products/1');
+
+      const section = await screen.findByRole('region', {
+        name: 'Más de Bebidas',
+      });
+      expect(getProducts).toHaveBeenCalledWith('bebidas');
+
+      const links = within(section).getAllByRole('link');
+      expect(links).toHaveLength(4);
+      expect(
+        within(section).queryByText('Coca-Cola 500ml'),
+      ).not.toBeInTheDocument();
+      expect(links[0]).toHaveAttribute('href', '/products/2');
+      expect(links[0]).toHaveTextContent('Sprite 500ml');
+      expect(links[0]).toHaveTextContent('$');
+      // Sin foto propia, usa la de la categoría (ProductImage).
+      expect(links[0].querySelector('img')).toHaveClass(
+        'product-image--category',
+      );
+    });
+
+    it('no se muestra si no hay otros productos de la categoría', async () => {
+      vi.mocked(getProductById).mockResolvedValue(makeProduct());
+      vi.mocked(getProducts).mockResolvedValue([makeProduct()]);
+      renderDetail('/products/1');
+
+      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' });
+      await waitFor(() => expect(getProducts).toHaveBeenCalled());
+      expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
+    });
+
+    it('si falla la carga no se muestra ni aparece un error', async () => {
+      vi.mocked(getProductById).mockResolvedValue(makeProduct());
+      vi.mocked(getProducts).mockRejectedValue(
+        new ApiError(0, 'No se pudo conectar con el servidor.', 'network'),
+      );
+      renderDetail('/products/1');
+
+      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' });
+      await waitFor(() => expect(getProducts).toHaveBeenCalled());
+      expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
   });
 });

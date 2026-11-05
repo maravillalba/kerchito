@@ -36,8 +36,17 @@
   border: 0;
 }
 
+/* Kerchi arriba de la frase en celular; a su costado desde 768px. */
+.home__welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-4);
+}
+
 .home__tagline {
-  margin: 0 0 var(--espacio-4);
+  margin: 0;
   font-size: 1.1875rem;
   font-weight: 600;
   color: var(--color-marca-oscuro);
@@ -63,11 +72,11 @@
   margin: 0 0 var(--espacio-3);
 }
 
-/* Categorías: 2 columnas en celular, 3 desde 768px (2 filas). */
+/* Categorías: 2 columnas en celular, 6 desde 768px. Tarjetas cuadradas con la
+   foto a todo el ancho y el nombre debajo. */
 .home__category-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
   gap: var(--espacio-3);
   margin: 0;
   padding: 0;
@@ -76,6 +85,7 @@
 
 .home__category-grid li {
   display: flex;
+  min-width: 0;
 }
 
 .home__category-grid a {
@@ -83,32 +93,174 @@
   flex: 1;
   flex-direction: column;
   gap: var(--espacio-2);
-  align-items: center;
-  justify-content: flex-start;
-  padding: var(--espacio-5) var(--espacio-3);
+  min-width: 0;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-marca);
+  color: var(--color-marca-oscuro);
   text-align: center;
   text-decoration: none;
-  background: var(--color-superficie);
-  border: 2px solid var(--color-marca);
-  border-radius: var(--radio);
-  box-shadow: var(--sombra-chica);
+  border-radius: 18px;
 }
 
 .home__category-icon {
   display: block;
   width: 100%;
-  height: 100px;
-  object-fit: contain;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   background: var(--color-superficie);
-  border-radius: var(--radio);
+  border: 1px solid var(--color-borde);
+  border-radius: 18px;
 }
 
 .home__category-grid a:hover {
+  color: var(--color-marca);
+  text-decoration: underline;
+}
+
+.home__category-grid a:hover .home__category-icon {
+  border-color: var(--color-marca);
+}
+
+/* Franja de banners: atajos a una categoría. Sin sombras. */
+.home__banners {
+  --color-crema-calido: #fff1d2;
+
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.home-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  min-width: 0;
+  padding: var(--espacio-4);
   color: var(--color-marca-oscuro);
+  text-decoration: none;
+  border-radius: 20px;
+}
+
+.home-banner:hover {
+  color: var(--color-marca-oscuro);
+}
+
+.home-banner--grande {
+  background: var(--color-crema-calido);
+}
+
+.home-banner--amarillo {
   background: var(--color-acento);
-  box-shadow: var(--sombra-media);
+}
+
+.home-banner--naranja {
+  background: var(--color-primario);
+}
+
+.home-banner__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.home-banner__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.home-banner--grande .home-banner__title {
+  font-size: 1.875rem;
+}
+
+.home-banner__subtitle {
+  color: var(--color-marca-oscuro);
+}
+
+/* Parece un botón, pero es parte del link (no es un control aparte). */
+.home-banner__action {
+  margin-top: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-4);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-superficie);
+  background: var(--color-marca-oscuro);
+  border-radius: 999px;
+}
+
+.home-banner--grande .home-banner__action {
+  color: var(--color-marca-oscuro);
+  background: var(--color-primario);
+}
+
+.home-banner:hover .home-banner__action {
+  text-decoration: underline;
+}
+
+.home-banner--grande:hover .home-banner__action {
+  background: var(--color-primario-hover);
+}
+
+/* Fotos con fondo blanco: multiply las funde con el fondo del banner. */
+.home-banner__photo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  mix-blend-mode: multiply;
+}
+
+/* Banner grande: yerba y azúcar debajo del texto, centradas (en celular). */
+.home-banner--grande .home-banner__photos {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--espacio-2);
+}
+
+.home-banner--grande .home-banner__photo:first-child {
+  height: 190px;
+}
+
+.home-banner--grande .home-banner__photo:last-child {
+  width: 160px;
+  height: auto;
+}
+
+/* Banners chicos: placa blanca con 3 fotos, a todo el ancho en celular. */
+.home-banner--amarillo .home-banner__photos,
+.home-banner--naranja .home-banner__photos {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  background: var(--color-superficie);
+  border-radius: 16px;
+}
+
+.home-banner--amarillo .home-banner__photo,
+.home-banner--naranja .home-banner__photo {
+  min-width: 0;
+  height: 110px;
+  object-fit: contain;
+}
+
+/* Productos destacados: 3 tarjetas centradas (2 en celular). */
+.home__featured h2 {
+  margin: 0 0 var(--espacio-3);
+}
+
+.home__featured-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-3);
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+.home__featured-grid > :nth-child(n + 3) {
+  display: none;
 }
 
 /* Cómo comprar: pasos apilados en celular, en fila desde 768px. */
@@ -180,17 +332,50 @@
     padding: var(--espacio-5);
   }
 
+  .home__welcome {
+    flex-direction: row;
+    gap: var(--espacio-3);
+  }
+
+  .home__welcome .home__tagline {
+    text-align: left;
+  }
+
   .home__category-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .home__featured-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .home__category-grid a {
-    padding: var(--espacio-5) var(--espacio-4);
-    font-size: 1.0625rem;
+  .home__featured-grid > :nth-child(n + 3) {
+    display: flex;
   }
 
-  .home__category-icon {
-    height: 140px;
+  /* Banners chicos: texto a la izquierda y placa blanca a la derecha. */
+  .home-banner--amarillo,
+  .home-banner--naranja {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .home-banner--amarillo .home-banner__text,
+  .home-banner--naranja .home-banner__text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .home-banner--amarillo .home-banner__photos,
+  .home-banner--naranja .home-banner__photos {
+    flex: 0 1 auto;
+    gap: var(--espacio-2);
+  }
+
+  .home-banner--amarillo .home-banner__photo,
+  .home-banner--naranja .home-banner__photo {
+    height: 100px;
   }
 
   .home__step-list {
@@ -199,5 +384,37 @@
 
   .home__bot {
     padding: var(--espacio-4) var(--espacio-5);
+  }
+}
+
+/* Escritorio: el grande a la izquierda ocupa las 2 filas; los chicos, a la
+   derecha, uno arriba del otro. */
+@media (min-width: 1024px) {
+  .home__banners {
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .home-banner--grande {
+    grid-row: 1 / span 2;
+    padding: var(--espacio-5);
+  }
+
+  .home-banner--grande .home-banner__title {
+    font-size: 2.25rem;
+  }
+
+  /* Fotos grandes abajo a la derecha. */
+  .home-banner--grande .home-banner__photos {
+    justify-content: flex-end;
+    margin-top: auto;
+  }
+
+  .home-banner--grande .home-banner__photo:first-child {
+    height: 250px;
+  }
+
+  .home-banner--grande .home-banner__photo:last-child {
+    width: 210px;
   }
 }

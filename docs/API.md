@@ -56,7 +56,7 @@ Devuelve todos los productos. Con el parámetro opcional `category` devuelve sol
 GET /api/products
 ```
 
-**200 OK** (devuelve los 35 productos del seed; acá se muestran los dos primeros)
+**200 OK** (devuelve los 54 productos del seed; acá se muestran los dos primeros)
 
 ```json
 [
@@ -93,33 +93,52 @@ Productos que carga el seed con una base nueva:
 | 6 | Yogur firme frutilla | `lacteos` | 900.0 | 18 |
 | 7 | Fideos tirabuzón 500g | `almacen` | 1400.0 | 30 |
 | 8 | Galletitas de agua | `almacen` | 1000.0 | 35 |
-| 9 | Lavandina 1L | `limpieza` | 1600.0 | 15 |
+| 9 | Lavandina Ayudín clásica 1 L | `limpieza` | 1600.0 | 15 |
 | 10 | Cigarrillos | `cigarrillos` | 2500.0 | 20 |
-| 11 | Yerba mate 500 g | `almacen` | 1900.0 | 30 |
-| 12 | Azúcar 1 kg | `almacen` | 1100.0 | 25 |
-| 13 | Aceite de girasol 900 ml | `almacen` | 2100.0 | 20 |
-| 14 | Arroz largo fino 1 kg | `almacen` | 1300.0 | 25 |
-| 15 | Puré de tomate 520 g | `almacen` | 800.0 | 30 |
-| 16 | Gaseosa lima-limón 500 ml | `bebidas` | 1100.0 | 30 |
-| 17 | Jugo de naranja 1 L | `bebidas` | 1500.0 | 20 |
-| 18 | Agua saborizada pomelo 500 ml | `bebidas` | 1000.0 | 25 |
-| 19 | Cerveza rubia lata 473 ml | `bebidas` | 1700.0 | 40 |
-| 20 | Fernet 750 ml | `bebidas` | 9500.0 | 10 |
-| 21 | Vino tinto malbec 750 ml | `bebidas` | 3800.0 | 12 |
-| 22 | Alfajor triple de dulce de leche | `golosinas_snacks` | 1300.0 | 40 |
-| 23 | Caramelos masticables x 10 | `golosinas_snacks` | 500.0 | 40 |
-| 24 | Chicles de menta x 5 | `golosinas_snacks` | 600.0 | 35 |
-| 25 | Turrón de maní 25 g | `golosinas_snacks` | 400.0 | 40 |
-| 26 | Queso cremoso 500 g | `lacteos` | 4500.0 | 10 |
-| 27 | Manteca 200 g | `lacteos` | 2300.0 | 15 |
-| 28 | Dulce de leche 400 g | `lacteos` | 2400.0 | 20 |
-| 29 | Crema de leche 200 ml | `lacteos` | 1600.0 | 12 |
-| 30 | Detergente 500 ml | `limpieza` | 1400.0 | 20 |
-| 31 | Jabón en polvo 800 g | `limpieza` | 3200.0 | 12 |
-| 32 | Papel higiénico x 4 | `limpieza` | 2600.0 | 20 |
-| 33 | Esponja doble faz | `limpieza` | 600.0 | 30 |
-| 34 | Cigarrillos mentolados x 20 | `cigarrillos` | 2700.0 | 15 |
-| 35 | Tabaco para armar 30 g | `cigarrillos` | 3000.0 | 8 |
+| 11 | Yerba mate Cruz de Malta 500 g | `almacen` | 1900.0 | 30 |
+| 12 | Azúcar Chasqui 1 kg | `almacen` | 1390.0 | 25 |
+| 13 | Aceite de girasol Marolio 900 ml | `almacen` | 2100.0 | 20 |
+| 14 | Arroz Lucchetti largo fino 1 kg | `almacen` | 2270.0 | 25 |
+| 15 | Puré de tomate De la Huerta 530 g | `almacen` | 1120.0 | 30 |
+| 16 | Gaseosa Sprite lima-limón 500 ml | `bebidas` | 1100.0 | 30 |
+| 17 | Jugo Watt's naranja 1 L | `bebidas` | 1500.0 | 20 |
+| 18 | Agua saborizada Aquarius pomelo 500 ml | `bebidas` | 1000.0 | 25 |
+| 19 | Cerveza Andes Origen rubia lata 473 ml | `bebidas` | 1700.0 | 40 |
+| 20 | Fernet Branca 750 ml | `bebidas` | 9500.0 | 10 |
+| 21 | Vino tinto Muñeco Rebelde malbec 750 ml | `bebidas` | 3800.0 | 12 |
+| 22 | Alfajor Milka Mousse triple | `golosinas_snacks` | 1300.0 | 40 |
+| 23 | Caramelos Pico Dulce | `golosinas_snacks` | 1500.0 | 40 |
+| 24 | Chicles Beldent menta x 6 | `golosinas_snacks` | 600.0 | 35 |
+| 25 | Turrón y maní Arcor | `golosinas_snacks` | 400.0 | 40 |
+| 26 | Queso cremoso La Paulina 500 g | `lacteos` | 4500.0 | 10 |
+| 27 | Manteca Cremigal 200 g | `lacteos` | 2300.0 | 15 |
+| 28 | Dulce de leche Vacalin 400 g | `lacteos` | 2400.0 | 20 |
+| 29 | Crema de leche Cremac | `lacteos` | 1600.0 | 12 |
+| 30 | Detergente Cif Active Gel limón 500 ml | `limpieza` | 1400.0 | 20 |
+| 31 | Jabón en polvo Ala Matic 800 g | `limpieza` | 3200.0 | 12 |
+| 32 | Papel higiénico Higienol Texturado 4 x 30 m | `limpieza` | 1870.0 | 20 |
+| 33 | Esponjas de cocina Piur x 2 | `limpieza` | 600.0 | 30 |
+| 34 | Cigarrillos Melbourne mentolados x 20 | `cigarrillos` | 2700.0 | 15 |
+| 35 | Tabaco para armar JBR Original 30 g | `cigarrillos` | 3000.0 | 8 |
+| 36 | Leche La Serenísima zero lactosa 1 L | `lacteos` | 2960.0 | 12 |
+| 37 | Fideos Favorita tallarín 500 g | `almacen` | 1170.0 | 30 |
+| 38 | Fideos Matarazzo spaghetti 500 g | `almacen` | 1960.0 | 30 |
+| 39 | Harina Favorita 000 1 kg | `almacen` | 1260.0 | 25 |
+| 40 | Galletitas Traviata x5 | `almacen` | 3610.0 | 30 |
+| 41 | Sal fina Celusal 500 g | `almacen` | 1530.0 | 25 |
+| 42 | Lentejas La Española 400 g | `almacen` | 1660.0 | 20 |
+| 43 | Mayonesa Hellmann's clásica 475 g | `almacen` | 3100.0 | 15 |
+| 44 | Café Bonafide Sensaciones intenso (sobres) | `almacen` | 4510.0 | 15 |
+| 45 | Papel higiénico Higienol Fresh 4 x 30 m | `limpieza` | 2340.0 | 20 |
+| 46 | Papel higiénico Higienol Plus doble hoja 4 x 30 m | `limpieza` | 3450.0 | 15 |
+| 47 | Papel higiénico Higienol Max hoja simple 4 x 50 m | `limpieza` | 3500.0 | 15 |
+| 48 | Rollo de cocina Sussex clásico x 3 | `limpieza` | 2660.0 | 18 |
+| 49 | Lavandina en gel Ayudín cítrica 700 ml | `limpieza` | 3810.0 | 12 |
+| 50 | Quitamanchas Ayudín ropa colores vivos 400 ml | `limpieza` | 1940.0 | 15 |
+| 51 | Alcohol etílico San Iginio 96° 500 ml | `limpieza` | 2250.0 | 20 |
+| 52 | Esponja Virulana lisa | `limpieza` | 950.0 | 30 |
+| 53 | Trapo de piso gris Media Naranja reforzado | `limpieza` | 2130.0 | 15 |
+| 54 | Bolsas de consorcio 60 x 90 x 10 u. | `limpieza` | 1700.0 | 25 |
 
 Cada producto del seed trae en `image` la ruta de su foto, por ejemplo `/productos/coca-cola.webp`. Es una ruta del frontend, no del backend: los archivos están en `frontend/public/productos/` y los sirve Vite. Si `image` es `null` o la foto no carga, el frontend muestra la imagen de la categoría.
 
@@ -379,7 +398,7 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "Encontré estos productos:\n- Leche entera 1L: $ 1.300 (20 unidades)\n- Alfajor triple de dulce de leche: $ 1.300 (40 unidades)\n- Dulce de leche 400 g: $ 2.400 (20 unidades)\n- Crema de leche 200 ml: $ 1.600 (12 unidades)\nEl stock puede cambiar hasta que confirmes el pedido."
+  "reply": "Encontré estos productos:\n- Leche entera 1L: $ 1.300 (20 unidades)\n- Dulce de leche Vacalin 400 g: $ 2.400 (20 unidades)\n- Crema de leche Cremac: $ 1.600 (12 unidades)\n- Leche La Serenísima zero lactosa 1 L: $ 2.960 (12 unidades)\nEl stock puede cambiar hasta que confirmes el pedido."
 }
 ```
 
@@ -391,7 +410,7 @@ Content-Type: application/json
 
 ```json
 {
-  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)\n- Gaseosa lima-limón 500 ml: $ 1.100 (30 unidades)\n- Jugo de naranja 1 L: $ 1.500 (20 unidades)\n- Agua saborizada pomelo 500 ml: $ 1.000 (25 unidades)\n- Cerveza rubia lata 473 ml: $ 1.700 (40 unidades)\n… y 2 más."
+  "reply": "En Bebidas tengo:\n- Coca-Cola 500ml: $ 1.200 (25 unidades)\n- Agua mineral 500ml: $ 800 (40 unidades)\n- Gaseosa Sprite lima-limón 500 ml: $ 1.100 (30 unidades)\n- Jugo Watt's naranja 1 L: $ 1.500 (20 unidades)\n- Agua saborizada Aquarius pomelo 500 ml: $ 1.000 (25 unidades)\n- Cerveza Andes Origen rubia lata 473 ml: $ 1.700 (40 unidades)\n… y 2 más."
 }
 ```
 
