@@ -1,6 +1,8 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import logo from '../assets/logo-ker.png';
+import { useAuth } from '../context/AuthContext.tsx';
 import { useCart } from '../context/CartContext.tsx';
+import { useCerrarSesion } from '../hooks/useCerrarSesion';
 import SearchBar from './SearchBar';
 import './Header.css';
 
@@ -8,6 +10,8 @@ import './Header.css';
 // queda siempre a la vista al scrollear.
 export default function Header() {
   const { totalItems } = useCart();
+  const { usuario } = useAuth();
+  const cerrarSesion = useCerrarSesion();
   const location = useLocation();
   // En /products el buscador muestra lo que se está buscando (?q=); en otras
   // páginas arranca vacío.
@@ -33,6 +37,22 @@ export default function Header() {
           <NavLink to="/products" className="header__link">
             Productos
           </NavLink>
+          {usuario ? (
+            <span className="header__sesion">
+              <span className="header__usuario">{usuario.nombre}</span>
+              <button
+                type="button"
+                className="header__salir"
+                onClick={cerrarSesion}
+              >
+                Salir
+              </button>
+            </span>
+          ) : (
+            <NavLink to="/login" className="header__link">
+              Ingresar
+            </NavLink>
+          )}
           <NavLink to="/cart" className="header__cart">
             Carrito ({totalItems})
           </NavLink>

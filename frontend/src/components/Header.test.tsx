@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+import { AuthProvider } from '../context/AuthContext';
 import { CartProvider, useCart } from '../context/CartContext';
 import type { Product } from '../types';
 import Header from './Header';
@@ -29,10 +30,12 @@ function AddTwo() {
 function renderHeader(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <CartProvider>
-        <Header />
-        <AddTwo />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Header />
+          <AddTwo />
+        </CartProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
 }

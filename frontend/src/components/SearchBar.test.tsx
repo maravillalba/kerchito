@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import Header from './Header';
 
@@ -19,12 +20,14 @@ function renderHeader(path = '/') {
   const user = userEvent.setup();
   render(
     <MemoryRouter initialEntries={[path]}>
-      <CartProvider>
-        <Header />
-        <Routes>
-          <Route path="*" element={<Ubicacion />} />
-        </Routes>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Header />
+          <Routes>
+            <Route path="*" element={<Ubicacion />} />
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
   return user;

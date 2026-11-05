@@ -28,6 +28,15 @@ export interface CartItem {
   quantity: number;
 }
 
+// Solo existe en el frontend: la sesión todavía es simulada.
+export type Rol = 'admin' | 'cliente';
+
+export interface Usuario {
+  nombre: string;
+  email: string;
+  rol: Rol;
+}
+
 export interface OrderItemInput {
   product_id: number;
   quantity: number;

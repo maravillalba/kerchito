@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
+import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import {
   ApiError,
@@ -11,6 +12,7 @@ import {
   sendChatMessage,
 } from '../services/api';
 import type { Product } from '../types';
+import { marcarBienvenidaVista } from '../utils/primeraVisita';
 import ChatWidget from './ChatWidget';
 
 // Nunca sale a la red: se reemplazan todas las funciones de la API que usan
@@ -62,9 +64,11 @@ function renderApp(path = '/') {
   const user = userEvent.setup();
   render(
     <MemoryRouter initialEntries={[path]}>
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
   return user;
@@ -295,6 +299,8 @@ describe('ChatWidget', () => {
 
 describe('ChatWidget en el Layout', () => {
   beforeEach(() => {
+    // Sin la marca, / redirige a /bienvenida, que no tiene el widget.
+    marcarBienvenidaVista();
     vi.mocked(sendChatMessage).mockReset();
     vi.mocked(getProducts).mockReset().mockResolvedValue([coca]);
     vi.mocked(getProductById).mockReset().mockResolvedValue(coca);

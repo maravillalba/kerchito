@@ -64,6 +64,37 @@
   border-bottom-color: var(--color-primario);
 }
 
+/* Sesión iniciada: el nombre (recortado si es largo) y "Salir". */
+.header__sesion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-width: 0;
+}
+
+.header__usuario {
+  max-width: 10rem;
+  overflow: hidden;
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header__salir {
+  padding: var(--espacio-2) var(--espacio-1);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.header__salir:hover {
+  color: var(--color-marca-oscuro);
+}
+
 /* Carrito: píldora verde oscuro a la derecha, siempre visible. */
 .header__cart {
   margin-left: auto;
@@ -127,6 +158,16 @@
 
   .header__cart {
     padding: var(--espacio-1) var(--espacio-3);
+    font-size: 0.9375rem;
+  }
+
+  .header__usuario {
+    max-width: 5rem;
+    font-size: 0.9375rem;
+  }
+
+  .header__salir {
+    padding-inline: 2px;
     font-size: 0.9375rem;
   }
 }

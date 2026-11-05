@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import type { Product } from './types';
+import { marcarBienvenidaVista } from './utils/primeraVisita';
 
 // El Inicio pide los productos para "Ofertas de la semana": sin backend en los tests.
 const PRODUCTOS: Product[] = [
@@ -39,12 +41,19 @@ vi.mock('./services/api', async (importOriginal) => {
 });
 
 describe('App', () => {
+  // Sin la marca, / redirige a /bienvenida.
+  beforeEach(() => {
+    marcarBienvenidaVista();
+  });
+
   it('muestra el título del kiosko en la ruta /', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AuthProvider>
       </MemoryRouter>,
     );
     expect(
@@ -55,9 +64,11 @@ describe('App', () => {
   it('en / muestra las ofertas con el precio de oferta y el normal tachado', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AuthProvider>
       </MemoryRouter>,
     );
     const section = (
@@ -75,9 +86,11 @@ describe('App', () => {
   it('muestra la página 404 en una ruta inexistente', () => {
     render(
       <MemoryRouter initialEntries={['/no-existe']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AuthProvider>
       </MemoryRouter>,
     );
     expect(screen.getByText(/Página no encontrada/i)).toBeInTheDocument();
