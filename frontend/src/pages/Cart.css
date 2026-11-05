@@ -74,3 +74,30 @@
   font-size: 0.95rem;
   color: var(--color-marca-oscuro);
 }
+
+/* Carrito vacío: Kerchi con productos, el mensaje y el enlace al catálogo. */
+.cart__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  text-align: center;
+}
+
+.cart__empty p {
+  margin: 0;
+}
+
+/* Pedido confirmado: Kerchi festejando al lado del detalle (arriba en celular). */
+.cart__confirmation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 768px) {
+  .cart__confirmation {
+    flex-direction: row;
+  }
+}

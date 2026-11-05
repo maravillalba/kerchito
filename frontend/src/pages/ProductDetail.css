@@ -1,27 +1,257 @@
 .product-detail {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: var(--espacio-4);
+  min-width: 0;
+}
+
+/* Ruta de navegación: "← Inicio / Productos / Categoría". */
+.product-detail__breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-1) var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+  list-style: none;
+}
+
+.product-detail__breadcrumb li {
+  display: flex;
+  align-items: center;
   gap: var(--espacio-2);
 }
 
-.product-detail button {
-  padding: var(--espacio-2) var(--espacio-3);
+.product-detail__breadcrumb li + li::before {
+  content: '/';
+  color: var(--color-texto-suave);
+}
+
+.product-detail__breadcrumb a {
+  color: var(--color-texto-suave);
+  text-decoration: none;
+}
+
+.product-detail__breadcrumb a:hover {
+  color: var(--color-marca-oscuro);
+  text-decoration: underline;
+}
+
+.product-detail__breadcrumb .product-detail__breadcrumb-category {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+}
+
+/* La flecha es chica a la vista, pero el área para tocarla es de 44 px. */
+.product-detail__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: calc(-1 * var(--espacio-2));
+  padding: 0;
+  font-size: 1.25rem;
+  color: var(--color-texto-suave);
+  background: transparent;
+  border: 0;
   border-radius: var(--radio);
   cursor: pointer;
 }
 
-.product-detail__back {
-  color: var(--color-marca);
+.product-detail__back:hover {
+  color: var(--color-marca-oscuro);
+}
+
+/* Tarjeta principal: foto e información. Una columna en celular. */
+.product-detail__card {
+  display: grid;
+  gap: var(--espacio-4);
+  padding: var(--espacio-3);
   background: var(--color-superficie);
-  border: 1px solid var(--color-marca);
+  border: 1px solid var(--color-borde);
+  border-radius: 20px;
+  box-shadow: var(--sombra-chica);
+}
+
+.product-detail__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: var(--espacio-4);
+  background: var(--color-fondo);
+  border-radius: var(--radio-grande);
+}
+
+/* El fondo blanco de las fotos se funde con el crema del recuadro. */
+.product-detail__media .product-image {
+  max-width: 100%;
+  height: 240px;
+  background: transparent;
+  border: 0;
+  mix-blend-mode: multiply;
+}
+
+.product-detail__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  min-width: 0;
+}
+
+.product-detail__info p {
+  margin: 0;
+}
+
+.product-detail__category {
+  padding: var(--espacio-1) var(--espacio-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-marca-oscuro);
+  text-transform: uppercase;
+  /* Amarillo suave: el acento de la paleta aclarado sobre blanco. */
+  background: color-mix(
+    in srgb,
+    var(--color-acento) 30%,
+    var(--color-superficie)
+  );
+  border-radius: 999px;
+}
+
+.product-detail__name {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--color-marca-oscuro);
+}
+
+.product-detail__description {
+  color: var(--color-texto-suave);
+}
+
+.product-detail__price {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-marca);
+}
+
+/* Indicador de stock: punto de color y texto. */
+.product-detail__stock {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.product-detail__dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  background: var(--color-marca);
+  border-radius: 50%;
+}
+
+.product-detail__stock--low .product-detail__dot {
+  background: var(--color-primario);
+}
+
+.product-detail__stock--out {
+  color: var(--color-texto-suave);
+}
+
+.product-detail__stock--out .product-detail__dot {
+  background: var(--color-texto-suave);
+}
+
+.product-detail__in-cart {
+  font-size: var(--texto-chico);
+  color: var(--color-marca-oscuro);
+}
+
+/* Cantidad y botón en la misma fila; el botón ocupa el resto del ancho. */
+.product-detail__buy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+  width: 100%;
+}
+
+.product-detail__quantity {
+  display: flex;
+  align-items: center;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+}
+
+.product-detail__step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.product-detail__step:hover:not(:disabled) {
+  background: var(--color-marca-suave);
+}
+
+.product-detail__step:disabled {
+  color: var(--color-texto-suave);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.product-detail__quantity input {
+  width: 3ch;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-texto);
+  text-align: center;
+  background: transparent;
+  border: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.product-detail__quantity input::-webkit-inner-spin-button,
+.product-detail__quantity input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.product-detail__quantity input:focus-visible {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+  border-radius: var(--radio);
 }
 
 .product-detail__add {
+  flex: 1 1 10rem;
+  min-height: 48px;
+  padding: var(--espacio-2) var(--espacio-4);
+  font-size: 1.0625rem;
   font-weight: 700;
   color: var(--color-marca-oscuro);
   background: var(--color-primario);
   border: 0;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 .product-detail__add:hover:not(:disabled) {
@@ -33,32 +263,116 @@
   cursor: not-allowed;
 }
 
-.product-detail__category {
-  font-size: 0.8rem;
-  color: var(--color-marca);
-  text-transform: uppercase;
+.product-detail__note {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
 }
 
-.product-detail__price {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--color-marca);
+/* Más de <Categoría>: 2 columnas en celular, 4 desde 768px. */
+.product-detail__related h2 {
+  margin: 0 0 var(--espacio-3);
 }
 
-.product-detail__out {
-  font-weight: 700;
-  color: var(--color-texto);
+.product-detail__related-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.product-detail__quantity {
+.product-detail__related-list li {
   display: flex;
+  min-width: 0;
+}
+
+.product-detail__related-card {
+  display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--espacio-1);
+  min-width: 0;
+  padding: var(--espacio-2);
+  color: var(--color-texto);
+  text-decoration: none;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra-chica);
 }
 
-.product-detail__quantity input {
-  width: 6rem;
+.product-detail__related-card:hover {
+  color: var(--color-texto);
+  border-color: var(--color-marca);
+  box-shadow: var(--sombra-media);
+}
+
+.product-detail__related-media {
+  display: block;
+  margin-bottom: var(--espacio-1);
   padding: var(--espacio-2);
-  border: 1px solid var(--color-borde);
+  background: var(--color-fondo);
   border-radius: var(--radio);
+}
+
+.product-detail__related-media .product-image {
+  height: 110px;
+  background: transparent;
+  mix-blend-mode: multiply;
+}
+
+.product-detail__related-name {
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+
+.product-detail__related-price {
+  font-weight: 700;
+  color: var(--color-marca);
+}
+
+/* Oculto a la vista pero leído por lectores de pantalla. */
+.product-detail__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 768px) {
+  .product-detail__card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--espacio-5);
+    padding: var(--espacio-4);
+  }
+
+  .product-detail__media {
+    min-height: 380px;
+  }
+
+  .product-detail__media .product-image {
+    height: 320px;
+  }
+
+  .product-detail__name {
+    font-size: 2.25rem;
+  }
+
+  .product-detail__price {
+    font-size: 2.75rem;
+  }
+
+  .product-detail__related-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .product-detail__related-media .product-image {
+    height: 140px;
+  }
 }

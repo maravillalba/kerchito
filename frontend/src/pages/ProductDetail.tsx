@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ErrorMessage from '../components/ErrorMessage';
 import Loading from '../components/Loading';
 import { useCart } from '../context/CartContext';
-import { ApiError, getProductById } from '../services/api';
+import { ApiError, getProductById, getProducts } from '../services/api';
 import type { Product } from '../types';
 import ProductImage from '../components/ProductImage';
 import { CATEGORY_LABELS, formatPrice } from '../utils/format';
@@ -15,6 +15,11 @@ type DetailResult =
   | { key: string; status: 'ok'; product: Product }
   | { key: string; status: 'not-found' }
   | { key: string; status: 'error'; message: string };
+
+// Con 5 unidades o menos se avisa que quedan pocas.
+const LOW_STOCK = 5;
+// Cuántos productos de la misma categoría se muestran abajo.
+const RELATED_LIMIT = 4;
 
 // Solo enteros positivos: "abc", "1.5" o "-3" se tratan como no encontrado.
 function parseProductId(id: string | undefined): number | null {
@@ -38,16 +43,101 @@ function ProductNotFound({ id }: { id: string | undefined }) {
   );
 }
 
+// Punto de color + texto. El color acompaña, pero el texto dice el estado.
+function StockIndicator({ stock }: { stock: number }) {
+  if (stock === 0) {
+    return (
+      <p className="product-detail__stock product-detail__stock--out">
+        <span className="product-detail__dot" aria-hidden="true" />
+        Sin stock
+      </p>
+    );
+  }
+  if (stock <= LOW_STOCK) {
+    return (
+      <p className="product-detail__stock product-detail__stock--low">
+        <span className="product-detail__dot" aria-hidden="true" />
+        Últimas unidades · {stock}
+      </p>
+    );
+  }
+  return (
+    <p className="product-detail__stock">
+      <span className="product-detail__dot" aria-hidden="true" />
+      En stock · {stock} unidades
+    </p>
+  );
+}
+
+// Hasta 4 productos de la misma categoría, sin el actual. Si la carga falla o
+// no hay otros, la sección no se muestra.
+function RelatedProducts({ product }: { product: Product }) {
+  const [related, setRelated] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getProducts(product.category)
+      .then((products) => {
+        if (!cancelled) {
+          setRelated(
+            products.filter((p) => p.id !== product.id).slice(0, RELATED_LIMIT),
+          );
+        }
+      })
+      .catch(() => {
+        // Es información extra: ante un error, simplemente no se muestra.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.category, product.id]);
+
+  if (related.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="product-detail__related"
+      aria-labelledby="product-detail-related"
+    >
+      <h2 id="product-detail-related">
+        Más de {CATEGORY_LABELS[product.category]}
+      </h2>
+      <ul className="product-detail__related-list">
+        {related.map((item) => (
+          <li key={item.id}>
+            <Link
+              to={`/products/${item.id}`}
+              className="product-detail__related-card"
+            >
+              <span className="product-detail__related-media">
+                <ProductImage product={item} size="card" />
+              </span>
+              <span className="product-detail__related-name">{item.name}</span>
+              <span className="product-detail__related-price">
+                {formatPrice(item.price)}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ProductInfo({ product }: { product: Product }) {
   const navigate = useNavigate();
   const { items, addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const quantityId = useId();
 
   // El tope es lo que queda después de lo que ya está en el carrito.
   const inCart =
     items.find((item) => item.product.id === product.id)?.quantity ?? 0;
   const available = Math.max(0, product.stock - inCart);
   const selected = Math.min(quantity, Math.max(available, 1));
+  const categoryLabel = CATEGORY_LABELS[product.category];
 
   const handleQuantityChange = (value: string) => {
     const parsed = Number(value);
@@ -61,51 +151,114 @@ function ProductInfo({ product }: { product: Product }) {
   };
 
   return (
-    <section className="product-detail">
-      <button
-        type="button"
-        className="product-detail__back"
-        onClick={() => navigate('/products')}
+    <div className="product-detail">
+      <nav
+        className="product-detail__breadcrumb"
+        aria-label="Ruta de navegación"
       >
-        Volver
-      </button>
-      <ProductImage product={product} size="detail" />
-      <span className="product-detail__category">
-        {CATEGORY_LABELS[product.category]}
-      </span>
-      <h1>{product.name}</h1>
-      {product.description && <p>{product.description}</p>}
-      <p className="product-detail__price">{formatPrice(product.price)}</p>
-      {product.stock === 0 ? (
-        <p className="product-detail__out">Sin stock</p>
-      ) : (
-        <p>Stock disponible: {product.stock}</p>
-      )}
-      {inCart > 0 && <p>Ya tenés {inCart} en el carrito.</p>}
-      {product.stock > 0 && available === 0 && (
-        <p>Ya agregaste todo el stock disponible.</p>
-      )}
-      {available > 0 && (
-        <label className="product-detail__quantity">
-          Cantidad
-          <input
-            type="number"
-            min={1}
-            max={available}
-            value={selected}
-            onChange={(e) => handleQuantityChange(e.target.value)}
-          />
-        </label>
-      )}
-      <button
-        type="button"
-        className="product-detail__add"
-        onClick={handleAdd}
-        disabled={available === 0}
-      >
-        Agregar al carrito
-      </button>
-    </section>
+        <ol>
+          <li>
+            {/* La flecha hace lo mismo que el antiguo botón "Volver". */}
+            <button
+              type="button"
+              className="product-detail__back"
+              aria-label="Volver"
+              onClick={() => navigate('/products')}
+            >
+              <span aria-hidden="true">←</span>
+            </button>
+            <Link to="/">Inicio</Link>
+          </li>
+          <li>
+            <Link to="/products">Productos</Link>
+          </li>
+          <li>
+            <Link
+              to={`/products?category=${product.category}`}
+              className="product-detail__breadcrumb-category"
+            >
+              {categoryLabel}
+            </Link>
+          </li>
+        </ol>
+      </nav>
+
+      <section className="product-detail__card">
+        <div className="product-detail__media">
+          <ProductImage product={product} size="detail" />
+        </div>
+
+        <div className="product-detail__info">
+          <span className="product-detail__category">{categoryLabel}</span>
+          <h1 className="product-detail__name">{product.name}</h1>
+          {product.description && (
+            <p className="product-detail__description">{product.description}</p>
+          )}
+          <p className="product-detail__price">{formatPrice(product.price)}</p>
+          <StockIndicator stock={product.stock} />
+          {inCart > 0 && (
+            <p className="product-detail__in-cart">
+              Ya tenés {inCart} en el carrito.
+            </p>
+          )}
+          {product.stock > 0 && available === 0 && (
+            <p className="product-detail__in-cart">
+              Ya agregaste todo el stock disponible.
+            </p>
+          )}
+
+          <div className="product-detail__buy">
+            {available > 0 && (
+              <div className="product-detail__quantity">
+                <label htmlFor={quantityId} className="product-detail__sr-only">
+                  Cantidad
+                </label>
+                <button
+                  type="button"
+                  className="product-detail__step"
+                  aria-label="Disminuir cantidad"
+                  onClick={() => setQuantity(Math.max(1, selected - 1))}
+                  disabled={selected <= 1}
+                >
+                  <span aria-hidden="true">−</span>
+                </button>
+                <input
+                  id={quantityId}
+                  type="number"
+                  min={1}
+                  max={available}
+                  value={selected}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="product-detail__step"
+                  aria-label="Aumentar cantidad"
+                  onClick={() => setQuantity(Math.min(available, selected + 1))}
+                  disabled={selected >= available}
+                >
+                  <span aria-hidden="true">+</span>
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              className="product-detail__add"
+              onClick={handleAdd}
+              disabled={available === 0}
+            >
+              Agregar al carrito
+            </button>
+          </div>
+
+          <p className="product-detail__note">
+            El stock puede cambiar hasta que confirmes el pedido.
+          </p>
+        </div>
+      </section>
+
+      <RelatedProducts key={product.id} product={product} />
+    </div>
   );
 }
 

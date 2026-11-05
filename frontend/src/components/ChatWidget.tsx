@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { ApiError, sendChatMessage } from '../services/api';
 import ErrorMessage from './ErrorMessage';
+import Mascota from './Mascota';
 import './ChatWidget.css';
 
 interface ChatMessage {
@@ -172,14 +173,18 @@ function ChatWidget() {
           </p>
         ))}
         {sending && (
-          <p className="chat-widget__typing" role="status" aria-live="polite">
-            Escribiendo…
-          </p>
+          <div className="chat-widget__thinking">
+            <Mascota pose="pensando" size="chico" />
+            <p className="chat-widget__typing" role="status" aria-live="polite">
+              Escribiendo…
+            </p>
+          </div>
         )}
       </div>
 
       {error && (
         <div className="chat-widget__error">
+          <Mascota pose="triste" size="chico" />
           <ErrorMessage message={error} onRetry={handleRetry} />
         </div>
       )}

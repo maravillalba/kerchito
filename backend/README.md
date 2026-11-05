@@ -41,7 +41,7 @@ python -m uvicorn main:app --reload
 - Prueba rápida: http://localhost:8000/health → `{"status":"ok"}`
 
 ## Base de datos y seed
-- Al arrancar, el servidor crea las tablas (`products`, `orders` y `order_items`) y carga los 35 productos del seed **solo si la tabla `products` está vacía**. No hace falta correr `python seed.py`.
+- Al arrancar, el servidor crea las tablas (`products`, `orders` y `order_items`) y carga los 54 productos del seed **solo si la tabla `products` está vacía**. No hace falta correr `python seed.py`.
 - `kiosco.db` se crea en la carpeta desde donde se corre el servidor. Por eso hay que correrlo **siempre desde `backend/`**; si se arranca desde otra carpeta (por ejemplo con `--app-dir backend` desde la raíz), se crea otra `kiosco.db` en esa carpeta, con el stock original y sin los pedidos guardados.
 - Para empezar de cero (por ejemplo, para recuperar el stock original): frená el servidor (`Ctrl+C`), borrá `backend/kiosco.db` y volvé a arrancarlo.
 - `kiosco.db` está en el `.gitignore`: no se sube al repositorio.
@@ -71,7 +71,7 @@ Los tests usan una base SQLite en memoria, así que no tocan `kiosco.db`, y nunc
 - `database.py`: conexión a SQLite (`engine`, `SessionLocal`, `Base`), `PRAGMA foreign_keys=ON` y `get_db`.
 - `models.py`: modelos de la base (`Product`, `Order` y `OrderItem`).
 - `schemas.py`: esquemas Pydantic de productos, pedidos y chat (ver `docs/CONTRATO.md`).
-- `seed.py`: los 35 productos iniciales y la función `seed()`.
+- `seed.py`: los 54 productos iniciales y la función `seed()`.
 - `bot_ai.py`: capa de IA opcional de KioscoBot (usa `BOT_API_KEY` y `BOT_MODEL`).
 - `routers/products.py`: `GET /api/products` y `GET /api/products/{id}`.
 - `routers/orders.py`: `POST /api/orders` (descuenta stock en una sola transacción) y `GET /api/orders`.

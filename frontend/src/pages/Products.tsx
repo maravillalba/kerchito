@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ErrorMessage from '../components/ErrorMessage';
 import Loading from '../components/Loading';
+import Mascota from '../components/Mascota';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { ApiError, getProducts } from '../services/api';
@@ -75,7 +76,12 @@ function Products() {
       );
     }
     if (result.products.length === 0) {
-      return <p>No hay productos en esta categoría.</p>;
+      return (
+        <div className="products__empty">
+          <Mascota pose="triste" />
+          <p>No hay productos en esta categoría.</p>
+        </div>
+      );
     }
     return (
       <div className="products__grid">

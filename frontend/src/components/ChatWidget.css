@@ -107,16 +107,32 @@
   border-bottom-right-radius: var(--espacio-1);
 }
 
-.chat-widget__typing {
+/* Kerchi pensando al lado de "Escribiendo…" mientras llega la respuesta. */
+.chat-widget__thinking {
+  display: flex;
   align-self: flex-start;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.chat-widget__typing {
   margin: 0;
   font-size: var(--texto-chico);
   font-style: italic;
   color: var(--color-texto-suave);
 }
 
+/* Kerchi triste a la izquierda del error; el mensaje ocupa el resto. */
 .chat-widget__error {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
   padding: var(--espacio-2) var(--espacio-3) 0;
+}
+
+.chat-widget__error .error-message {
+  flex: 1;
+  min-width: 0;
 }
 
 /* El panel es angosto: el error va siempre en columna. */

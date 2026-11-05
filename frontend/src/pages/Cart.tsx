@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CartItem from '../components/CartItem';
 import ErrorMessage from '../components/ErrorMessage';
+import Mascota from '../components/Mascota';
 import { useCart } from '../context/CartContext';
 import { useCheckout } from '../hooks/useCheckout';
 import { getProducts } from '../services/api';
@@ -91,11 +92,14 @@ function Cart() {
       <section className="cart">
         <h1>Carrito</h1>
         <div className="cart__confirmation" role="status">
-          <p>
-            ¡Pedido confirmado! Pedido N° {success.orderId}. Productos:{' '}
-            {success.totalItems}. Total: {formatPrice(success.total)}.
-          </p>
-          <Link to="/products">Seguir comprando</Link>
+          <Mascota pose="festejando" />
+          <div>
+            <p>
+              ¡Pedido confirmado! Pedido N° {success.orderId}. Productos:{' '}
+              {success.totalItems}. Total: {formatPrice(success.total)}.
+            </p>
+            <Link to="/products">Seguir comprando</Link>
+          </div>
         </div>
       </section>
     );
@@ -110,8 +114,11 @@ function Cart() {
             {notice}
           </p>
         )}
-        <p>Tu carrito está vacío</p>
-        <Link to="/products">Ver productos</Link>
+        <div className="cart__empty">
+          <Mascota pose="con-productos" />
+          <p>Tu carrito está vacío</p>
+          <Link to="/products">Ver productos</Link>
+        </div>
       </section>
     );
   }
