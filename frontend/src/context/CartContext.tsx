@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { CartItem, Product } from '../types';
+import { effectivePrice } from '../utils/pricing';
 
 interface CartContextValue {
   items: CartItem[];
@@ -11,7 +12,6 @@ interface CartContextValue {
   syncStock: (products: Product[]) => void;
   totalItems: number;
   totalPrice: number;
-  
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -83,8 +83,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  // Precio efectivo: el de oferta si existe. El backend cobra igual.
   const totalPrice = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + effectivePrice(item.product) * item.quantity,
     0,
   );
 

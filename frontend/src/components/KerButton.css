@@ -1,0 +1,128 @@
+/* Basado en un componente de Uiverse.io (doniaskima/old-catfish-59).
+   Cambios: colores de la paleta (naranja del logo o verde) con texto blanco,
+   sin mix-blend-mode, foco visible, estado disabled y animaciones solo si no se
+   pidió reducir el movimiento.
+
+   Contraste: blanco sobre el naranja del logo da 3,5:1, que alcanza AA porque el
+   texto es grande (19px en negrita). No achicar la letra en la variante naranja. */
+.ker-btn {
+  --ker-fondo: var(--color-primario);
+  --ker-relleno: var(--color-primario-hover);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.75rem 1.75rem;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  background: var(--ker-fondo);
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ker-btn--verde {
+  --ker-fondo: var(--color-marca);
+  --ker-relleno: var(--color-marca-oscuro);
+}
+
+/* Tamaño chico (cards de producto). Solo en verde: blanco sobre verde da 5,4:1
+   y pasa AA con texto chico; sobre el naranja no. */
+.ker-btn--chico {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+}
+
+.ker-btn:hover {
+  color: #fff;
+}
+
+/* La "cortina" diagonal del original: en reposo cubre el triángulo de abajo a la
+   derecha con un tono más oscuro; al pasar el mouse cubre todo el botón. */
+.ker-btn::before {
+  --progress: 100%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  background: var(--ker-relleno);
+  clip-path: polygon(
+    100% 0,
+    var(--progress) var(--progress),
+    0 100%,
+    100% 100%
+  );
+}
+
+.ker-btn:hover::before,
+.ker-btn-trigger:hover .ker-btn::before {
+  --progress: 0%;
+}
+
+.ker-btn__text-container {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.ker-btn__text {
+  position: relative;
+  display: block;
+}
+
+.ker-btn:focus-visible {
+  outline: 3px solid var(--color-marca-oscuro);
+  outline-offset: 3px;
+}
+
+.ker-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Deshabilitado no reacciona al mouse. */
+.ker-btn:disabled::before {
+  --progress: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ker-btn::before {
+    transition: clip-path 0.2s ease;
+  }
+
+  .ker-btn:hover:not(:disabled) .ker-btn__text,
+  .ker-btn-trigger:hover .ker-btn .ker-btn__text {
+    animation: ker-btn-sube 0.3s ease forwards;
+  }
+}
+
+@keyframes ker-btn-sube {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(80%);
+  }
+
+  51% {
+    transform: translateY(-80%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}

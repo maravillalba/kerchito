@@ -137,7 +137,7 @@ Los archivos `.env` están en el `.gitignore`. Al repositorio solo se suben los 
 
 ## KioscoBot
 
-KioscoBot es el chat de ayuda (el botón flotante "Abrir chat de KioscoBot", en todas las páginas). Usa `POST /api/chat`.
+KioscoBot es el chat de ayuda (el botón flotante "Abrir KioscoBot", en todas las páginas). Usa `POST /api/chat`.
 
 - **Sin `BOT_API_KEY`**, responde con reglas: precios, stock, productos por categoría, categorías, horarios, medios de pago y cómo hacer un pedido. Los datos de productos salen de la base.
 - **Con `BOT_API_KEY`**, la respuesta la genera un modelo de IA con los datos de la tienda. Si la IA falla (error, timeout, respuesta vacía o un error inesperado), vuelve a responder con las reglas, así que el chat sigue respondiendo con 200.

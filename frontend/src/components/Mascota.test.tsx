@@ -9,6 +9,7 @@ const POSES: MascotaPose[] = [
   'triste',
   'festejando',
   'con-productos',
+  'aprobado',
 ];
 
 describe('Mascota', () => {

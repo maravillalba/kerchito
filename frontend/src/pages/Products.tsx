@@ -8,6 +8,14 @@ import { useCart } from '../context/CartContext';
 import { ApiError, getProducts } from '../services/api';
 import type { Category, Product } from '../types';
 import { CATEGORY_LABELS } from '../utils/format';
+import {
+  DEFAULT_SORT,
+  SORT_OPTIONS,
+  parseSortOrder,
+  sortProducts,
+} from '../utils/sort';
+import type { SortOrder } from '../utils/sort';
+import { matchesSearch } from '../utils/search';
 import './Products.css';
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as Category[];
@@ -31,6 +39,10 @@ function Products() {
   const categoryParam = searchParams.get('category');
   // Una categoría inválida se ignora: se piden todos los productos sin filtro.
   const selected = CATEGORIES.find((c) => c === categoryParam) ?? null;
+  // El orden se guarda en ?orden=; un valor desconocido usa el orden por defecto.
+  const order = parseSortOrder(searchParams.get('orden'));
+  // Texto buscado desde el Header (?q=): filtra en el frontend, junto con la categoría.
+  const query = (searchParams.get('q') ?? '').trim();
 
   const [reloadCount, setReloadCount] = useState(0);
   const [result, setResult] = useState<ProductsResult | null>(null);
@@ -55,13 +67,47 @@ function Products() {
     };
   }, [selected, requestKey]);
 
-  const handleFilter = (category: Category | null) => {
-    if (category) {
-      setSearchParams({ category });
-    } else {
-      setSearchParams({});
-    }
+  // Cambia un parámetro de la URL y conserva el resto (categoría y orden van juntos).
+  const updateParam = (name: string, value: string | null) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) {
+        next.set(name, value);
+      } else {
+        next.delete(name);
+      }
+      return next;
+    });
   };
+
+  const handleFilter = (category: Category | null) => {
+    updateParam('category', category);
+  };
+
+  const handleSort = (value: SortOrder) => {
+    updateParam('orden', value === DEFAULT_SORT ? null : value);
+  };
+
+  const loaded =
+    result !== null && result.key === requestKey && result.error === null
+      ? result.products
+      : null;
+  // Lo que se muestra: lo que vino del backend (ya filtrado por categoría) que
+  // coincide con la búsqueda.
+  const visible = loaded?.filter((p) => matchesSearch(p, query)) ?? null;
+
+  // "54 productos disponibles" o "3 resultados para «coca»"; vacío mientras
+  // carga o si hubo un error.
+  const countText = () => {
+    if (visible === null) return '';
+    const n = visible.length;
+    if (query) {
+      return `${n} ${n === 1 ? 'resultado' : 'resultados'} para «${query}»`;
+    }
+    return n === 1 ? '1 producto disponible' : `${n} productos disponibles`;
+  };
+
+  const clearSearch = () => updateParam('q', null);
 
   const renderContent = () => {
     if (result === null || result.key !== requestKey) {
@@ -83,9 +129,24 @@ function Products() {
         </div>
       );
     }
+    if (visible !== null && visible.length === 0) {
+      return (
+        <div className="products__empty">
+          <Mascota pose="triste" />
+          <p>No encontramos productos para «{query}».</p>
+          <button
+            type="button"
+            className="products__clear"
+            onClick={clearSearch}
+          >
+            Limpiar búsqueda
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="products__grid">
-        {result.products.map((product) => (
+        {sortProducts(visible ?? [], order).map((product) => (
           <ProductCard key={product.id} product={product} onAdd={addToCart} />
         ))}
       </div>
@@ -94,26 +155,57 @@ function Products() {
 
   return (
     <section>
-      <h1>Productos</h1>
-
-      <div className="products__filters">
-        <button
-          type="button"
-          aria-pressed={selected === null}
-          onClick={() => handleFilter(null)}
-        >
-          Todos
-        </button>
-        {CATEGORIES.map((category) => (
+      <h1 className="products__title">Productos</h1>
+      <div className="products__count-row">
+        <p className="products__count" aria-live="polite">
+          {countText()}
+        </p>
+        {query && visible !== null && visible.length > 0 && (
           <button
-            key={category}
             type="button"
-            aria-pressed={selected === category}
-            onClick={() => handleFilter(category)}
+            className="products__clear"
+            onClick={clearSearch}
           >
-            {CATEGORY_LABELS[category]}
+            Limpiar búsqueda
           </button>
-        ))}
+        )}
+      </div>
+
+      <div className="products__toolbar">
+        <div className="products__filters">
+          <button
+            type="button"
+            aria-pressed={selected === null}
+            onClick={() => handleFilter(null)}
+          >
+            Todos
+          </button>
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              aria-pressed={selected === category}
+              onClick={() => handleFilter(category)}
+            >
+              {CATEGORY_LABELS[category]}
+            </button>
+          ))}
+        </div>
+
+        <div className="products__sort">
+          <label htmlFor="products-orden">Ordenar por</label>
+          <select
+            id="products-orden"
+            value={order}
+            onChange={(e) => handleSort(e.target.value as SortOrder)}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {renderContent()}

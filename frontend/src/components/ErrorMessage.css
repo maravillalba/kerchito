@@ -17,18 +17,10 @@
   overflow-wrap: break-word;
 }
 
+/* "Reintentar" usa KerButton (naranja del logo); acá solo el tamaño mínimo. */
 .error-message__retry {
+  flex-shrink: 0;
   min-height: 44px;
-  padding: var(--espacio-2) var(--espacio-4);
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario);
-  border: none;
-  border-radius: var(--radio);
-  cursor: pointer;
-}
-
-.error-message__retry:hover {
-  background: var(--color-primario-hover);
 }
 
 @media (min-width: 768px) {

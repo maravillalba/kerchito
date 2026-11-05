@@ -16,7 +16,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
     id: 1,
-    name: 'Coca-Cola 500ml',
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
     category: 'bebidas',
     price: 1200,
     stock: 5,
@@ -27,7 +29,9 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
 const coca = makeProduct();
 const alfajor = makeProduct({
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 10,
@@ -100,6 +104,58 @@ describe('Cart', () => {
     vi.resetAllMocks();
   });
 
+  it('cada fila muestra marca, unidad y el precio efectivo; el total usa la oferta', async () => {
+    const user = userEvent.setup();
+    const cocaEnOferta = { ...coca, offer_price: 1000 };
+    function FillOferta() {
+      const { addToCart } = useCart();
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            addToCart(cocaEnOferta, 2);
+            addToCart(alfajor, 1);
+          }}
+        >
+          Cargar con oferta
+        </button>
+      );
+    }
+    render(
+      <MemoryRouter>
+        <CartProvider>
+          <FillOferta />
+          <Cart />
+        </CartProvider>
+      </MemoryRouter>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Cargar con oferta' }));
+
+    const fila = itemRow('Original');
+    // Miniatura decorativa: el nombre ya está en el texto. Sin image usa la de la categoría.
+    const foto = screen
+      .getByText('Original')
+      .closest('li')
+      ?.querySelector('.cart-item__thumb img');
+    expect(foto).toHaveAttribute('alt', '');
+    expect(foto).toHaveClass('product-image--thumb');
+    expect(fila.getByText('Coca-Cola')).toBeInTheDocument();
+    expect(fila.getByText('500 ml')).toBeInTheDocument();
+    // Precio normal tachado y precio de oferta por unidad; subtotal 2 x 1000.
+    expect(fila.getByText(/Precio normal:/).closest('del')).toHaveTextContent(
+      '$ 1.200',
+    );
+    expect(fila.getByText(/1\.000 c\/u/)).toBeInTheDocument();
+    expect(fila.getByText('$ 2.000')).toBeInTheDocument();
+
+    const sinOferta = itemRow('Alfajor');
+    expect(sinOferta.getByText('55 g')).toBeInTheDocument();
+    expect(sinOferta.queryByText(/Precio normal:/)).not.toBeInTheDocument();
+
+    // Total: 2 x 1000 + 1100 = 3100 (no 2 x 1200 + 1100).
+    expect(screen.getByText(/^Total:/)).toHaveTextContent('Total: $ 3.100');
+  });
+
   it('con el carrito vacío muestra el aviso y no ofrece finalizar el pedido', async () => {
     await renderCart({ fill: false });
     expect(screen.getByText('Tu carrito está vacío')).toBeInTheDocument();
@@ -169,7 +225,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hay stock suficiente de "Coca-Cola 500ml".',
+      'No hay stock suficiente de "Original".',
     );
     expect(screen.getByText('En el carrito: 1x3, 4x2')).toBeInTheDocument();
     expect(screen.queryByText(/¡Pedido confirmado!/)).not.toBeInTheDocument();
@@ -188,7 +244,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('status')).toHaveTextContent(
-      '"Coca-Cola 500ml" bajó de 3 a 1 unidades. "Alfajor Jorgito" se quitó porque ya no hay stock.',
+      '"Original" bajó de 3 a 1 unidades. "Alfajor" se quitó porque ya no hay stock.',
     );
     expect(getProducts).toHaveBeenCalledTimes(1);
     expect(getProducts).toHaveBeenCalledWith();
@@ -205,10 +261,10 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      '"Alfajor Jorgito" ya no está disponible.',
+      '"Alfajor" ya no está disponible.',
     );
     expect(await screen.findByRole('status')).toHaveTextContent(
-      '"Alfajor Jorgito" se quitó porque ya no hay stock.',
+      '"Alfajor" se quitó porque ya no hay stock.',
     );
     expect(screen.getByText('En el carrito: 1x3')).toBeInTheDocument();
   });
@@ -225,7 +281,7 @@ describe('Cart', () => {
     await user.click(checkoutButton());
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No hay stock suficiente de "Coca-Cola 500ml".',
+      'No hay stock suficiente de "Original".',
     );
     expect(getProducts).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -317,8 +373,8 @@ describe('Cart', () => {
       const user = await renderWithErrorAndNotice();
 
       await user.click(
-        itemRow('Coca-Cola 500ml').getByRole('button', {
-          name: 'Restar una unidad de Coca-Cola 500ml',
+        itemRow('Original').getByRole('button', {
+          name: 'Restar una unidad de Coca-Cola Original 500 ml',
         }),
       );
 
@@ -331,7 +387,7 @@ describe('Cart', () => {
       const user = await renderWithErrorAndNotice();
 
       await user.click(
-        itemRow('Alfajor Jorgito').getByRole('button', { name: 'Quitar' }),
+        itemRow('Alfajor').getByRole('button', { name: 'Quitar' }),
       );
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();

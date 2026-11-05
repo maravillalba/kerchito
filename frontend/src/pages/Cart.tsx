@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CartItem from '../components/CartItem';
 import ErrorMessage from '../components/ErrorMessage';
+import KerButton from '../components/KerButton';
 import Mascota from '../components/Mascota';
 import { useCart } from '../context/CartContext';
 import { useCheckout } from '../hooks/useCheckout';
@@ -126,43 +127,46 @@ function Cart() {
   return (
     <section className="cart">
       <h1>Carrito</h1>
-      <ul className="cart__list">
-        {items.map((item) => (
-          <CartItem
-            key={item.product.id}
-            item={item}
-            onChangeQuantity={handleChangeQuantity}
-            onRemove={handleRemove}
-          />
-        ))}
-      </ul>
-      <div className="cart__summary">
-        <p>Productos: {totalItems}</p>
-        <p className="cart__total">Total: {formatPrice(totalPrice)}</p>
-        {error && <ErrorMessage message={error} onRetry={handleCheckout} />}
-        {notice && (
-          <p className="cart__notice" role="status">
-            {notice}
-          </p>
-        )}
-        <div className="cart__actions">
-          <button
-            type="button"
-            className="cart__clear"
-            onClick={handleClear}
-            disabled={submitting}
-          >
-            Vaciar carrito
-          </button>
-          <button
-            type="button"
-            className="cart__checkout"
-            onClick={handleCheckout}
-            disabled={submitting}
-          >
-            {submitting ? 'Enviando…' : 'Finalizar pedido'}
-          </button>
-        </div>
+      {/* Escritorio: lista a la izquierda y resumen fijo a la derecha; celular: resumen debajo. */}
+      <div className="cart__layout">
+        <ul className="cart__list">
+          {items.map((item) => (
+            <CartItem
+              key={item.product.id}
+              item={item}
+              onChangeQuantity={handleChangeQuantity}
+              onRemove={handleRemove}
+            />
+          ))}
+        </ul>
+        <aside className="cart__summary" aria-labelledby="cart-resumen">
+          <h2 id="cart-resumen">Resumen</h2>
+          <p className="cart__count">Productos: {totalItems}</p>
+          <p className="cart__total">Total: {formatPrice(totalPrice)}</p>
+          {error && <ErrorMessage message={error} onRetry={handleCheckout} />}
+          {notice && (
+            <p className="cart__notice" role="status">
+              {notice}
+            </p>
+          )}
+          <div className="cart__actions">
+            <KerButton
+              className="cart__checkout"
+              onClick={handleCheckout}
+              disabled={submitting}
+            >
+              {submitting ? 'Enviando…' : 'Finalizar pedido'}
+            </KerButton>
+            <button
+              type="button"
+              className="cart__clear"
+              onClick={handleClear}
+              disabled={submitting}
+            >
+              Vaciar carrito
+            </button>
+          </div>
+        </aside>
       </div>
     </section>
   );

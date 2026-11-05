@@ -161,6 +161,16 @@ def format_price(price: float) -> str:
     return f"$ {text}"
 
 
+def price_label(product: Product) -> str:
+    """Con oferta: '$ 1.000 en oferta (precio normal $ 1.200)'. Sin oferta: '$ 1.200'."""
+    if product.offer_price is None:
+        return format_price(product.price)
+    return (
+        f"{format_price(product.offer_price)} en oferta "
+        f"(precio normal {format_price(product.price)})"
+    )
+
+
 def _stock_label(stock: int) -> str:
     if stock <= 0:
         return "sin stock"
@@ -172,7 +182,9 @@ def _stock_label(stock: int) -> str:
 def _search_products(words: set[str], products: list[Product]) -> list[Product]:
     scored = []
     for product in products:
-        score = sum(1 for t in _name_tokens(product.name) if _forms(t) & words)
+        # Se busca por marca y producto ("coca", "yerba", "cruz de malta").
+        tokens = _name_tokens(f"{product.brand} {product.name}")
+        score = sum(1 for t in tokens if _forms(t) & words)
         if score:
             scored.append((score, product))
     if not scored:
@@ -181,11 +193,15 @@ def _search_products(words: set[str], products: list[Product]) -> list[Product]:
     return [p for score, p in scored if score == best]
 
 
+def _list_line(p: Product) -> str:
+    if p.offer_price is None:
+        return f"- {p.full_name}: {price_label(p)} ({_stock_label(p.stock)})"
+    # Con oferta el precio ya trae un paréntesis: el stock va después de una coma.
+    return f"- {p.full_name}: {price_label(p)}, {_stock_label(p.stock)}"
+
+
 def _list_lines(items: list[Product]) -> str:
-    lines = [
-        f"- {p.name}: {format_price(p.price)} ({_stock_label(p.stock)})"
-        for p in items[:MAX_PRODUCTS_IN_REPLY]
-    ]
+    lines = [_list_line(p) for p in items[:MAX_PRODUCTS_IN_REPLY]]
     extra = len(items) - MAX_PRODUCTS_IN_REPLY
     if extra > 0:
         lines.append(f"… y {extra} más.")
@@ -196,9 +212,9 @@ def _product_reply(hits: list[Product], words: set[str]) -> str:
     if len(hits) == 1:
         p = hits[0]
         if p.stock > 0:
-            text = f"{p.name} sale {format_price(p.price)} y hay {_stock_label(p.stock)}."
+            text = f"{p.full_name} sale {price_label(p)} y hay {_stock_label(p.stock)}."
         else:
-            text = f"{p.name} sale {format_price(p.price)}, pero por ahora está sin stock."
+            text = f"{p.full_name} sale {price_label(p)}, pero por ahora está sin stock."
     else:
         text = "Encontré estos productos:\n" + _list_lines(hits)
     if words & STOCK_WORDS:
@@ -278,8 +294,8 @@ def build_reply(message: str, db: Session) -> str:
 
 def _catalog_for_ai(products: list[Product]) -> list[str]:
     return [
-        f"{p.name} | {CATEGORY_LABELS.get(p.category, p.category)} | "
-        f"{format_price(p.price)} | {_stock_label(p.stock)}"
+        f"{p.full_name} | {CATEGORY_LABELS.get(p.category, p.category)} | "
+        f"{price_label(p)} | {_stock_label(p.stock)}"
         for p in products
     ]
 

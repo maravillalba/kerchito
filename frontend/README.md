@@ -38,17 +38,22 @@ npm ci
 ```text
 src/
 ├── components/   Componentes reutilizables y su CSS: Header, Footer, Layout,
-│                 ProductCard, CartItem, Loading, ErrorMessage y ChatWidget.
+│                 ProductCard, Price, ProductImage, CartItem, Loading,
+│                 ErrorMessage, Mascota, ChatWidget, SearchBar (buscador) y
+│                 KerButton (botón naranja/verde, basado en Uiverse.io).
 ├── context/      CartContext.tsx: estado global del carrito y el hook useCart().
 ├── hooks/        useCheckout.ts: envía el pedido a la API y devuelve 'success',
 │                 'outdated' o 'error'.
 ├── services/     api.ts: llamadas a la API (productos, pedidos y chat) y manejo de
 │                 errores (ApiError).
-├── assets/       logo.png.
+├── assets/       logo-ker.png, kerchi/ (poses de la mascota), categorias/ y
+│                 banners/ (fotos del Inicio).
 ├── pages/        Una página por ruta, con su CSS: Home, Products, ProductDetail,
 │                 Cart y NotFound.
 ├── types/        index.ts: tipos del contrato (Product, Category, CartItem, pedidos).
-├── utils/        format.ts: formatPrice() y CATEGORY_LABELS (nombres de categorías).
+├── utils/        format.ts (formatPrice, CATEGORY_LABELS), pricing.ts (precio
+│                 efectivo, descuento), sort.ts (orden de /products), featured.ts
+│                 (getOfertas), search.ts (buscador) y categoryIcons.ts.
 ├── App.tsx       Definición de rutas.
 ├── main.tsx      Punto de entrada: BrowserRouter + CartProvider + App.
 ├── index.css     Variables CSS (:root) y estilos globales.

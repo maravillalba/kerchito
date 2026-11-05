@@ -15,7 +15,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product>): Product {
   return {
     id: 1,
+    brand: 'Marca',
     name: 'Producto',
+    unit: '1 u.',
     category: 'almacen',
     price: 1000,
     stock: 10,
@@ -26,15 +28,84 @@ function makeProduct(overrides: Partial<Product>): Product {
 }
 
 const CATALOG: Product[] = [
-  makeProduct({ id: 1, name: 'Coca-Cola 500ml', category: 'bebidas' }),
-  makeProduct({ id: 2, name: 'Agua mineral 500ml', category: 'bebidas' }),
+  makeProduct({
+    id: 1,
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
+    category: 'bebidas',
+  }),
+  makeProduct({
+    id: 2,
+    brand: 'Villa del Sur',
+    name: 'Agua mineral',
+    unit: '500 ml',
+    category: 'bebidas',
+  }),
   makeProduct({
     id: 3,
-    name: 'Papas Lays Clásicas',
+    brand: "Lay's",
+    name: 'Papas fritas clásicas',
+    unit: '1 u.',
     category: 'golosinas_snacks',
   }),
-  makeProduct({ id: 4, name: 'Alfajor Jorgito', category: 'golosinas_snacks' }),
-  makeProduct({ id: 5, name: 'Leche entera 1L', category: 'lacteos' }),
+  makeProduct({
+    id: 4,
+    brand: 'Jorgito',
+    name: 'Alfajor',
+    unit: '55 g',
+    category: 'golosinas_snacks',
+  }),
+  makeProduct({
+    id: 5,
+    brand: 'La Serenísima',
+    name: 'Leche entera',
+    unit: '1 L',
+    category: 'lacteos',
+  }),
+];
+
+// Catálogo con ofertas: Coca -15%, Alfajor -20%, Cif -15%, Mayonesa -16%.
+const CON_OFERTAS: Product[] = [
+  makeProduct({
+    id: 1,
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
+    price: 1200,
+    offer_price: 1020,
+  }),
+  makeProduct({
+    id: 2,
+    brand: 'Villa del Sur',
+    name: 'Agua mineral',
+    unit: '500 ml',
+    price: 800,
+  }),
+  makeProduct({
+    id: 4,
+    brand: 'Jorgito',
+    name: 'Alfajor',
+    unit: '55 g',
+    price: 1100,
+    offer_price: 880,
+  }),
+  makeProduct({
+    id: 6,
+    brand: 'Cif',
+    name: 'Detergente limón',
+    unit: '500 ml',
+    price: 1400,
+    offer_price: 1190,
+  }),
+  makeProduct({
+    id: 7,
+    brand: "Hellmann's",
+    name: 'Mayonesa clásica',
+    unit: '475 g',
+    price: 3100,
+    offer_price: 2600,
+  }),
 ];
 
 function renderHome() {
@@ -86,17 +157,58 @@ describe('Home', () => {
     );
   });
 
-  it('muestra el banner de KioscoBot, solo con texto', () => {
+  it('el hero tiene el título, el texto, el botón "Ver productos" y a Kerchi', () => {
     renderHome();
-    const banner = screen
-      .getByRole('heading', { name: '¿Dudas? Preguntale a KioscoBot' })
+    const hero = screen
+      .getByRole('heading', {
+        level: 1,
+        name: 'Todo lo que necesitás, en un solo clic',
+      })
       .closest('section') as HTMLElement;
 
-    expect(banner).toHaveTextContent(
-      'Precios, stock, horarios y medios de pago, siempre a mano. Abrí el chat con el botón naranja de abajo a la derecha.',
+    expect(hero).toHaveTextContent('Kiosko El Rápido');
+    expect(hero).toHaveTextContent(
+      'Bebidas, golosinas, almacén y limpieza: elegí, sumá al carrito y confirmá tu pedido.',
     );
-    expect(within(banner).queryByRole('button')).not.toBeInTheDocument();
-    expect(within(banner).queryByRole('link')).not.toBeInTheDocument();
+    const cta = within(hero).getByRole('link', { name: 'Ver productos' });
+    expect(cta).toHaveAttribute('href', '/products');
+    expect(cta).toHaveClass('ker-btn', 'ker-btn--verde');
+    const kerchi = hero.querySelector('img.mascota--saludando');
+    expect(kerchi).toHaveAttribute('alt', '');
+  });
+
+  it('ya no tiene la tarjeta "Preguntale a KioscoBot" (el chat se abre con el botón flotante)', () => {
+    renderHome();
+    expect(
+      screen.queryByRole('heading', { name: 'Preguntale a KioscoBot' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Abrir chat' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('ordena las secciones: hero, Cómo comprar, categorías, Ofertas y banners', async () => {
+    vi.mocked(getProducts).mockResolvedValue(CON_OFERTAS);
+    renderHome();
+    const ofertas = await screen.findByRole('heading', {
+      name: 'Ofertas de la semana',
+    });
+    const orden = [
+      screen.getByRole('heading', { level: 1 }),
+      screen.getByRole('heading', { name: 'Cómo comprar' }),
+      screen.getByRole('heading', { name: 'Comprá por categoría' }),
+      ofertas,
+      getBanners(),
+    ];
+    for (let i = 1; i < orden.length; i++) {
+      expect(
+        orden[i - 1].compareDocumentPosition(orden[i]) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+    expect(
+      screen.queryByRole('heading', { name: 'Productos destacados' }),
+    ).not.toBeInTheDocument();
   });
 
   describe('franja de banners', () => {
@@ -128,6 +240,11 @@ describe('Home', () => {
         );
         expect(banner).toHaveAccessibleDescription(subtitle);
         expect(banner).toHaveTextContent(action);
+        // La acción tiene el aspecto de KerButton, pero no es un control aparte.
+        const accion = banner.querySelector('.home-banner__action');
+        expect(accion).toHaveClass('ker-btn');
+        expect(accion).toHaveAttribute('aria-hidden', 'true');
+        expect(within(banner).queryByRole('button')).not.toBeInTheDocument();
 
         const images = banner.querySelectorAll('img');
         expect(images).toHaveLength(photos);
@@ -151,35 +268,41 @@ describe('Home', () => {
     });
   });
 
-  describe('productos destacados', () => {
-    it('muestra 3 tarjetas fijas: Coca-Cola, Alfajor Jorgito y Leche entera', async () => {
+  describe('ofertas de la semana', () => {
+    it('muestra hasta 3 productos con oferta, del mayor descuento al menor', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CON_OFERTAS);
       renderHome();
       const section = (
-        await screen.findByRole('heading', { name: 'Productos destacados' })
+        await screen.findByRole('heading', { name: 'Ofertas de la semana' })
       ).closest('section') as HTMLElement;
-      const cards = within(section).getAllByRole('article');
 
+      expect(within(section).getByText('Ofertas del día')).toBeInTheDocument();
+      expect(
+        within(section).getByText('Aprobadas por Kerchi'),
+      ).toBeInTheDocument();
+      const kerchi = section.querySelector('img.mascota--aprobado');
+      expect(kerchi).toHaveAttribute('alt', '');
+      expect(kerchi).toHaveAttribute('aria-hidden', 'true');
+
+      const cards = within(section).getAllByRole('article');
       expect(cards).toHaveLength(3);
-      expect(cards[0]).toHaveTextContent('Coca-Cola 500ml');
-      expect(cards[1]).toHaveTextContent('Alfajor Jorgito');
-      expect(cards[2]).toHaveTextContent('Leche entera 1L');
+      // Alfajor -20%, Mayonesa -16%, Coca-Cola -15% (Cif -15% queda afuera: va después en el catálogo).
+      expect(cards[0]).toHaveTextContent('Alfajor');
+      expect(cards[0]).toHaveTextContent('-20%');
+      expect(cards[1]).toHaveTextContent('Mayonesa');
+      expect(cards[2]).toHaveTextContent('Original');
       expect(
         within(cards[0]).getByRole('button', { name: 'Agregar al carrito' }),
       ).toBeInTheDocument();
     });
 
-    it('si falta uno, usa el siguiente del catálogo', async () => {
-      vi.mocked(getProducts).mockResolvedValue(
-        CATALOG.filter((p) => p.name !== 'Alfajor Jorgito'),
-      );
+    it('no aparece si ningún producto tiene oferta', async () => {
       renderHome();
-      const section = (
-        await screen.findByRole('heading', { name: 'Productos destacados' })
-      ).closest('section') as HTMLElement;
-      const cards = within(section).getAllByRole('article');
 
-      expect(cards).toHaveLength(3);
-      expect(cards[1]).toHaveTextContent('Agua mineral 500ml');
+      await waitFor(() => expect(getProducts).toHaveBeenCalled());
+      expect(
+        screen.queryByRole('heading', { name: 'Ofertas de la semana' }),
+      ).not.toBeInTheDocument();
     });
 
     it('si falla la carga no se muestra ni aparece un error', async () => {
@@ -190,7 +313,7 @@ describe('Home', () => {
 
       await waitFor(() => expect(getProducts).toHaveBeenCalled());
       expect(
-        screen.queryByRole('heading', { name: 'Productos destacados' }),
+        screen.queryByRole('heading', { name: 'Ofertas de la semana' }),
       ).not.toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });

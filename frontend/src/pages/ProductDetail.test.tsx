@@ -21,7 +21,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
     id: 1,
-    name: 'Coca-Cola 500ml',
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
     category: 'bebidas',
     price: 1200,
     stock: 22,
@@ -67,7 +69,7 @@ describe('ProductDetail', () => {
     vi.mocked(getProductById).mockResolvedValue(makeProduct());
     renderDetail('/products/1');
     expect(
-      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' }),
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' }),
     ).toBeInTheDocument();
     expect(getProductById).toHaveBeenCalledWith(1);
     expect(screen.getByText('Gaseosa clásica')).toBeInTheDocument();
@@ -114,7 +116,7 @@ describe('ProductDetail', () => {
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' }),
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' }),
     ).toBeInTheDocument();
     expect(getProductById).toHaveBeenCalledTimes(2);
   });
@@ -206,11 +208,32 @@ describe('ProductDetail', () => {
     const user = userEvent.setup();
     vi.mocked(getProductById).mockResolvedValue(makeProduct());
     renderDetail('/products/1');
-    await screen.findByRole('heading', { name: 'Coca-Cola 500ml' });
+    await screen.findByRole('heading', { name: 'Coca-Cola Original' });
 
     await user.click(screen.getByRole('button', { name: 'Volver' }));
 
     expect(screen.getByText('Lista de productos')).toBeInTheDocument();
+  });
+
+  it('las migas de pan llevan a Inicio, Productos y la categoría del producto', async () => {
+    vi.mocked(getProductById).mockResolvedValue(makeProduct());
+    renderDetail('/products/1');
+    await screen.findByRole('heading', { name: 'Coca-Cola Original' });
+
+    const migas = screen.getByRole('navigation', { name: 'Migas de pan' });
+    expect(within(migas).getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+      'href',
+      '/',
+    );
+    expect(
+      within(migas).getByRole('link', { name: 'Productos' }),
+    ).toHaveAttribute('href', '/products');
+    expect(
+      within(migas).getByRole('link', { name: 'Bebidas' }),
+    ).toHaveAttribute('href', '/products?category=bebidas');
+    expect(
+      within(migas).getByRole('button', { name: 'Volver' }),
+    ).toBeInTheDocument();
   });
 
   describe('indicador de stock', () => {
@@ -306,9 +329,7 @@ describe('ProductDetail', () => {
 
       const links = within(section).getAllByRole('link');
       expect(links).toHaveLength(4);
-      expect(
-        within(section).queryByText('Coca-Cola 500ml'),
-      ).not.toBeInTheDocument();
+      expect(within(section).queryByText('Original')).not.toBeInTheDocument();
       expect(links[0]).toHaveAttribute('href', '/products/2');
       expect(links[0]).toHaveTextContent('Sprite 500ml');
       expect(links[0]).toHaveTextContent('$');
@@ -323,7 +344,7 @@ describe('ProductDetail', () => {
       vi.mocked(getProducts).mockResolvedValue([makeProduct()]);
       renderDetail('/products/1');
 
-      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' });
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' });
       await waitFor(() => expect(getProducts).toHaveBeenCalled());
       expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
     });
@@ -335,7 +356,7 @@ describe('ProductDetail', () => {
       );
       renderDetail('/products/1');
 
-      await screen.findByRole('heading', { name: 'Coca-Cola 500ml' });
+      await screen.findByRole('heading', { name: 'Coca-Cola Original' });
       await waitFor(() => expect(getProducts).toHaveBeenCalled());
       expect(screen.queryByText(/Más de/)).not.toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();

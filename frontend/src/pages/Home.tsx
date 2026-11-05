@@ -8,14 +8,14 @@ import cif from '../assets/banners/banner-cif.webp';
 import cocaCola from '../assets/banners/banner-coca-cola.webp';
 import sprite from '../assets/banners/banner-sprite.webp';
 import yerba from '../assets/banners/banner-yerba.webp';
-import logo from '../assets/logo.png';
+import KerButton, { KerButtonText } from '../components/KerButton';
 import Mascota from '../components/Mascota';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { getProducts } from '../services/api';
 import type { Category, Product } from '../types';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
-import { pickFeatured } from '../utils/featured';
+import { getOfertas } from '../utils/featured';
 import { CATEGORY_LABELS } from '../utils/format';
 import './Home.css';
 
@@ -49,6 +49,9 @@ interface Banner {
   title: string;
   subtitle: string;
   action: string;
+  // Color del botón de la acción: naranja sobre fondos claros, verde sobre
+  // amarillo o naranja.
+  actionVariant: 'naranja' | 'verde';
   photos: BannerPhoto[];
 }
 
@@ -61,6 +64,7 @@ const BANNERS: Banner[] = [
     title: 'Para el mate de la tarde',
     subtitle: 'Yerba, azúcar y todo lo del almacén.',
     action: 'Ver almacén',
+    actionVariant: 'naranja',
     photos: [
       { src: yerba, width: 242, height: 413 },
       { src: azucar, width: 408, height: 304 },
@@ -73,6 +77,7 @@ const BANNERS: Banner[] = [
     title: 'Bebidas',
     subtitle: 'Frescas y a un clic.',
     action: 'Ver bebidas',
+    actionVariant: 'verde',
     photos: [
       { src: sprite, width: 112, height: 408 },
       { src: cocaCola, width: 122, height: 432 },
@@ -86,6 +91,7 @@ const BANNERS: Banner[] = [
     title: 'Limpieza del hogar',
     subtitle: 'Todo para dejar la casa impecable.',
     action: 'Ver limpieza',
+    actionVariant: 'verde',
     photos: [
       { src: cif, width: 206, height: 418 },
       { src: ayudinGel, width: 125, height: 411 },
@@ -101,7 +107,8 @@ function HomeBanner({ banner }: { banner: Banner }) {
     // El nombre accesible es el título; el subtítulo queda como descripción.
     <Link
       to={`/products?category=${banner.category}`}
-      className={`home-banner home-banner--${banner.variant}`}
+      // ker-btn-trigger: al pasar el mouse por el banner se anima su botón.
+      className={`home-banner home-banner--${banner.variant} ker-btn-trigger`}
       aria-labelledby={titleId}
       aria-describedby={subtitleId}
     >
@@ -112,8 +119,13 @@ function HomeBanner({ banner }: { banner: Banner }) {
         <span id={subtitleId} className="home-banner__subtitle">
           {banner.subtitle}
         </span>
-        <span className="home-banner__action" aria-hidden="true">
-          {banner.action}
+        {/* Tiene el aspecto del botón KerButton, pero es parte del link (no es
+            un control aparte): por eso es un span. */}
+        <span
+          className={`home-banner__action ker-btn ker-btn--${banner.actionVariant}`}
+          aria-hidden="true"
+        >
+          <KerButtonText>{banner.action}</KerButtonText>
         </span>
       </span>
       <span className="home-banner__photos">
@@ -133,17 +145,18 @@ function HomeBanner({ banner }: { banner: Banner }) {
   );
 }
 
-// 3 productos fijos del catálogo. Si la carga falla, la sección no se muestra.
-function FeaturedProducts() {
+// "Ofertas de la semana": hasta 3 productos con offer_price. Si no hay ofertas
+// o la carga falla, la sección no se muestra.
+function Ofertas() {
   const { addToCart } = useCart();
-  const [featured, setFeatured] = useState<Product[]>([]);
+  const [ofertas, setOfertas] = useState<Product[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     getProducts()
       .then((products) => {
         if (!cancelled) {
-          setFeatured(pickFeatured(products));
+          setOfertas(getOfertas(products));
         }
       })
       .catch(() => {
@@ -154,17 +167,24 @@ function FeaturedProducts() {
     };
   }, []);
 
-  if (featured.length === 0) {
+  if (ofertas.length === 0) {
     return null;
   }
 
   return (
-    <section className="home__featured" aria-labelledby="home-destacados">
-      <h2 id="home-destacados">Productos destacados</h2>
-      <div className="home__featured-grid">
-        {featured.map((product) => (
-          <ProductCard key={product.id} product={product} onAdd={addToCart} />
-        ))}
+    <section className="home__ofertas" aria-labelledby="home-ofertas">
+      <h2 id="home-ofertas">Ofertas de la semana</h2>
+      <div className="home__ofertas-panel">
+        <div className="home__ofertas-kerchi">
+          <Mascota pose="aprobado" size="grande" />
+          <p className="home__ofertas-title">Ofertas del día</p>
+          <p className="home__ofertas-subtitle">Aprobadas por Kerchi</p>
+        </div>
+        <div className="home__ofertas-grid">
+          {ofertas.map((product) => (
+            <ProductCard key={product.id} product={product} onAdd={addToCart} />
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -173,29 +193,42 @@ function FeaturedProducts() {
 function Home() {
   return (
     <div className="home">
-      <section className="home__hero">
-        <img src={logo} alt="" className="home__logo" />
-        {/* El logo ya muestra el nombre: el título queda solo para lectores de pantalla. */}
-        <h1 className="home__sr-only">Kiosko El Rápido</h1>
-        <div className="home__welcome">
-          <Mascota pose="saludando" />
+      <section className="home__hero" aria-labelledby="home-titulo">
+        <div className="home__hero-text">
+          <p className="home__eyebrow">Kiosko El Rápido</p>
+          <h1 id="home-titulo" className="home__title">
+            Todo lo que necesitás, en un solo clic
+          </h1>
           <p className="home__tagline">
-            Bienvenido, todo lo que necesitás en un solo clic
+            Bebidas, golosinas, almacén y limpieza: elegí, sumá al carrito y
+            confirmá tu pedido.
           </p>
+          <KerButton to="/products" variant="verde">
+            Ver productos
+          </KerButton>
         </div>
-        <Link to="/products" className="home__cta">
-          Ver productos
-        </Link>
+        <Mascota pose="saludando" size="grande" />
       </section>
 
-      <nav className="home__banners" aria-label="Atajos por categoría">
-        {BANNERS.map((banner) => (
-          <HomeBanner key={banner.id} banner={banner} />
-        ))}
-      </nav>
+      <section className="home__steps" aria-labelledby="home-como-comprar">
+        <h2 id="home-como-comprar">Cómo comprar</h2>
+        <ol className="home__step-list">
+          {STEPS.map((step, index) => (
+            <li key={step.title} className="home__step">
+              <span className="home__step-number" aria-hidden="true">
+                {index + 1}
+              </span>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <section className="home__categories" aria-labelledby="home-categorias">
-        <h2 id="home-categorias">Categorías</h2>
+        <h2 id="home-categorias">Comprá por categoría</h2>
         <ul className="home__category-grid">
           {CATEGORIES.map((category) => (
             <li key={category}>
@@ -214,30 +247,13 @@ function Home() {
         </ul>
       </section>
 
-      <FeaturedProducts />
+      <Ofertas />
 
-      <section className="home__steps" aria-labelledby="home-como-comprar">
-        <h2 id="home-como-comprar">Cómo comprar</h2>
-        <ol className="home__step-list">
-          {STEPS.map((step, index) => (
-            <li key={step.title} className="home__step">
-              <span className="home__step-number" aria-hidden="true">
-                {index + 1}
-              </span>
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="home__bot" aria-labelledby="home-kioscobot">
-        <h2 id="home-kioscobot">¿Dudas? Preguntale a KioscoBot</h2>
-        <p>
-          Precios, stock, horarios y medios de pago, siempre a mano. Abrí el
-          chat con el botón naranja de abajo a la derecha.
-        </p>
-      </section>
+      <nav className="home__banners" aria-label="Atajos por categoría">
+        {BANNERS.map((banner) => (
+          <HomeBanner key={banner.id} banner={banner} />
+        ))}
+      </nav>
     </div>
   );
 }

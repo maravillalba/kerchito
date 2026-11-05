@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
+import kerchiPensando from '../assets/kerchi/kerchi-pensando.webp';
 import { ApiError, sendChatMessage } from '../services/api';
 import ErrorMessage from './ErrorMessage';
 import Mascota from './Mascota';
@@ -121,16 +122,28 @@ function ChatWidget() {
 
   if (!open) {
     return (
-      <button
-        ref={toggleRef}
-        type="button"
-        className="chat-widget__toggle"
-        aria-label="Abrir chat de KioscoBot"
-        aria-haspopup="dialog"
-        onClick={() => setOpen(true)}
-      >
-        <span aria-hidden="true">💬</span>
-      </button>
+      <div className="chat-widget__launcher">
+        {/* El globito repite lo que dice el aria-label del botón: es decorativo. */}
+        <p className="chat-widget__bubble" aria-hidden="true">
+          <strong>¿Te ayudo?</strong>
+          <span>Preguntale a KioscoBot</span>
+        </p>
+        <button
+          ref={toggleRef}
+          type="button"
+          className="chat-widget__toggle"
+          aria-label="Abrir KioscoBot"
+          aria-haspopup="dialog"
+          onClick={() => setOpen(true)}
+        >
+          <img
+            src={kerchiPensando}
+            alt=""
+            aria-hidden="true"
+            className="chat-widget__toggle-img"
+          />
+        </button>
+      </div>
     );
   }
 
@@ -142,6 +155,9 @@ function ChatWidget() {
       onKeyDown={handleKeyDown}
     >
       <div className="chat-widget__header">
+        <span className="chat-widget__avatar">
+          <img src={kerchiPensando} alt="" aria-hidden="true" />
+        </span>
         <h2 id="chat-widget-title" className="chat-widget__title">
           KioscoBot
         </h2>

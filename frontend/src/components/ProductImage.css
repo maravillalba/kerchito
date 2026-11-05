@@ -12,6 +12,11 @@
   height: 140px;
 }
 
+.product-image--thumb {
+  width: 72px;
+  height: 72px;
+}
+
 .product-image--detail {
   max-width: 320px;
   height: 240px;

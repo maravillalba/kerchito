@@ -1,3 +1,4 @@
+import KerButton from './KerButton';
 import './ErrorMessage.css';
 
 interface ErrorMessageProps {
@@ -10,13 +11,9 @@ function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
     <div className="error-message" role="alert">
       <p className="error-message__text">{message}</p>
       {onRetry && (
-        <button
-          type="button"
-          className="error-message__retry"
-          onClick={onRetry}
-        >
+        <KerButton className="error-message__retry" onClick={onRetry}>
           Reintentar
-        </button>
+        </KerButton>
       )}
     </div>
   );

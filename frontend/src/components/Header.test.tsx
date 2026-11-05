@@ -8,7 +8,9 @@ import Header from './Header';
 
 const coca: Product = {
   id: 1,
-  name: 'Coca-Cola 500ml',
+  brand: 'Coca-Cola',
+  name: 'Original',
+  unit: '500 ml',
   category: 'bebidas',
   price: 1200,
   stock: 5,
@@ -83,6 +85,19 @@ describe('Header', () => {
         expect(link).not.toHaveAttribute('aria-current');
       }
     }
+  });
+
+  it('es fijo arriba (sticky) y el contador del carrito siempre está a la vista', async () => {
+    const user = userEvent.setup();
+    renderHeader('/products');
+    // La clase header--fijo aplica position: sticky; top: 0 (Header.css).
+    expect(screen.getByRole('banner')).toHaveClass('header', 'header--fijo');
+
+    const carrito = screen.getByRole('link', { name: 'Carrito (0)' });
+    expect(carrito).toBeVisible();
+    expect(carrito).toHaveClass('header__cart');
+    await user.click(screen.getByRole('button', { name: 'Agregar de prueba' }));
+    expect(screen.getByRole('link', { name: 'Carrito (2)' })).toBeVisible();
   });
 
   it('en el detalle de un producto sigue activo Productos', () => {

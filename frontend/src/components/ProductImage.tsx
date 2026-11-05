@@ -5,7 +5,7 @@ import './ProductImage.css';
 
 interface ProductImageProps {
   product: Product;
-  size: 'card' | 'detail';
+  size: 'card' | 'detail' | 'thumb';
 }
 
 // Foto del producto si tiene `image`; si no tiene o no carga, la foto de su

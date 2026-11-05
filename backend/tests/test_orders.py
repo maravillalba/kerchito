@@ -6,12 +6,16 @@ from models import Product
 @pytest.fixture
 def productos(db_session):
     items = [
-        Product(id=1, name="Coca-Cola 500ml", category="bebidas",
+        Product(id=1, brand="Coca-Cola", name="Original", unit="500 ml", category="bebidas",
                 price=1200, stock=25, description=None, image=None),
-        Product(id=2, name="Alfajor Jorgito", category="golosinas_snacks",
+        Product(id=2, brand="Jorgito", name="Alfajor", unit="55 g", category="golosinas_snacks",
                 price=1100, stock=50, description=None, image=None),
-        Product(id=3, name="Lavandina 1L", category="limpieza",
+        Product(id=3, brand="Ayudín", name="Lavandina", unit="1 L", category="limpieza",
                 price=900, stock=0, description=None, image=None),
+        # En oferta: el pedido tiene que cobrar 1600, no 1900.
+        Product(id=4, brand="Cruz de Malta", name="Yerba mate", unit="500 g",
+                category="almacen", price=1900, offer_price=1600, stock=30,
+                description=None, image=None),
     ]
     db_session.add_all(items)
     db_session.commit()
@@ -32,6 +36,45 @@ def test_pedido_valido_devuelve_201_con_total_y_unit_price(client, productos):
     assert data["total"] == 3500
     precios = {i["product_id"]: i["unit_price"] for i in data["items"]}
     assert precios == {1: 1200, 2: 1100}
+
+
+def test_producto_en_oferta_cobra_el_precio_de_oferta(client, productos):
+    resp = client.post("/api/orders", json={"items": [
+        {"product_id": 4, "quantity": 2},
+    ]})
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["items"][0]["unit_price"] == 1600
+    assert data["total"] == 3200
+
+
+def test_pedido_mixto_usa_oferta_solo_donde_hay(client, productos):
+    resp = client.post("/api/orders", json={"items": [
+        {"product_id": 1, "quantity": 1},  # sin oferta: 1200
+        {"product_id": 4, "quantity": 1},  # en oferta: 1600 (normal 1900)
+    ]})
+    assert resp.status_code == 201
+    data = resp.json()
+    precios = {i["product_id"]: i["unit_price"] for i in data["items"]}
+    assert precios == {1: 1200, 4: 1600}
+    assert data["total"] == 2800
+
+
+def test_el_precio_que_manda_el_front_se_ignora(client, productos):
+    # Un unit_price en el pedido no es parte del contrato: el backend calcula el precio.
+    resp = client.post("/api/orders", json={"items": [
+        {"product_id": 4, "quantity": 1, "unit_price": 1},
+    ]})
+    assert resp.status_code == 201
+    assert resp.json()["items"][0]["unit_price"] == 1600
+    assert resp.json()["total"] == 1600
+
+
+def test_el_pedido_guardado_conserva_el_precio_de_oferta(client, productos):
+    client.post("/api/orders", json={"items": [{"product_id": 4, "quantity": 1}]})
+    pedido = client.get("/api/orders").json()[0]
+    assert pedido["items"][0]["unit_price"] == 1600
+    assert pedido["total"] == 1600
 
 
 def test_pedido_valido_descuenta_stock(client, productos):

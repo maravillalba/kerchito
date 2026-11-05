@@ -12,7 +12,9 @@ vi.mock('../services/api', async (importOriginal) => {
 function makeProduct(overrides: Partial<Product> = {}): Product {
   return {
     id: 1,
-    name: 'Coca-Cola 500ml',
+    brand: 'Coca-Cola',
+    name: 'Original',
+    unit: '500 ml',
     category: 'bebidas',
     price: 1200,
     stock: 5,
@@ -23,7 +25,9 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
 const coca = makeProduct();
 const alfajor = makeProduct({
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 10,
@@ -135,12 +139,12 @@ describe('useCheckout', () => {
     [
       409,
       'Insufficient stock for product 1',
-      'No hay stock suficiente de "Coca-Cola 500ml". Ajustá la cantidad e intentá de nuevo.',
+      'No hay stock suficiente de "Original". Ajustá la cantidad e intentá de nuevo.',
     ],
     [
       404,
       'Product 4 not found',
-      '"Alfajor Jorgito" ya no está disponible. Quitalo del carrito e intentá de nuevo.',
+      '"Alfajor" ya no está disponible. Quitalo del carrito e intentá de nuevo.',
     ],
   ])(
     'con un %i devuelve "outdated" y nombra al producto del mensaje del backend',

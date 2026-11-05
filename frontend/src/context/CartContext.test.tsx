@@ -5,7 +5,9 @@ import { CartProvider, useCart } from './CartContext';
 
 const coca: Product = {
   id: 1,
-  name: 'Coca-Cola 500ml',
+  brand: 'Coca-Cola',
+  name: 'Original',
+  unit: '500 ml',
   category: 'bebidas',
   price: 1200,
   stock: 5,
@@ -13,7 +15,9 @@ const coca: Product = {
 
 const alfajor: Product = {
   id: 4,
-  name: 'Alfajor Jorgito',
+  brand: 'Jorgito',
+  name: 'Alfajor',
+  unit: '55 g',
   category: 'golosinas_snacks',
   price: 1100,
   stock: 10,
@@ -108,12 +112,22 @@ describe('CartContext', () => {
     expect(result.current.totalItems).toBe(5);
     expect(result.current.totalPrice).toBe(2 * 1200 + 3 * 1100);
   });
+
+  it('totalPrice usa el precio de oferta si el producto tiene offer_price', () => {
+    const { result } = renderCart();
+    act(() => result.current.addToCart({ ...coca, offer_price: 1000 }, 2));
+    act(() => result.current.addToCart(alfajor, 1));
+    // Coca en oferta: 2 x 1000 (no 2 x 1200); alfajor sin oferta: 1100.
+    expect(result.current.totalPrice).toBe(2 * 1000 + 1100);
+  });
 });
 
 describe('CartContext.syncStock', () => {
   const leche: Product = {
     id: 5,
-    name: 'Leche entera 1L',
+    brand: 'La Serenísima',
+    name: 'Leche entera',
+    unit: '1 L',
     category: 'lacteos',
     price: 1300,
     stock: 20,

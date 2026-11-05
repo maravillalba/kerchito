@@ -1,12 +1,14 @@
 import { useEffect, useId, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ErrorMessage from '../components/ErrorMessage';
+import KerButton from '../components/KerButton';
 import Loading from '../components/Loading';
 import { useCart } from '../context/CartContext';
 import { ApiError, getProductById, getProducts } from '../services/api';
 import type { Product } from '../types';
 import ProductImage from '../components/ProductImage';
-import { CATEGORY_LABELS, formatPrice } from '../utils/format';
+import Price, { OfferBadge } from '../components/Price';
+import { CATEGORY_LABELS } from '../utils/format';
 import './ProductDetail.css';
 
 // Resultado de un pedido al backend. "key" identifica qué pedido lo produjo:
@@ -113,11 +115,16 @@ function RelatedProducts({ product }: { product: Product }) {
             >
               <span className="product-detail__related-media">
                 <ProductImage product={item} size="card" />
+                <span className="product-detail__related-badge">
+                  <OfferBadge product={item} />
+                </span>
+              </span>
+              <span className="product-detail__related-brand">
+                {item.brand}
               </span>
               <span className="product-detail__related-name">{item.name}</span>
-              <span className="product-detail__related-price">
-                {formatPrice(item.price)}
-              </span>
+              <span className="product-detail__related-unit">{item.unit}</span>
+              <Price product={item} />
             </Link>
           </li>
         ))}
@@ -152,10 +159,7 @@ function ProductInfo({ product }: { product: Product }) {
 
   return (
     <div className="product-detail">
-      <nav
-        className="product-detail__breadcrumb"
-        aria-label="Ruta de navegación"
-      >
+      <nav className="product-detail__breadcrumb" aria-label="Migas de pan">
         <ol>
           <li>
             {/* La flecha hace lo mismo que el antiguo botón "Volver". */}
@@ -186,15 +190,26 @@ function ProductInfo({ product }: { product: Product }) {
       <section className="product-detail__card">
         <div className="product-detail__media">
           <ProductImage product={product} size="detail" />
+          <span className="product-detail__badge">
+            <OfferBadge product={product} />
+          </span>
         </div>
 
         <div className="product-detail__info">
           <span className="product-detail__category">{categoryLabel}</span>
-          <h1 className="product-detail__name">{product.name}</h1>
+          {/* La marca se ve aparte; dentro del título va solo para lectores de
+              pantalla, así el h1 se anuncia "Coca-Cola Original". */}
+          <p className="product-detail__brand" aria-hidden="true">
+            {product.brand}
+          </p>
+          <h1 className="product-detail__name">
+            <span className="sr-only">{product.brand}</span> {product.name}
+          </h1>
+          <p className="product-detail__unit">{product.unit}</p>
           {product.description && (
             <p className="product-detail__description">{product.description}</p>
           )}
-          <p className="product-detail__price">{formatPrice(product.price)}</p>
+          <Price product={product} size="detail" />
           <StockIndicator stock={product.stock} />
           {inCart > 0 && (
             <p className="product-detail__in-cart">
@@ -241,14 +256,13 @@ function ProductInfo({ product }: { product: Product }) {
                 </button>
               </div>
             )}
-            <button
-              type="button"
+            <KerButton
               className="product-detail__add"
               onClick={handleAdd}
               disabled={available === 0}
             >
               Agregar al carrito
-            </button>
+            </KerButton>
           </div>
 
           <p className="product-detail__note">

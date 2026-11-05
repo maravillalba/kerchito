@@ -32,12 +32,21 @@ Valores permitidos para `category`:
 | Campo | TypeScript | Pydantic | Regla |
 |---|---|---|---|
 | `id` | `number` | `int` | |
-| `name` | `string` | `str` | |
+| `brand` | `string` | `str` | marca; no vacía (por ejemplo `"Coca-Cola"`) |
+| `name` | `string` | `str` | solo el producto, sin la marca ni la presentación; no vacío (por ejemplo `"Original"`) |
+| `unit` | `string` | `str` | capacidad o presentación; no vacía (por ejemplo `"1,5 L"`, `"1 kg"`, `"500 ml"`, `"x 20"`) |
 | `category` | `Category` | `Category` (`Literal`) | uno de los 6 valores |
-| `price` | `number` | `float` | mayor a 0 |
+| `price` | `number` | `float` | precio normal; mayor a 0 |
+| `offer_price` | `number \| null (opcional)` | `float \| None` | precio de oferta; si viene, mayor a 0 y menor que `price`. `null` = sin oferta |
 | `stock` | `number` | `int` | mayor o igual a 0 |
 | `description` | `string \| null (opcional)` | `str \| None` | |
 | `image` | `string \| null (opcional)` | `str \| None` | ruta de la foto que sirve el frontend desde `frontend/public/` (por ejemplo `/productos/coca-cola.webp`); sin foto, el frontend muestra la imagen de la categoría |
+
+El nombre completo para mostrar es `brand` + `name` + `unit`: `"Coca-Cola Original 500 ml"`.
+
+En Pydantic hay dos esquemas: `ProductIn` (todos los campos menos `id`, con las validaciones de arriba; hoy lo usa el seed) y `ProductOut` (`ProductIn` + `id`, lo que devuelve la API). Ningún endpoint recibe productos todavía.
+
+**Precio que se cobra:** `offer_price` si existe, si no `price`. Lo calcula siempre el backend al crear el pedido.
 
 ## 5. Pedido
 
@@ -59,7 +68,7 @@ Valores permitidos para `category`:
 | `items` | `OrderItemResponse[]` | `list[OrderItemOut]` | |
 | `items[].product_id` | `number` | `int` | |
 | `items[].quantity` | `number` | `int` | |
-| `items[].unit_price` | `number` | `float` | precio del producto al momento de comprar |
+| `items[].unit_price` | `number` | `float` | precio cobrado al momento de comprar: `offer_price` si el producto tenía oferta, si no `price`. Lo calcula el backend; el frontend no manda precios |
 
 ## 6. Tipos que solo existen en el frontend
 
@@ -107,6 +116,7 @@ Notas de `POST /api/chat`:
 
 - Es solo de consulta: nunca llama a `POST /api/orders` ni modifica productos.
 - Los datos de productos (precio, stock, categoría) salen de la base, igual que `GET /api/products`.
+- Nombra los productos con su nombre completo (`brand` + `name` + `unit`). Si un producto tiene oferta, informa el precio de oferta y el normal entre paréntesis: `"$ 1.000 en oferta (precio normal $ 1.200)"`.
 - Si no entiende la pregunta, o si la base no responde, devuelve 200 con un texto fijo. El 422 es solo por mensaje vacío o de más de 500 caracteres.
 - Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422.
 - Horarios y medios de pago son texto fijo del backend.
@@ -124,14 +134,14 @@ Notas de `POST /api/chat`:
 }
 ```
 
-**201 Created**
+**201 Created** (el producto 1 está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
 ```json
 {
   "id": 7,
   "created_at": "2026-11-02T15:30:00",
-  "total": 3500.0,
+  "total": 3100.0,
   "items": [
-    { "product_id": 1, "quantity": 2, "unit_price": 1200.0 },
+    { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
     { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
   ]
 }
@@ -167,9 +177,9 @@ Notas de `POST /api/chat`:
   {
     "id": 7,
     "created_at": "2026-11-02T15:30:00",
-    "total": 3500.0,
+    "total": 3100.0,
     "items": [
-      { "product_id": 1, "quantity": 2, "unit_price": 1200.0 },
+      { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
       { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
     ]
   },
@@ -191,12 +201,29 @@ Notas de `POST /api/chat`:
 
 **200 OK**
 ```json
-{ "reply": "Coca-Cola 500ml sale $ 1.200 y hay 25 unidades." }
+{ "reply": "Coca-Cola Original 500 ml sale $ 1.000 en oferta (precio normal $ 1.200) y hay 25 unidades." }
+```
+
+**GET /api/products/1 – 200 OK** (producto con oferta; sin oferta, `offer_price` es `null`)
+```json
+{
+  "id": 1,
+  "brand": "Coca-Cola",
+  "name": "Original",
+  "unit": "500 ml",
+  "category": "bebidas",
+  "price": 1200.0,
+  "offer_price": 1000.0,
+  "stock": 25,
+  "description": "Gaseosa clásica",
+  "image": "/productos/coca-cola.webp"
+}
 ```
 
 ## 9. Base de datos
 
-- `products`: `id`, `name`, `category`, `price`, `stock`, `description`, `image`.
+- `products`: `id`, `brand`, `name`, `unit`, `category`, `price`, `offer_price`, `stock`, `description`, `image`. Restricciones: `brand`, `name` y `unit` no vacíos; `offer_price` nulo o mayor a 0 y menor que `price`.
+- Una `kiosco.db` creada antes de `brand`, `unit` y `offer_price` no se migra sola: al arrancar, el servidor avisa que hay que borrarla para que se cargue el seed nuevo.
 - `orders`: `id`, `created_at`, `total`.
 - `order_items`: `id`, `order_id` (FK a `orders`), `product_id` (FK a `products`), `quantity`, `unit_price`.
 - SQLite con `PRAGMA foreign_keys=ON`.

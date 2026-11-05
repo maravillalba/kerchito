@@ -15,7 +15,9 @@ const BASE = 'http://localhost:8000';
 
 const coca: Product = {
   id: 1,
-  name: 'Coca-Cola 500ml',
+  brand: 'Coca-Cola',
+  name: 'Original',
+  unit: '500 ml',
   category: 'bebidas',
   price: 1200,
   stock: 25,
