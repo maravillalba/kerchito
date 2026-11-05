@@ -2,10 +2,36 @@
   margin: 0;
 }
 
+/* "54 productos disponibles" o "3 resultados para «coca»" + "Limpiar búsqueda". */
+.products__count-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-1) var(--espacio-3);
+  margin: var(--espacio-1) 0 var(--espacio-4);
+}
+
 .products__count {
   min-height: 1.5em;
-  margin: var(--espacio-1) 0 var(--espacio-4);
+  margin: 0;
   color: var(--color-texto-suave);
+}
+
+.products__clear {
+  min-height: 36px;
+  padding: var(--espacio-1) var(--espacio-3);
+  font-size: var(--texto-chico);
+  font-weight: 700;
+  color: var(--color-marca);
+  background: transparent;
+  border: 1px solid var(--color-marca);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.products__clear:hover {
+  color: #fff;
+  background: var(--color-marca);
 }
 
 /* Chips de categoría a la izquierda y "Ordenar por" a la derecha. */

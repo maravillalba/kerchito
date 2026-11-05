@@ -15,24 +15,19 @@
   margin: 0 0 var(--espacio-3);
 }
 
-/* Hero: bienvenida con Kerchi a la izquierda y tarjeta de KioscoBot a la derecha. */
+/* Hero: una sola card verde suave, con el texto a la izquierda y Kerchi
+   saludando a la derecha (arriba del texto en celular). */
 .home__hero {
-  display: grid;
-  gap: var(--espacio-3);
-}
-
-.home__welcome {
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
   gap: var(--espacio-3);
   padding: var(--espacio-4);
-  background: var(--color-superficie);
-  border: 1px solid var(--color-borde);
+  background: var(--color-marca-suave);
   border-radius: 20px;
 }
 
-.home__welcome-text {
+.home__hero-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -43,79 +38,23 @@
   margin: 0;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--color-marca);
   text-transform: uppercase;
 }
 
 .home__title {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.875rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   color: var(--color-marca-oscuro);
 }
 
 .home__tagline {
+  max-width: 34rem;
   margin: 0 0 var(--espacio-2);
   color: var(--color-texto-suave);
-}
-
-.home__cta {
-  display: inline-block;
-  padding: var(--espacio-2) var(--espacio-4);
-  font-weight: 700;
-  color: var(--color-marca-oscuro);
-  text-decoration: none;
-  background: var(--color-primario);
-  border-radius: var(--radio);
-}
-
-.home__cta:hover {
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario-hover);
-}
-
-/* Tarjeta de KioscoBot: amarillo con verde oscuro. */
-.home__bot {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: var(--espacio-2);
-  padding: var(--espacio-4);
-  color: var(--color-marca-oscuro);
-  background: var(--color-acento);
-  border-radius: 20px;
-}
-
-.home__bot h2 {
-  margin: 0;
-  color: var(--color-marca-oscuro);
-}
-
-.home__bot p {
-  margin: 0;
-}
-
-.home__bot-button {
-  min-height: 44px;
-  margin-top: var(--espacio-2);
-  padding: var(--espacio-2) var(--espacio-4);
-  font-weight: 700;
-  color: #fff;
-  background: var(--color-marca-oscuro);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.home__bot-button:hover {
-  background: var(--color-marca);
-}
-
-.home__bot-button:focus-visible {
-  outline-color: var(--color-marca-oscuro);
 }
 
 /* Cómo comprar: 3 tarjetas amarillo suave; apiladas en celular, en fila desde 768px. */
@@ -247,6 +186,7 @@
 }
 
 .home-banner--naranja {
+  color: #fff;
   background: var(--color-primario);
 }
 
@@ -271,28 +211,25 @@
   color: var(--color-marca-oscuro);
 }
 
-/* Parece un botón, pero es parte del link (no es un control aparte). */
+/* Banner naranja: todo el texto en blanco, también al pasar el mouse. */
+.home-banner--naranja:hover,
+.home-banner--naranja .home-banner__subtitle {
+  color: #fff;
+}
+
+/* Blanco sobre el naranja del logo (3,5:1) alcanza AA solo en texto grande:
+   el subtítulo de este banner va en 19px y negrita. */
+.home-banner--naranja .home-banner__subtitle {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* Acción del banner: tiene el aspecto de KerButton (.ker-btn), pero es parte
+   del link. */
 .home-banner__action {
   margin-top: var(--espacio-2);
-  padding: var(--espacio-2) var(--espacio-4);
-  font-weight: 700;
   white-space: nowrap;
-  color: var(--color-superficie);
-  background: var(--color-marca-oscuro);
-  border-radius: 999px;
-}
-
-.home-banner--grande .home-banner__action {
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario);
-}
-
-.home-banner:hover .home-banner__action {
-  text-decoration: underline;
-}
-
-.home-banner--grande:hover .home-banner__action {
-  background: var(--color-primario-hover);
 }
 
 /* Fotos con fondo blanco: multiply las funde con el fondo del banner. */
@@ -382,21 +319,13 @@
 
 @media (min-width: 768px) {
   .home__hero {
-    grid-template-columns: 1.6fr 1fr;
-  }
-
-  .home__welcome {
     flex-direction: row;
     justify-content: space-between;
-    padding: var(--espacio-5);
+    padding: var(--espacio-5) var(--espacio-5) var(--espacio-5) 3rem;
   }
 
   .home__title {
     font-size: 2.5rem;
-  }
-
-  .home__bot {
-    padding: var(--espacio-5);
   }
 
   .home__step-list {

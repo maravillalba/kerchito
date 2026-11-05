@@ -1,61 +1,88 @@
+.cart__layout {
+  display: grid;
+  gap: var(--espacio-4);
+  align-items: start;
+}
+
 .cart__list {
   display: flex;
   flex-direction: column;
   gap: var(--espacio-3);
-  margin: 0 0 var(--espacio-4);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Resumen: card con la cantidad, el total y las acciones. */
 .cart__summary {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: var(--espacio-2);
-  padding: var(--espacio-3);
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
   background: var(--color-superficie);
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
+  border-radius: 20px;
+}
+
+.cart__summary h2 {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .cart__summary p {
   margin: 0;
 }
 
+.cart__count {
+  color: var(--color-texto-suave);
+}
+
 .cart__total {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--color-marca);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-marca-oscuro);
 }
 
 .cart__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--espacio-2);
 }
 
-.cart__actions button {
+.cart__checkout {
+  width: 100%;
+}
+
+.cart__clear {
+  min-height: 44px;
   padding: var(--espacio-2) var(--espacio-3);
+  font-weight: 700;
+  color: var(--color-marca);
+  background: transparent;
+  border: 0;
   border-radius: var(--radio);
   cursor: pointer;
 }
 
-.cart__clear {
-  color: var(--color-marca);
-  background: var(--color-superficie);
-  border: 1px solid var(--color-marca);
+.cart__clear:hover:not(:disabled) {
+  text-decoration: underline;
 }
 
-.cart__checkout {
-  font-weight: 700;
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario);
-  border: 1px solid var(--color-primario);
+.cart__clear:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.cart__checkout:hover {
-  background: var(--color-primario-hover);
-  border-color: var(--color-primario-hover);
+/* Escritorio: resumen al costado y fijo al scrollear (debajo del header). */
+@media (min-width: 900px) {
+  .cart__layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .cart__summary {
+    position: sticky;
+    top: calc(80px + var(--espacio-3));
+  }
 }
 
 .cart__confirmation {

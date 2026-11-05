@@ -1,11 +1,136 @@
+/* Verde oscuro con texto crema y acentos amarillos (contraste AA: crema sobre
+   verde oscuro ~11,7:1, amarillo sobre verde oscuro ~8,8:1). */
 .footer {
+  margin-top: var(--espacio-5);
   color: var(--color-fondo);
-  background: var(--color-marca);
+  background: var(--color-marca-oscuro);
+  border-radius: 24px 24px 0 0;
+}
+
+.footer__inner {
+  display: grid;
+  gap: var(--espacio-5);
+  padding-block: var(--espacio-5);
+}
+
+/* Marca: logo sobre una placa blanca (el verde del logo no se ve sobre el
+   verde oscuro), la frase destacada y Kerchi chica. */
+.footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+}
+
+.footer__logo {
+  display: inline-flex;
+  padding: var(--espacio-2) var(--espacio-3);
+  background: var(--color-superficie);
+  border-radius: var(--radio-grande);
+}
+
+.footer__logo img {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+.footer__phrase {
+  max-width: 16ch;
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-acento);
+}
+
+.footer__nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-5) var(--espacio-4);
+}
+
+/* Títulos de columna: mayúsculas chicas en amarillo. */
+.footer__title {
+  margin: 0 0 var(--espacio-3);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-acento);
+  text-transform: uppercase;
+}
+
+.footer__subtitle {
+  margin: 0 0 var(--espacio-1);
+  font-size: var(--texto-chico);
+  font-weight: 700;
+  color: var(--color-fondo);
 }
 
 .footer__text {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-chico);
+  color: var(--color-fondo);
+}
+
+.footer__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__list a {
+  display: inline-block;
+  padding-block: 2px;
+  font-size: var(--texto-chico);
+  color: var(--color-fondo);
+  text-decoration: none;
+}
+
+.footer__list a:hover {
+  color: var(--color-acento);
+  text-decoration: underline;
+}
+
+/* El foco verde de siempre no se ve sobre el verde oscuro: acá va en amarillo. */
+.footer a:focus-visible {
+  outline: 3px solid var(--color-acento);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.footer__bottom {
+  border-top: 1px solid rgb(250 249 242 / 0.2);
+}
+
+.footer__copy {
   margin: 0 auto;
   padding-block: var(--espacio-3);
   font-size: var(--texto-chico);
   text-align: center;
+  color: var(--color-fondo);
+}
+
+/* Escritorio: marca a la izquierda y las columnas a la derecha. */
+@media (min-width: 900px) {
+  .footer__inner {
+    grid-template-columns: 1.3fr 1.4fr 1.1fr;
+    gap: var(--espacio-5);
+    padding-block: 3rem;
+  }
+
+  .footer__phrase {
+    font-size: 2rem;
+  }
+}
+
+/* Celular: espacio abajo para que el botón flotante de KioscoBot (92px) no tape
+   el crédito cuando se llega al final de la página. */
+@media (max-width: 899px) {
+  .footer__bottom {
+    padding-bottom: 110px;
+  }
 }

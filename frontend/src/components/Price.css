@@ -42,7 +42,7 @@
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1.2;
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario);
+  color: #fff;
+  background: var(--color-primario-oscuro);
   border-radius: 999px;
 }

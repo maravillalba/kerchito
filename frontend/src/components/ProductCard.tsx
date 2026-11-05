@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../types';
+import KerButton from './KerButton';
 import Price, { OfferBadge } from './Price';
 import ProductImage from './ProductImage';
 import './ProductCard.css';
@@ -39,14 +40,15 @@ function ProductCard({ product, onAdd }: ProductCardProps) {
           </p>
         )}
         {onAdd && (
-          <button
-            type="button"
+          <KerButton
+            variant="verde"
+            size="chico"
             className="product-card__add"
             onClick={() => onAdd(product)}
             disabled={product.stock === 0}
           >
             Agregar al carrito
-          </button>
+          </KerButton>
         )}
       </div>
     </article>

@@ -1,0 +1,56 @@
+/* Campo en forma de píldora con la lupa a la derecha. */
+.search-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+}
+
+/* Mismo foco visible que el resto del sitio, alrededor de toda la píldora. */
+.search-bar:has(.search-bar__input:focus-visible) {
+  border-color: var(--color-marca);
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+.search-bar__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: var(--espacio-2) var(--espacio-2) var(--espacio-2) var(--espacio-4);
+  font: inherit;
+  color: var(--color-texto);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+
+.search-bar__input::placeholder {
+  color: var(--color-texto-suave);
+}
+
+/* El contorno de foco lo marca el borde de la píldora (:focus-within). */
+.search-bar__input:focus-visible {
+  outline: none;
+}
+
+.search-bar__button {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: var(--color-marca-oscuro);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.search-bar__button:hover {
+  color: var(--color-marca);
+}

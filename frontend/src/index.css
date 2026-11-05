@@ -1,10 +1,15 @@
 :root {
   /* Colores de marca */
-  --color-primario: #ff8a00; /* naranja: solo fondo de botones principales */
-  --color-primario-hover: #ffa033;
+  /* Naranja del logo (letras "KER"). Con texto blanco da 3,5:1: alcanza AA solo
+     en texto grande (19px en negrita o más), como los botones KerButton. */
+  --color-primario: #f25008;
+  --color-primario-hover: #d9480f;
+  /* El mismo naranja, más oscuro: para texto blanco chico (5,2:1, pasa AA). */
+  --color-primario-oscuro: #c2410c;
+  --color-primario-oscuro-hover: #a8380a;
   --color-acento: #ffd700; /* amarillo: solo fondos */
   --color-marca: #247a16; /* verde: texto, bordes y fondos */
-  --color-marca-oscuro: #143d0c; /* texto sobre naranja o amarillo */
+  --color-marca-oscuro: #143d0c; /* texto sobre amarillo y crema */
   --color-marca-suave: #e9f3e6;
 
   /* Colores de interfaz */

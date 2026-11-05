@@ -107,6 +107,22 @@ describe('ProductCard', () => {
     expect(screen.getByText('-16%')).toBeInTheDocument();
   });
 
+  it('"Agregar al carrito" usa el botón KerButton verde chico, a todo el ancho', () => {
+    render(
+      <MemoryRouter>
+        <ProductCard product={alfajor} onAdd={vi.fn()} />
+      </MemoryRouter>,
+    );
+    const button = screen.getByRole('button', { name: 'Agregar al carrito' });
+    expect(button).toHaveClass(
+      'ker-btn',
+      'ker-btn--verde',
+      'ker-btn--chico',
+      'product-card__add',
+    );
+    expect(button).toHaveAttribute('type', 'button');
+  });
+
   it('el botón "Agregar al carrito" llama a onAdd y se deshabilita sin stock', async () => {
     const user = userEvent.setup();
     const onAdd = vi.fn();

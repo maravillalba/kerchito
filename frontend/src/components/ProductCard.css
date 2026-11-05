@@ -91,23 +91,8 @@
   color: var(--color-texto);
 }
 
+/* "Agregar al carrito": KerButton verde chico (KerButton.css), a todo el ancho. */
 .product-card__add {
   width: 100%;
   min-height: 44px;
-  padding: var(--espacio-2) var(--espacio-3);
-  font-weight: 700;
-  color: #fff;
-  background: var(--color-marca);
-  border: 0;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.product-card__add:hover:not(:disabled) {
-  background: var(--color-marca-oscuro);
-}
-
-.product-card__add:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

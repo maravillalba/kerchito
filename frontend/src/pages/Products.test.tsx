@@ -370,4 +370,163 @@ describe('Products', () => {
       expect(brandsInOrder()).toEqual(['Fanta', 'Sprite', 'Villa del Sur']);
     });
   });
+
+  describe('buscar (?q=)', () => {
+    const lecheEntera: Product = {
+      ...yogur,
+      id: 20,
+      brand: 'La Serenísima',
+      name: 'Leche entera',
+      price: 1300,
+    };
+    const lecheZero: Product = {
+      ...yogur,
+      id: 21,
+      brand: 'La Serenísima',
+      name: 'Leche zero lactosa',
+      price: 2960,
+    };
+    const dulce: Product = {
+      ...yogur,
+      id: 22,
+      brand: 'Vacalin',
+      name: 'Dulce de leche',
+      price: 2400,
+    };
+    const CATALOGO = [coca, lecheEntera, lecheZero, dulce, lavandina];
+
+    function Ubicacion() {
+      const location = useLocation();
+      return <p data-testid="ubicacion">{location.search}</p>;
+    }
+
+    function renderWithLocation(url: string) {
+      const user = userEvent.setup();
+      render(
+        <MemoryRouter initialEntries={[url]}>
+          <CartProvider>
+            <Products />
+            <Ubicacion />
+          </CartProvider>
+        </MemoryRouter>,
+      );
+      return user;
+    }
+
+    function names() {
+      return screen
+        .getAllByRole('article')
+        .map((card) => card.querySelector('.product-card__name')?.textContent);
+    }
+
+    it('filtra por marca, nombre y categoría sin importar mayúsculas ni tildes', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      renderWithLocation('/products?q=SERENISIMA');
+
+      expect(
+        await screen.findByText('2 resultados para «SERENISIMA»'),
+      ).toBeInTheDocument();
+      expect(names()).toEqual([
+        'La Serenísima Leche entera',
+        'La Serenísima Leche zero lactosa',
+      ]);
+    });
+
+    it('busca también por el nombre de la categoría', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      renderWithLocation('/products?q=l%C3%A1cteos');
+      // "lácteos" encuentra los 3 lácteos (no la Coca ni la lavandina).
+      expect(
+        await screen.findByText('3 resultados para «lácteos»'),
+      ).toBeInTheDocument();
+    });
+
+    it('se combina con la categoría y con el orden', async () => {
+      vi.mocked(getProducts).mockResolvedValue([lecheEntera, lecheZero, dulce]);
+      renderWithLocation(
+        '/products?category=lacteos&q=leche&orden=precio-desc',
+      );
+
+      expect(
+        await screen.findByText('3 resultados para «leche»'),
+      ).toBeInTheDocument();
+      expect(getProducts).toHaveBeenCalledWith('lacteos');
+      // Precio mayor a menor: 2960, 2400, 1300.
+      expect(names()).toEqual([
+        'La Serenísima Leche zero lactosa',
+        'Vacalin Dulce de leche',
+        'La Serenísima Leche entera',
+      ]);
+    });
+
+    it('al cambiar de categoría conserva la búsqueda', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      const user = renderWithLocation('/products?q=leche');
+      await screen.findAllByRole('article');
+
+      await user.click(screen.getByRole('button', { name: 'Lácteos' }));
+      expect(screen.getByTestId('ubicacion')).toHaveTextContent('q=leche');
+      expect(screen.getByTestId('ubicacion')).toHaveTextContent(
+        'category=lacteos',
+      );
+    });
+
+    it('un resultado se dice en singular', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      renderWithLocation('/products?q=vacalin');
+      expect(
+        await screen.findByText('1 resultado para «vacalin»'),
+      ).toBeInTheDocument();
+    });
+
+    it('sin resultados muestra a Kerchi triste y "Limpiar búsqueda"', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      renderWithLocation('/products?q=champagne');
+
+      expect(
+        await screen.findByText('No encontramos productos para «champagne».'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('0 resultados para «champagne»'),
+      ).toBeInTheDocument();
+      expect(screen.queryAllByRole('article')).toHaveLength(0);
+      const kerchi = document.querySelector('.products__empty img');
+      expect(kerchi?.getAttribute('src')).toContain('kerchi-triste');
+      expect(kerchi).toHaveAttribute('alt', '');
+    });
+
+    it('"Limpiar búsqueda" saca ?q= y vuelve a mostrar todo, conservando la categoría', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      const user = renderWithLocation('/products?category=lacteos&q=champagne');
+      await screen.findByText('No encontramos productos para «champagne».');
+
+      await user.click(
+        screen.getByRole('button', { name: 'Limpiar búsqueda' }),
+      );
+
+      expect(screen.getByTestId('ubicacion')).toHaveTextContent(
+        '?category=lacteos',
+      );
+      expect(screen.getByTestId('ubicacion')).not.toHaveTextContent('q=');
+      expect(
+        await screen.findByText('5 productos disponibles'),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Limpiar búsqueda' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('con resultados también ofrece "Limpiar búsqueda"', async () => {
+      vi.mocked(getProducts).mockResolvedValue(CATALOGO);
+      const user = renderWithLocation('/products?q=coca');
+      await screen.findByText('1 resultado para «coca»');
+
+      await user.click(
+        screen.getByRole('button', { name: 'Limpiar búsqueda' }),
+      );
+      expect(
+        await screen.findByText('5 productos disponibles'),
+      ).toBeInTheDocument();
+    });
+  });
 });

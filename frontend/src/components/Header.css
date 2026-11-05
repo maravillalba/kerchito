@@ -13,9 +13,16 @@
 
 .header__inner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--espacio-3);
+  gap: var(--espacio-2) var(--espacio-3);
   padding-block: var(--espacio-2);
+}
+
+/* Celular: el buscador va en una fila propia, debajo del logo y la navegación. */
+.header__search {
+  order: 3;
+  flex-basis: 100%;
 }
 
 .header__brand {
@@ -81,10 +88,45 @@
 
 @media (min-width: 768px) {
   .header__inner {
-    gap: var(--espacio-5);
+    flex-wrap: nowrap;
+    gap: var(--espacio-4);
+  }
+
+  /* Escritorio: entre el logo y la navegación. */
+  .header__search {
+    order: 0;
+    flex: 1 1 auto;
+    max-width: 480px;
+  }
+
+  .header__nav {
+    flex: 1 0 auto;
   }
 
   .header__brand img {
     height: 44px;
+  }
+}
+
+/* Celular: logo, links y carrito en una sola línea (el buscador va debajo),
+   así el header fijo ocupa poco alto. */
+@media (max-width: 767px) {
+  .header__brand img {
+    height: 34px;
+  }
+
+  .header__nav {
+    flex-wrap: nowrap;
+    gap: var(--espacio-2);
+  }
+
+  .header__link {
+    padding-inline: 2px;
+    font-size: 0.9375rem;
+  }
+
+  .header__cart {
+    padding: var(--espacio-1) var(--espacio-3);
+    font-size: 0.9375rem;
   }
 }

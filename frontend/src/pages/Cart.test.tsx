@@ -132,6 +132,13 @@ describe('Cart', () => {
     await user.click(screen.getByRole('button', { name: 'Cargar con oferta' }));
 
     const fila = itemRow('Original');
+    // Miniatura decorativa: el nombre ya está en el texto. Sin image usa la de la categoría.
+    const foto = screen
+      .getByText('Original')
+      .closest('li')
+      ?.querySelector('.cart-item__thumb img');
+    expect(foto).toHaveAttribute('alt', '');
+    expect(foto).toHaveClass('product-image--thumb');
     expect(fila.getByText('Coca-Cola')).toBeInTheDocument();
     expect(fila.getByText('500 ml')).toBeInTheDocument();
     // Precio normal tachado y precio de oferta por unidad; subtotal 2 x 1000.

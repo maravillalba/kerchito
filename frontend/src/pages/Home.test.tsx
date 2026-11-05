@@ -1,12 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartProvider } from '../context/CartContext';
 import { ApiError, getProducts } from '../services/api';
 import type { Product } from '../types';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
-import { OPEN_KIOSCOBOT_EVENT } from '../utils/kioscobot';
 import Home from './Home';
 
 vi.mock('../services/api', async (importOriginal) => {
@@ -159,29 +157,34 @@ describe('Home', () => {
     );
   });
 
-  it('el hero tiene la bienvenida con Kerchi y la tarjeta de KioscoBot', async () => {
-    const user = userEvent.setup();
-    const abrir = vi.fn();
-    window.addEventListener(OPEN_KIOSCOBOT_EVENT, abrir);
+  it('el hero tiene el título, el texto, el botón "Ver productos" y a Kerchi', () => {
     renderHome();
-
-    expect(
-      screen.getByRole('heading', {
+    const hero = screen
+      .getByRole('heading', {
         level: 1,
-        name: 'Bienvenido, ¿qué necesitás hoy?',
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ver productos' })).toHaveAttribute(
-      'href',
-      '/products',
-    );
-
-    const bot = screen
-      .getByRole('heading', { name: 'Preguntale a KioscoBot' })
+        name: 'Todo lo que necesitás, en un solo clic',
+      })
       .closest('section') as HTMLElement;
-    await user.click(within(bot).getByRole('button', { name: 'Abrir chat' }));
-    expect(abrir).toHaveBeenCalledTimes(1);
-    window.removeEventListener(OPEN_KIOSCOBOT_EVENT, abrir);
+
+    expect(hero).toHaveTextContent('Kiosko El Rápido');
+    expect(hero).toHaveTextContent(
+      'Bebidas, golosinas, almacén y limpieza: elegí, sumá al carrito y confirmá tu pedido.',
+    );
+    const cta = within(hero).getByRole('link', { name: 'Ver productos' });
+    expect(cta).toHaveAttribute('href', '/products');
+    expect(cta).toHaveClass('ker-btn', 'ker-btn--verde');
+    const kerchi = hero.querySelector('img.mascota--saludando');
+    expect(kerchi).toHaveAttribute('alt', '');
+  });
+
+  it('ya no tiene la tarjeta "Preguntale a KioscoBot" (el chat se abre con el botón flotante)', () => {
+    renderHome();
+    expect(
+      screen.queryByRole('heading', { name: 'Preguntale a KioscoBot' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Abrir chat' }),
+    ).not.toBeInTheDocument();
   });
 
   it('ordena las secciones: hero, Cómo comprar, categorías, Ofertas y banners', async () => {
@@ -237,6 +240,11 @@ describe('Home', () => {
         );
         expect(banner).toHaveAccessibleDescription(subtitle);
         expect(banner).toHaveTextContent(action);
+        // La acción tiene el aspecto de KerButton, pero no es un control aparte.
+        const accion = banner.querySelector('.home-banner__action');
+        expect(accion).toHaveClass('ker-btn');
+        expect(accion).toHaveAttribute('aria-hidden', 'true');
+        expect(within(banner).queryByRole('button')).not.toBeInTheDocument();
 
         const images = banner.querySelectorAll('img');
         expect(images).toHaveLength(photos);

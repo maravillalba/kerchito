@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ErrorMessage from '../components/ErrorMessage';
+import KerButton from '../components/KerButton';
 import Loading from '../components/Loading';
 import { useCart } from '../context/CartContext';
 import { ApiError, getProductById, getProducts } from '../services/api';
@@ -158,10 +159,7 @@ function ProductInfo({ product }: { product: Product }) {
 
   return (
     <div className="product-detail">
-      <nav
-        className="product-detail__breadcrumb"
-        aria-label="Ruta de navegación"
-      >
+      <nav className="product-detail__breadcrumb" aria-label="Migas de pan">
         <ol>
           <li>
             {/* La flecha hace lo mismo que el antiguo botón "Volver". */}
@@ -258,14 +256,13 @@ function ProductInfo({ product }: { product: Product }) {
                 </button>
               </div>
             )}
-            <button
-              type="button"
+            <KerButton
               className="product-detail__add"
               onClick={handleAdd}
               disabled={available === 0}
             >
               Agregar al carrito
-            </button>
+            </KerButton>
           </div>
 
           <p className="product-detail__note">

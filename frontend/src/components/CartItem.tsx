@@ -1,6 +1,7 @@
 import type { CartItem as CartItemType } from '../types';
 import { formatPrice } from '../utils/format';
 import { effectivePrice, fullName, hasOffer } from '../utils/pricing';
+import ProductImage from './ProductImage';
 import './CartItem.css';
 
 interface CartItemProps {
@@ -25,6 +26,10 @@ function CartItem({ item, onChangeQuantity, onRemove }: CartItemProps) {
 
   return (
     <li className="cart-item">
+      {/* Foto decorativa (alt=""): el nombre del producto ya está en el texto. */}
+      <div className="cart-item__thumb">
+        <ProductImage product={product} size="thumb" />
+      </div>
       <div className="cart-item__info">
         <p className="cart-item__brand">{product.brand}</p>
         <h3 className="cart-item__name">{product.name}</h3>

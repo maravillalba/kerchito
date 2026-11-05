@@ -240,15 +240,15 @@
   min-height: 44px;
   padding: var(--espacio-2) var(--espacio-3);
   font-weight: 700;
-  color: var(--color-marca-oscuro);
-  background: var(--color-primario);
-  border: 1px solid var(--color-primario);
+  color: #fff;
+  background: var(--color-primario-oscuro);
+  border: 1px solid var(--color-primario-oscuro);
   border-radius: var(--radio);
   cursor: pointer;
 }
 
 .chat-widget__send:hover:not(:disabled) {
-  background: var(--color-primario-hover);
+  background: var(--color-primario-oscuro-hover);
 }
 
 .chat-widget__send:disabled {

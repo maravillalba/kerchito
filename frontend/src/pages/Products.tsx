@@ -15,6 +15,7 @@ import {
   sortProducts,
 } from '../utils/sort';
 import type { SortOrder } from '../utils/sort';
+import { matchesSearch } from '../utils/search';
 import './Products.css';
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as Category[];
@@ -40,6 +41,8 @@ function Products() {
   const selected = CATEGORIES.find((c) => c === categoryParam) ?? null;
   // El orden se guarda en ?orden=; un valor desconocido usa el orden por defecto.
   const order = parseSortOrder(searchParams.get('orden'));
+  // Texto buscado desde el Header (?q=): filtra en el frontend, junto con la categoría.
+  const query = (searchParams.get('q') ?? '').trim();
 
   const [reloadCount, setReloadCount] = useState(0);
   const [result, setResult] = useState<ProductsResult | null>(null);
@@ -89,14 +92,22 @@ function Products() {
     result !== null && result.key === requestKey && result.error === null
       ? result.products
       : null;
+  // Lo que se muestra: lo que vino del backend (ya filtrado por categoría) que
+  // coincide con la búsqueda.
+  const visible = loaded?.filter((p) => matchesSearch(p, query)) ?? null;
 
-  // "54 productos disponibles"; vacío mientras carga o si hubo un error.
+  // "54 productos disponibles" o "3 resultados para «coca»"; vacío mientras
+  // carga o si hubo un error.
   const countText = () => {
-    if (loaded === null) return '';
-    return loaded.length === 1
-      ? '1 producto disponible'
-      : `${loaded.length} productos disponibles`;
+    if (visible === null) return '';
+    const n = visible.length;
+    if (query) {
+      return `${n} ${n === 1 ? 'resultado' : 'resultados'} para «${query}»`;
+    }
+    return n === 1 ? '1 producto disponible' : `${n} productos disponibles`;
   };
+
+  const clearSearch = () => updateParam('q', null);
 
   const renderContent = () => {
     if (result === null || result.key !== requestKey) {
@@ -118,9 +129,24 @@ function Products() {
         </div>
       );
     }
+    if (visible !== null && visible.length === 0) {
+      return (
+        <div className="products__empty">
+          <Mascota pose="triste" />
+          <p>No encontramos productos para «{query}».</p>
+          <button
+            type="button"
+            className="products__clear"
+            onClick={clearSearch}
+          >
+            Limpiar búsqueda
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="products__grid">
-        {sortProducts(result.products, order).map((product) => (
+        {sortProducts(visible ?? [], order).map((product) => (
           <ProductCard key={product.id} product={product} onAdd={addToCart} />
         ))}
       </div>
@@ -130,9 +156,20 @@ function Products() {
   return (
     <section>
       <h1 className="products__title">Productos</h1>
-      <p className="products__count" aria-live="polite">
-        {countText()}
-      </p>
+      <div className="products__count-row">
+        <p className="products__count" aria-live="polite">
+          {countText()}
+        </p>
+        {query && visible !== null && visible.length > 0 && (
+          <button
+            type="button"
+            className="products__clear"
+            onClick={clearSearch}
+          >
+            Limpiar búsqueda
+          </button>
+        )}
+      </div>
 
       <div className="products__toolbar">
         <div className="products__filters">

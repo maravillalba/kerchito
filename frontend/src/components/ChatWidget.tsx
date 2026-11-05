@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import kerchiPensando from '../assets/kerchi/kerchi-pensando.webp';
 import { ApiError, sendChatMessage } from '../services/api';
-import { OPEN_KIOSCOBOT_EVENT } from '../utils/kioscobot';
 import ErrorMessage from './ErrorMessage';
 import Mascota from './Mascota';
 import './ChatWidget.css';
@@ -62,13 +61,6 @@ function ChatWidget() {
     }
     wasOpen.current = open;
   }, [open]);
-
-  // Otras partes de la app (el "Abrir chat" del Inicio) abren el chat con un evento.
-  useEffect(() => {
-    const handleOpen = () => setOpen(true);
-    window.addEventListener(OPEN_KIOSCOBOT_EVENT, handleOpen);
-    return () => window.removeEventListener(OPEN_KIOSCOBOT_EVENT, handleOpen);
-  }, []);
 
   // Al terminar de esperar la respuesta, el campo vuelve a estar habilitado.
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,7 +11,6 @@ import {
   sendChatMessage,
 } from '../services/api';
 import type { Product } from '../types';
-import { openKioscoBot } from '../utils/kioscobot';
 import ChatWidget from './ChatWidget';
 
 // Nunca sale a la red: se reemplazan todas las funciones de la API que usan
@@ -133,15 +132,6 @@ describe('ChatWidget', () => {
       expect(img?.getAttribute('src')).toContain('kerchi-pensando');
       expect(img).toHaveAttribute('alt', '');
       expect(img).toHaveAttribute('aria-hidden', 'true');
-    });
-
-    it('se abre también con openKioscoBot() (el "Abrir chat" del Inicio)', async () => {
-      renderWidget();
-      act(() => openKioscoBot());
-      expect(
-        await screen.findByRole('dialog', { name: 'KioscoBot' }),
-      ).toBeInTheDocument();
-      expect(input()).toHaveFocus();
     });
   });
 
@@ -327,7 +317,13 @@ describe('ChatWidget en el Layout', () => {
     await user.type(input(), 'Pregunta 1{Enter}');
     await within(log()).findByText('Respuesta 1');
 
-    await user.click(screen.getByRole('link', { name: 'Productos' }));
+    // El link del menú principal (el footer también tiene uno a Productos).
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Principal' })).getByRole(
+        'link',
+        { name: 'Productos' },
+      ),
+    );
     expect(
       await screen.findByRole('heading', { name: 'Productos', level: 1 }),
     ).toBeInTheDocument();

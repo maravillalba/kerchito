@@ -8,6 +8,7 @@ import cif from '../assets/banners/banner-cif.webp';
 import cocaCola from '../assets/banners/banner-coca-cola.webp';
 import sprite from '../assets/banners/banner-sprite.webp';
 import yerba from '../assets/banners/banner-yerba.webp';
+import KerButton, { KerButtonText } from '../components/KerButton';
 import Mascota from '../components/Mascota';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
@@ -16,7 +17,6 @@ import type { Category, Product } from '../types';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
 import { getOfertas } from '../utils/featured';
 import { CATEGORY_LABELS } from '../utils/format';
-import { openKioscoBot } from '../utils/kioscobot';
 import './Home.css';
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as Category[];
@@ -49,6 +49,9 @@ interface Banner {
   title: string;
   subtitle: string;
   action: string;
+  // Color del botón de la acción: naranja sobre fondos claros, verde sobre
+  // amarillo o naranja.
+  actionVariant: 'naranja' | 'verde';
   photos: BannerPhoto[];
 }
 
@@ -61,6 +64,7 @@ const BANNERS: Banner[] = [
     title: 'Para el mate de la tarde',
     subtitle: 'Yerba, azúcar y todo lo del almacén.',
     action: 'Ver almacén',
+    actionVariant: 'naranja',
     photos: [
       { src: yerba, width: 242, height: 413 },
       { src: azucar, width: 408, height: 304 },
@@ -73,6 +77,7 @@ const BANNERS: Banner[] = [
     title: 'Bebidas',
     subtitle: 'Frescas y a un clic.',
     action: 'Ver bebidas',
+    actionVariant: 'verde',
     photos: [
       { src: sprite, width: 112, height: 408 },
       { src: cocaCola, width: 122, height: 432 },
@@ -86,6 +91,7 @@ const BANNERS: Banner[] = [
     title: 'Limpieza del hogar',
     subtitle: 'Todo para dejar la casa impecable.',
     action: 'Ver limpieza',
+    actionVariant: 'verde',
     photos: [
       { src: cif, width: 206, height: 418 },
       { src: ayudinGel, width: 125, height: 411 },
@@ -101,7 +107,8 @@ function HomeBanner({ banner }: { banner: Banner }) {
     // El nombre accesible es el título; el subtítulo queda como descripción.
     <Link
       to={`/products?category=${banner.category}`}
-      className={`home-banner home-banner--${banner.variant}`}
+      // ker-btn-trigger: al pasar el mouse por el banner se anima su botón.
+      className={`home-banner home-banner--${banner.variant} ker-btn-trigger`}
       aria-labelledby={titleId}
       aria-describedby={subtitleId}
     >
@@ -112,8 +119,13 @@ function HomeBanner({ banner }: { banner: Banner }) {
         <span id={subtitleId} className="home-banner__subtitle">
           {banner.subtitle}
         </span>
-        <span className="home-banner__action" aria-hidden="true">
-          {banner.action}
+        {/* Tiene el aspecto del botón KerButton, pero es parte del link (no es
+            un control aparte): por eso es un span. */}
+        <span
+          className={`home-banner__action ker-btn ker-btn--${banner.actionVariant}`}
+          aria-hidden="true"
+        >
+          <KerButtonText>{banner.action}</KerButtonText>
         </span>
       </span>
       <span className="home-banner__photos">
@@ -181,35 +193,22 @@ function Ofertas() {
 function Home() {
   return (
     <div className="home">
-      <div className="home__hero">
-        <section className="home__welcome" aria-labelledby="home-titulo">
-          <div className="home__welcome-text">
-            <p className="home__eyebrow">Tu kiosko de barrio</p>
-            <h1 id="home-titulo" className="home__title">
-              Bienvenido, ¿qué necesitás hoy?
-            </h1>
-            <p className="home__tagline">
-              Todo lo del kiosko, sin salir de casa.
-            </p>
-            <Link to="/products" className="home__cta">
-              Ver productos
-            </Link>
-          </div>
-          <Mascota pose="saludando" size="grande" />
-        </section>
-
-        <section className="home__bot" aria-labelledby="home-kioscobot">
-          <h2 id="home-kioscobot">Preguntale a KioscoBot</h2>
-          <p>Horarios, medios de pago o si hay stock de algo.</p>
-          <button
-            type="button"
-            className="home__bot-button"
-            onClick={openKioscoBot}
-          >
-            Abrir chat
-          </button>
-        </section>
-      </div>
+      <section className="home__hero" aria-labelledby="home-titulo">
+        <div className="home__hero-text">
+          <p className="home__eyebrow">Kiosko El Rápido</p>
+          <h1 id="home-titulo" className="home__title">
+            Todo lo que necesitás, en un solo clic
+          </h1>
+          <p className="home__tagline">
+            Bebidas, golosinas, almacén y limpieza: elegí, sumá al carrito y
+            confirmá tu pedido.
+          </p>
+          <KerButton to="/products" variant="verde">
+            Ver productos
+          </KerButton>
+        </div>
+        <Mascota pose="saludando" size="grande" />
+      </section>
 
       <section className="home__steps" aria-labelledby="home-como-comprar">
         <h2 id="home-como-comprar">Cómo comprar</h2>

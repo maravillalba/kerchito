@@ -39,7 +39,8 @@ npm ci
 src/
 ├── components/   Componentes reutilizables y su CSS: Header, Footer, Layout,
 │                 ProductCard, Price, ProductImage, CartItem, Loading,
-│                 ErrorMessage, Mascota y ChatWidget.
+│                 ErrorMessage, Mascota, ChatWidget, SearchBar (buscador) y
+│                 KerButton (botón naranja/verde, basado en Uiverse.io).
 ├── context/      CartContext.tsx: estado global del carrito y el hook useCart().
 ├── hooks/        useCheckout.ts: envía el pedido a la API y devuelve 'success',
 │                 'outdated' o 'error'.
@@ -52,7 +53,7 @@ src/
 ├── types/        index.ts: tipos del contrato (Product, Category, CartItem, pedidos).
 ├── utils/        format.ts (formatPrice, CATEGORY_LABELS), pricing.ts (precio
 │                 efectivo, descuento), sort.ts (orden de /products), featured.ts
-│                 (getOfertas), categoryIcons.ts y kioscobot.ts (abrir el chat).
+│                 (getOfertas), search.ts (buscador) y categoryIcons.ts.
 ├── App.tsx       Definición de rutas.
 ├── main.tsx      Punto de entrada: BrowserRouter + CartProvider + App.
 ├── index.css     Variables CSS (:root) y estilos globales.
