@@ -145,6 +145,31 @@ KioscoBot es el chat de ayuda (el botón flotante "Abrir KioscoBot", en todas la
 
 La clave va **solo** en `backend/.env`. Nunca la pongas en el frontend (todo lo que empieza con `VITE_` termina en el código que descarga el navegador) ni la subas a git. Más detalles en [`docs/KIOSCOBOT.md`](docs/KIOSCOBOT.md).
 
+## Panel de administración (demostración)
+
+La app suma tres pantallas sin el Header ni el Footer de la tienda: `/bienvenida`, `/login` y `/admin`. Son **solo frontend**: el backend no tiene usuarios ni roles, y nada de esto protege datos.
+
+**Cuentas de ejemplo (solo demostración):**
+
+| Correo | Contraseña | Rol | Después de ingresar |
+|---|---|---|---|
+| `admin@kiosko.com` | `kerchi123` | admin | `/admin` |
+| `cliente@kiosko.com` | `kerchi123` | cliente | `/` |
+
+Están en `frontend/src/data/cuentas.demo.ts`, así que viajan en el código que descarga el navegador. No uses esta contraseña en ningún otro lado.
+
+| | Real | Simulado |
+|---|---|---|
+| **Sesión** | | Login, registro y roles. El usuario se guarda en `localStorage`, donde se puede editar a mano. |
+| **Crear cuenta** | Valida los campos. | Cualquier correo nuevo entra como cliente. No se guarda ninguna contraseña, así que después de cerrar sesión esa cuenta ya no puede ingresar. |
+| **Ruta `/admin`** | Solo deja pasar al rol admin. | Es una protección visual: el front solo oculta pantallas. La protección real se hará en el backend en una etapa posterior. |
+| **Resumen** | Stock bajo: se calcula con los productos del backend (menos de 5 unidades). | Ventas, pedidos, ticket promedio, más vendidos y pedidos recientes salen de `frontend/src/data/admin.mock.ts`. |
+| **Productos** | La tabla lee los productos con `GET /api/products`. | Alta y edición viven en el estado de la página: al recargar se pierden y nunca llegan al backend. |
+| **Pedidos, Stock, Ofertas, Clientes y puntos** | | Muestran "Próximamente". |
+| **Puntos** | | Solo aparecen en los textos: todavía no se suman ni se canjean. |
+
+**Primera visita:** si `sessionStorage` no tiene la marca de la sesión, `/` redirige a `/bienvenida`. No redirige con una sesión iniciada, y el resto de las rutas tampoco. "Quiero comprar" y "Seguir como invitado" guardan la marca.
+
 ## Tests
 
 **Backend** (desde `backend/`, con el entorno virtual activado):
@@ -166,7 +191,7 @@ npm run coverage
 | | Tests | Cobertura |
 |---|---|---|
 | Backend | 84 | 93% |
-| Frontend | 127 | 97% (sentencias) |
+| Frontend | 335 | 98% (sentencias) |
 
 Los tests del backend usan una base SQLite en memoria (no tocan `kiosco.db`) y nunca llaman a la API real de IA. Los del frontend reemplazan la API, así que no hace falta tener el backend levantado. `npm run coverage` además deja un reporte HTML en `frontend/coverage/`.
 

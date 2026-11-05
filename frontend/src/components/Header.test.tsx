@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+import { guardarSesion, renderApp, rutaActual } from '../test-utils';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider, useCart } from '../context/CartContext';
 import type { Product } from '../types';
@@ -101,6 +102,35 @@ describe('Header', () => {
     expect(carrito).toHaveClass('header__cart');
     await user.click(screen.getByRole('button', { name: 'Agregar de prueba' }));
     expect(screen.getByRole('link', { name: 'Carrito (2)' })).toBeVisible();
+  });
+
+  it('sin sesión muestra el link Ingresar', () => {
+    renderHeader();
+    expect(screen.getByRole('link', { name: 'Ingresar' })).toHaveAttribute(
+      'href',
+      '/login',
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Salir' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('con sesión de cliente muestra el nombre y Salir en lugar de Ingresar', () => {
+    guardarSesion('cliente', 'Ana');
+    renderHeader();
+    expect(screen.getByText('Ana')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salir' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Ingresar' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('Salir cierra la sesión y vuelve a /bienvenida', async () => {
+    guardarSesion('cliente');
+    const user = renderApp('/cart');
+    await user.click(screen.getByRole('button', { name: 'Salir' }));
+    expect(rutaActual()).toBe('/bienvenida');
+    expect(localStorage.getItem('kiosko.sesion')).toBeNull();
   });
 
   it('en el detalle de un producto sigue activo Productos', () => {

@@ -6,6 +6,8 @@ Está hecho con React 19, TypeScript, Vite, React Router y Context API (para el 
 
 El contrato de datos entre frontend y backend está en [`docs/CONTRATO.md`](../docs/CONTRATO.md).
 
+La bienvenida, el login y el panel de administración son una demostración: lo que es real y lo que es simulado está en el [README principal](../README.md#panel-de-administración-demostración).
+
 ## Requisitos
 
 - **Node.js** 22 (`22.22.2` o más) o 24 (`24.15.0` o más) (lo que exigen Vitest y jsdom).
