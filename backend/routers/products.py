@@ -96,7 +96,7 @@ def upload_image(product_id: int, file: UploadFile, db: Session = Depends(get_db
     # Se lee un byte de más para detectar el exceso sin cargar un archivo enorme.
     content = file.file.read(uploads.MAX_IMAGE_BYTES + 1)
     if len(content) > uploads.MAX_IMAGE_BYTES:
-        raise HTTPException(status_code=413, detail="La foto no puede pesar más de 2 MB")
+        raise HTTPException(status_code=413, detail=uploads.TOO_LARGE_MESSAGE)
     extension = uploads.image_extension(content)
     if extension is None:
         raise HTTPException(status_code=415, detail="La foto tiene que ser JPG, PNG o WebP")

@@ -1,10 +1,12 @@
+import math
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+import login_limiter
 from accounts import user_out
 from database import get_db
 from deps import get_current_session, get_current_user
@@ -56,16 +58,32 @@ def register(data: RegisterIn, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=AuthOut)
-def login(data: LoginIn, db: Session = Depends(get_db)):
+def login(data: LoginIn, request: Request, db: Session = Depends(get_db)):
+    ip = request.client.host if request.client else "desconocida"
+    wait = login_limiter.retry_after(ip, data.email)
+    if wait is not None:
+        minutes = math.ceil(wait / 60)
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Demasiados intentos. Probá de nuevo en "
+                f"{minutes} {'minuto' if minutes == 1 else 'minutos'}."
+            ),
+            headers={"Retry-After": str(wait)},
+        )
+
     user = db.query(User).filter(User.email == data.email).first()
     if user is None:
         # Se calcula un hash igual para que el tiempo de respuesta no revele
         # si el correo existe.
         hash_password(data.password)
+        login_limiter.record_failure(ip, data.email)
         raise HTTPException(status_code=401, detail=_BAD_CREDENTIALS)
     if not verify_password(data.password, user.password_hash):
+        login_limiter.record_failure(ip, data.email)
         raise HTTPException(status_code=401, detail=_BAD_CREDENTIALS)
 
+    login_limiter.clear(ip, data.email)
     db.execute(
         delete(AuthSession).where(
             AuthSession.user_id == user.id, AuthSession.expires_at <= datetime.now()

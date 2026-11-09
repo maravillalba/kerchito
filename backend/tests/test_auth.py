@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 import pytest
 from sqlalchemy import text
 
-from conftest import CLAVE_DE_PRUEBA, headers_de
+import login_limiter
+from conftest import CLAVE_DE_PRUEBA, crear_usuario, headers_de
 from models import AuthSession, User
 from security import hash_password, hash_token, verify_password
 
@@ -157,6 +158,77 @@ def test_login_borra_las_sesiones_vencidas_del_usuario(client, db_session, clien
     db_session.commit()
     client.post("/api/auth/login", json={"email": cliente.email, "password": CLAVE_DE_PRUEBA})
     assert db_session.query(AuthSession).filter_by(token_hash="vencida").count() == 0
+
+
+# --- Límite de intentos -----------------------------------------------------------
+
+
+def intentar(client, email="cliente@test.com", password="clave-equivocada"):
+    return client.post("/api/auth/login", json={"email": email, "password": password})
+
+
+def test_cinco_fallos_dan_401_y_el_sexto_429(client, cliente):
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        assert intentar(client).status_code == 401
+    respuesta = intentar(client)
+    assert respuesta.status_code == 429
+    assert "Demasiados intentos" in respuesta.json()["detail"]
+    assert 0 < int(respuesta.headers["retry-after"]) <= login_limiter.WINDOW_SECONDS
+
+
+def test_bloqueado_no_entra_ni_con_la_clave_correcta(client, cliente):
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        intentar(client)
+    assert intentar(client, password=CLAVE_DE_PRUEBA).status_code == 429
+
+
+def test_un_correo_inexistente_se_limita_igual(client):
+    # Si solo se limitara a los que existen, el 429 revelaría qué correos tienen cuenta.
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        assert intentar(client, email="nadie@test.com").status_code == 401
+    assert intentar(client, email="nadie@test.com").status_code == 429
+
+
+def test_el_limite_no_distingue_mayusculas_en_el_correo(client, cliente):
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        intentar(client, email="CLIENTE@test.com")
+    assert intentar(client).status_code == 429
+
+
+def test_un_login_correcto_borra_los_fallos(client, cliente):
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS - 1):
+        intentar(client)
+    assert intentar(client, password=CLAVE_DE_PRUEBA).status_code == 200
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        assert intentar(client).status_code == 401
+
+
+def test_el_bloqueo_de_un_correo_no_afecta_a_otro(client, db_session, cliente):
+    otro = crear_usuario(db_session, email="otro@test.com")
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        intentar(client)
+    assert intentar(client, email=otro.email, password=CLAVE_DE_PRUEBA).status_code == 200
+
+
+def test_el_bloqueo_es_por_ip():
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        login_limiter.record_failure("1.1.1.1", "a@test.com")
+    assert login_limiter.retry_after("1.1.1.1", "a@test.com") is not None
+    assert login_limiter.retry_after("2.2.2.2", "a@test.com") is None
+
+
+def test_la_ventana_vence_y_los_viejos_no_ocupan_memoria(monkeypatch):
+    ahora = [1000.0]
+    monkeypatch.setattr(login_limiter.time, "monotonic", lambda: ahora[0])
+    for _ in range(login_limiter.MAX_FAILED_ATTEMPTS):
+        login_limiter.record_failure("1.1.1.1", "a@test.com")
+    assert login_limiter.retry_after("1.1.1.1", "a@test.com") == login_limiter.WINDOW_SECONDS
+
+    ahora[0] += login_limiter.WINDOW_SECONDS
+    assert login_limiter.retry_after("1.1.1.1", "a@test.com") is None
+
+    login_limiter.record_failure("9.9.9.9", "b@test.com")
+    assert ("1.1.1.1", "a@test.com") not in login_limiter._failures
 
 
 # --- Sesión -----------------------------------------------------------------------

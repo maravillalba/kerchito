@@ -63,6 +63,8 @@ Esquemas de Pydantic:
 
 **Foto (`POST /api/products/{id}/image`):** multipart con el campo `file`. Se valida el tipo real por el contenido del archivo (JPG, PNG o WebP), máximo 2 MB. Se guarda en `backend/uploads/products/` con nombre UUID y se publica en `/uploads/products/`. Al reemplazar o borrar un producto se borra la foto subida anterior, nunca las del seed.
 
+Antes de leer el cuerpo, el servidor mira el header `Content-Length`: si supera los 2 MB más un margen para el formato multipart responde `413`, y si falta responde `411`. Este corte va antes de la autenticación, así que un archivo enorme nunca se llega a recibir, tenga o no permiso quien lo manda.
+
 ## 5. Pedido
 
 **Lo que envía el frontend (`POST /api/orders`)**
@@ -158,11 +160,12 @@ El backend no los conoce:
 - `401`: sin token, token inválido o vencido, o login incorrecto. El login siempre dice `"Correo o contraseña incorrectos"`, exista o no el correo.
 - `403`: hay sesión, pero no el permiso. `POST /api/orders` es solo para `customer`: el admin recibe 403.
 - `register` responde `409` si el correo ya tiene cuenta.
+- **Límite de intentos:** después de 5 logins fallidos del mismo correo desde la misma IP en 15 minutos, `login` responde `429` con el header `Retry-After` hasta que se venza la ventana, aunque la contraseña sea correcta. Un login correcto borra los fallos. Los contadores viven en memoria: se reinician con el servidor.
 - El admin no se registra: se crea al arrancar desde `ADMIN_EMAIL` y `ADMIN_PASSWORD` de `backend/.env`. Si ya existe, no se le cambia la contraseña.
 
 **En el frontend**
 
-- Rutas: `/bienvenida` (Entrada), `/registro`, `/ingresar`, la tienda en `/`, y `/admin/*` solo para el admin. Con sesión, las tres primeras llevan a la tienda o al panel según el rol.
+- Rutas: `/bienvenida` (Entrada), `/registro`, `/ingresar`, la tienda en `/` (con `/puntos`, que explica el programa), y `/admin/*` solo para el admin. Con sesión, las tres primeras llevan a la tienda o al panel según el rol.
 - La sesión (`token` y `UserOut`) se guarda en `localStorage`. Al abrir la app se confirma con `GET /api/auth/me`: lo guardado se puede editar a mano, y quien protege los datos es el backend.
 - Si una respuesta da 401 con sesión, se cierra y se vuelve a la Entrada.
 - "Repetir contraseña" y la casilla "Acepto que usen mis datos para el programa de puntos" se validan solo en el frontend. No viajan al backend ni se guardan.
@@ -178,14 +181,14 @@ El backend no los conoce:
 | GET | `/api/products/{id}` | público | Un producto | 200, 404, 422 |
 | POST | `/api/chat` | público | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
 | POST | `/api/auth/register` | público | Crea un cliente y devuelve la sesión | 201, 409, 422 |
-| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422 |
+| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422, 429 |
 | GET | `/api/auth/me` | sesión | Usuario actual con su saldo | 200, 401 |
 | POST | `/api/auth/logout` | sesión | Cierra la sesión actual | 204, 401 |
 | POST | `/api/products` | admin | Crea un producto | 201, 401, 403, 422 |
 | PUT | `/api/products/{id}` | admin | Reemplaza los datos del producto (no toca `image`) | 200, 401, 403, 404, 422 |
 | DELETE | `/api/products/{id}` | admin | Borra el producto; 409 si ya está en un pedido | 204, 401, 403, 404, 409 |
 | PATCH | `/api/products/{id}/stock` | admin | Fija el stock: `{ "stock": 10 }` (valor absoluto, mayor o igual a 0) | 200, 401, 403, 404, 422 |
-| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto; devuelve `ProductAdminOut` | 200, 401, 403, 404, 413, 415, 422 |
+| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto; devuelve `ProductAdminOut` | 200, 401, 403, 404, 411, 413, 415, 422 |
 | POST | `/api/orders` | cliente | Crea un pedido, descuenta stock y aplica descuentos y puntos | 201, 401, 403, 404, 409, 422 |
 | GET | `/api/orders/mine` | cliente | Pedidos del cliente, del más reciente al más antiguo | 200, 401, 403 |
 | GET | `/api/orders` | admin | Lista todos los pedidos, del más reciente al más antiguo (`id` descendente); si no hay devuelve `[]` | 200, 401, 403 |
@@ -235,7 +238,7 @@ Notas de `POST /api/chat`:
 - Nombra los productos con su nombre completo (`brand` + `name` + `unit`). Si un producto tiene oferta, informa el precio de oferta y el normal entre paréntesis: `"$ 1.000 en oferta (precio normal $ 1.200)"`.
 - Si no entiende la pregunta, o si la base no responde, devuelve 200 con un texto fijo. El 422 es solo por mensaje vacío o de más de 500 caracteres.
 - Si el backend tiene configurada `BOT_API_KEY`, la respuesta la genera el modelo de IA con los datos de la tienda. Si la clave falta o la IA falla (error, timeout o respuesta vacía), se usa la respuesta por reglas de siempre. El formato y los códigos del endpoint no cambian: sigue siendo 200 y 422.
-- Horarios y medios de pago son texto fijo del backend.
+- Horarios y medios de pago son texto fijo del backend. Cómo funcionan los puntos y el 15% sale de las constantes de `points.py`; es información general, porque el chat no conoce el saldo de cada cliente.
 - Todavía no hay límite de mensajes por minuto (no existe el 429).
 
 ## 9. Ejemplos JSON

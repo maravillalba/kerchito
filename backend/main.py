@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from routers import admin, auth, chat, orders, products
 from seed import seed, seed_admin
-from uploads import UPLOADS_ROOT
+from uploads import UPLOADS_ROOT, ImageUploadLimit
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -36,6 +36,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Kiosco El Rápido API", lifespan=lifespan)
 
+# Va antes que CORS: el último agregado es el de más afuera, y un 413 sin los headers
+# de CORS el navegador lo mostraría como un error de red.
+app.add_middleware(ImageUploadLimit)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_ORIGIN, "http://127.0.0.1:5173"],

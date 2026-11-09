@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -247,6 +249,67 @@ def test_archivo_de_mas_de_2_mb_devuelve_413(client, producto, admin_headers, ca
     assert respuesta.status_code == 413
     assert client.get("/api/products/1").json()["image"] is None
     assert not carpeta_de_fotos.exists()
+
+
+def test_archivo_enorme_se_corta_antes_de_leerlo(client, carpeta_de_fotos):
+    # Sin sesión y con un producto que no existe: si llegara al endpoint daría 401.
+    contenido = PNG + b"0" * (3 * 1024 * 1024)
+    respuesta = client.post(
+        "/api/products/99/image", files={"file": ("grande.png", contenido, "image/png")}
+    )
+    assert respuesta.status_code == 413
+    assert respuesta.json()["detail"] == uploads.TOO_LARGE_MESSAGE
+    assert not carpeta_de_fotos.exists()
+
+
+def test_el_corte_conserva_los_headers_de_cors(client):
+    contenido = b"0" * (3 * 1024 * 1024)
+    respuesta = client.post(
+        "/api/products/1/image",
+        files={"file": ("grande.png", contenido, "image/png")},
+        headers={"Origin": "http://localhost:5173"},
+    )
+    assert respuesta.status_code == 413
+    assert respuesta.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def llamar_al_limite(metodo="POST", ruta="/api/products/1/image", headers=()):
+    """Llama al middleware directo: TestClient siempre manda Content-Length."""
+    enviados = []
+    llegaron = []
+
+    async def siguiente(scope, receive, send):
+        llegaron.append(scope["path"])
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(mensaje):
+        enviados.append(mensaje)
+
+    scope = {"type": "http", "method": metodo, "path": ruta, "headers": list(headers)}
+    asyncio.run(uploads.ImageUploadLimit(siguiente)(scope, receive, send))
+    estado = enviados[0]["status"] if enviados else None
+    return estado, llegaron
+
+
+@pytest.mark.parametrize("headers", [(), [(b"content-length", b"abc")]], ids=["sin", "invalido"])
+def test_sin_content_length_valido_da_411(headers):
+    assert llamar_al_limite(headers=headers) == (411, [])
+
+
+def test_el_limite_deja_pasar_lo_chico():
+    headers = [(b"content-length", str(uploads.MAX_IMAGE_BYTES).encode())]
+    assert llamar_al_limite(headers=headers) == (None, ["/api/products/1/image"])
+
+
+@pytest.mark.parametrize(
+    "metodo, ruta",
+    [("POST", "/api/products"), ("GET", "/api/products/1/image"), ("POST", "/api/chat")],
+)
+def test_el_limite_no_toca_otras_rutas(metodo, ruta):
+    headers = [(b"content-length", str(50 * 1024 * 1024).encode())]
+    assert llamar_al_limite(metodo, ruta, headers) == (None, [ruta])
 
 
 def test_archivo_de_exactamente_2_mb_se_acepta(client, producto, admin_headers):

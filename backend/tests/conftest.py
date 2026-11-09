@@ -6,6 +6,7 @@ from sqlalchemy.pool import StaticPool
 
 from datetime import datetime
 
+import login_limiter
 from main import app
 from database import Base, get_db
 from models import AuthSession, User
@@ -45,6 +46,11 @@ def headers_de(db, usuario):
 def no_bot_api_key(monkeypatch):
     # Ningún test llama a la API real de la IA, aunque haya un .env con clave.
     monkeypatch.setenv("BOT_API_KEY", "")
+
+
+@pytest.fixture(autouse=True)
+def intentos_de_login_limpios():
+    login_limiter.reset()
 
 
 @pytest.fixture(autouse=True)
