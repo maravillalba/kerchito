@@ -1,8 +1,8 @@
 # Kiosko El Rápido – Frontend
 
-Frontend de la tienda online **Kiosko El Rápido**. Permite ver el catálogo de productos, filtrarlos por categoría, ver el detalle de cada uno, armar un carrito y finalizar el pedido.
+Frontend de la tienda online **Kiosko El Rápido**. Permite crear una cuenta, ver el catálogo, filtrarlo por categoría, ver el detalle de cada producto, armar un carrito y finalizar el pedido con puntos y descuentos. El personal tiene un panel de administración.
 
-Está hecho con React 19, TypeScript, Vite, React Router y Context API (para el carrito). Los productos y los pedidos se manejan a través de la API del backend (FastAPI), que tiene que estar levantado (ver [`backend/README.md`](../backend/README.md)).
+Está hecho con React 19, TypeScript, Vite, React Router y Context API (para la sesión y el carrito). Los productos y los pedidos se manejan a través de la API del backend (FastAPI), que tiene que estar levantado (ver [`backend/README.md`](../backend/README.md)).
 
 El contrato de datos entre frontend y backend está en [`docs/CONTRATO.md`](../docs/CONTRATO.md).
 
@@ -39,23 +39,27 @@ npm ci
 src/
 ├── components/   Componentes reutilizables y su CSS: Header, Footer, Layout,
 │                 ProductCard, Price, ProductImage, CartItem, Loading,
-│                 ErrorMessage, Mascota, ChatWidget, SearchBar (buscador) y
-│                 KerButton (botón naranja/verde, basado en Uiverse.io).
-├── context/      CartContext.tsx: estado global del carrito y el hook useCart().
+│                 ErrorMessage, Mascota, ChatWidget, SearchBar (buscador), Campo,
+│                 Modal, RutasAcceso (guards), CarritoDeLaSesion y KerButton
+│                 (botón naranja/verde, basado en Uiverse.io).
+├── context/      AuthContext.tsx (sesión, useAuth()) y CartContext.tsx (carrito,
+│                 useCart()).
 ├── hooks/        useCheckout.ts: envía el pedido a la API y devuelve 'success',
-│                 'outdated' o 'error'.
-├── services/     api.ts: llamadas a la API (productos, pedidos y chat) y manejo de
-│                 errores (ApiError).
+│                 'outdated' o 'error'. useDatos.ts: carga datos con estado de error.
+├── services/     api.ts: llamadas a la API, token de sesión y manejo de errores
+│                 (ApiError).
 ├── assets/       logo-ker.png, kerchi/ (poses de la mascota), categorias/ y
 │                 banners/ (fotos del Inicio).
-├── pages/        Una página por ruta, con su CSS: Home, Products, ProductDetail,
-│                 Cart y NotFound.
-├── types/        index.ts: tipos del contrato (Product, Category, CartItem, pedidos).
-├── utils/        format.ts (formatPrice, CATEGORY_LABELS), pricing.ts (precio
-│                 efectivo, descuento), sort.ts (orden de /products), featured.ts
-│                 (getOfertas), search.ts (buscador) y categoryIcons.ts.
+├── pages/        Una página por ruta, con su CSS: Entrada, Registro, Ingresar, Home,
+│                 Products, ProductDetail, Cart, Puntos, NotFound y admin/ (panel).
+├── types/        index.ts: tipos del contrato.
+├── utils/        acceso.ts (TIENDA_REQUIERE_SESION), puntos.ts (vista previa de las
+│                 reglas de backend/points.py), format.ts (formatPrice,
+│                 CATEGORY_LABELS), pricing.ts (precio efectivo, descuento), sort.ts
+│                 (orden de /products), featured.ts (getOfertas), search.ts (búsqueda
+│                 sin tildes), stock.ts, validaciones.ts y categoryIcons.ts.
 ├── App.tsx       Definición de rutas.
-├── main.tsx      Punto de entrada: BrowserRouter + CartProvider + App.
+├── main.tsx      Punto de entrada: BrowserRouter + AuthProvider + carrito + App.
 ├── index.css     Variables CSS (:root) y estilos globales.
 ├── setupTests.ts Configuración de los tests (jest-dom y limpieza entre tests).
 └── smoke.test.tsx Tests básicos de la app (el resto de los *.test.ts(x) está al
@@ -66,7 +70,20 @@ Cada componente o página que tiene estilos los lleva en su propio `.css`, al la
 
 ## Rutas
 
-Todas las rutas se renderizan dentro de `Layout` (Header + contenido + Footer + ChatWidget).
+Sin sesión no se entra a la tienda: se redirige a `/bienvenida`. Eso se decide en **una sola constante**, `TIENDA_REQUIERE_SESION` de `src/utils/acceso.ts`, porque está pendiente de confirmar con el profe. En `false`, la tienda queda abierta y solo se pide ingresar para finalizar el pedido.
+
+| Ruta | Página | Acceso |
+| ---- | ------ | ------ |
+| `/bienvenida` | `Entrada` | Sin sesión |
+| `/registro` | `Registro` | Sin sesión |
+| `/ingresar` | `Ingresar` (clientes y personal) | Sin sesión |
+| `/admin` | `AdminResumen` | Admin |
+| `/admin/inventario` | `AdminInventario` | Admin |
+| `/admin/ventas` | `AdminVentas` | Admin |
+| `/admin/clientes` | `AdminClientes` | Admin |
+| `/admin/ofertas` | `AdminOfertas` | Admin |
+
+Las rutas de la tienda se renderizan dentro de `Layout` (Header + contenido + Footer + ChatWidget).
 
 | Ruta                     | Página          | Descripción                                                         |
 | ------------------------ | --------------- | ------------------------------------------------------------------- |
@@ -74,7 +91,8 @@ Todas las rutas se renderizan dentro de `Layout` (Header + contenido + Footer + 
 | `/products`              | `Products`      | Catálogo completo de productos.                                     |
 | `/products?category=...` | `Products`      | Catálogo filtrado por categoría (por ejemplo, `?category=bebidas`). |
 | `/products/:id`          | `ProductDetail` | Detalle de un producto y selector de cantidad.                      |
-| `/cart`                  | `Cart`          | Carrito: cantidades, totales y finalizar pedido (lo crea en la API). |
+| `/cart`                  | `Cart`          | Carrito con puntos y medio de pago. Lo que muestra es una vista previa: el total oficial lo devuelve la API. |
+| `/puntos`                | `Puntos`        | Cómo funcionan los puntos y el 15%.                                 |
 | `*`                      | `NotFound`      | Página 404 para cualquier otra ruta.                                |
 
 Valores válidos de `category`: `bebidas`, `golosinas_snacks`, `lacteos`, `almacen`, `limpieza`, `cigarrillos`.
@@ -101,17 +119,15 @@ npm run coverage     # con cobertura
 
 A tener en cuenta al escribir tests:
 
-- **Envolver en `MemoryRouter` y `CartProvider`.** `App` usa rutas y el Header usa `useCart()`, así que sin el router o sin el provider el render falla. `MemoryRouter` permite elegir la ruta inicial con `initialEntries`:
+- **Usar `renderApp` de `src/test-utils.tsx`.** Arma el router y los providers, y `rutaActual()` dice en qué ruta quedó. La tienda pide sesión: llamá antes a `guardarSesion()` para entrar como cliente, o a `guardarSesion(usuarioDePrueba({ role: 'admin' }))`.
 
   ```tsx
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <CartProvider>
-        <App />
-      </CartProvider>
-    </MemoryRouter>,
-  );
+  guardarSesion();
+  vi.mocked(getMe).mockResolvedValue(usuarioDePrueba());
+  const user = renderApp('/products');
   ```
+
+- **Ningún test sale a la red.** `setupTests.ts` reemplaza `fetch` por uno que falla: lo que un test necesite, lo mockea desde `services/api`.
 
 - **Buscar "Kiosko El Rápido" por rol y nombre.** El texto aparece en el Header (como link) y en el Footer, y en la Home también como título. Por eso `getByText('Kiosko El Rápido')` encuentra varios elementos y falla. Usá `getByRole('link', { name: 'Kiosko El Rápido' })`, que solo encuentra el link del Header. No agregues otro link con ese mismo nombre, porque rompe el smoke test.
 

@@ -10,7 +10,7 @@ Referencia de los endpoints del backend (FastAPI). Los campos y sus reglas está
 | Tema | Regla |
 |---|---|
 | Formato | Pedidos y respuestas en JSON. Los `POST` llevan `Content-Type: application/json`. |
-| Errores | Siempre con la forma `{"detail": ...}`. En 401, 403, 404, 409, 413, 415 y 500 `detail` es un texto; en 422 es una lista con un objeto por cada error de validación (formato de FastAPI). |
+| Errores | Siempre con la forma `{"detail": ...}`. En 401, 403, 404, 409, 411, 413, 415, 429 y 500 `detail` es un texto; en 422 es una lista con un objeto por cada error de validación (formato de FastAPI). |
 | Dinero | Número (`price`, `unit_price`, `total`), por ejemplo `1200.0`. |
 | Fechas | Texto ISO 8601, por ejemplo `2026-10-29T16:07:18.832206`. |
 | Campos | En inglés y en `snake_case`. |
@@ -29,7 +29,7 @@ La tabla completa, con el acceso de cada ruta y los campos de cuentas, puntos y 
 | GET | `/api/products/{id}` | público | Un producto | 200, 404, 422 |
 | POST | `/api/chat` | público | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
 | POST | `/api/auth/register` | público | Crea un cliente y devuelve la sesión | 201, 409, 422 |
-| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422 |
+| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422, 429 |
 | GET | `/api/auth/me` | sesión | Usuario actual con su saldo | 200, 401 |
 | POST | `/api/auth/logout` | sesión | Cierra la sesión actual | 204, 401 |
 | POST | `/api/orders` | cliente | Crea un pedido, descuenta stock y aplica descuentos y puntos | 201, 401, 403, 404, 409, 422 |
@@ -40,7 +40,7 @@ La tabla completa, con el acceso de cada ruta y los campos de cuentas, puntos y 
 | PUT | `/api/products/{id}` | admin | Reemplaza los datos del producto | 200, 401, 403, 404, 422 |
 | DELETE | `/api/products/{id}` | admin | Borra el producto; 409 si ya está en un pedido | 204, 401, 403, 404, 409 |
 | PATCH | `/api/products/{id}/stock` | admin | Fija el stock | 200, 401, 403, 404, 422 |
-| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto (multipart, campo `file`) | 200, 401, 403, 404, 413, 415, 422 |
+| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto (multipart, campo `file`) | 200, 401, 403, 404, 411, 413, 415, 422 |
 | GET | `/api/admin/products` | admin | Productos con `cost` | 200, 401, 403 |
 | GET | `/api/admin/orders` | admin | Pedidos con cliente, medio, ítems, total, puntos y estado | 200, 401, 403 |
 | GET | `/api/admin/summary` | admin | Números del panel | 200, 401, 403 |
@@ -533,7 +533,9 @@ Content-Type: application/json
 | 409 Conflict | El correo ya tiene cuenta | `"Ya existe una cuenta con ese correo"` |
 | 409 Conflict | El pedido ya está anulado | `"El pedido ya está anulado"` |
 | 409 Conflict | El producto que se quiere borrar ya está en un pedido | `"No se puede borrar: el producto ya está en un pedido. Podés dejarlo sin stock."` |
-| 413 Content Too Large | La foto pesa más de 2 MB | `"La foto no puede pesar más de 2 MB"` |
+| 411 Length Required | La subida de la foto no trae el header `Content-Length` | `"Falta el tamaño del archivo"` |
+| 413 Content Too Large | La foto pesa más de 2 MB. Si es mucho más grande se corta antes de leerla, sin mirar la sesión | `"La foto no puede pesar más de 2 MB"` |
+| 429 Too Many Requests | 5 logins fallidos del mismo correo y la misma IP en 15 minutos. Trae el header `Retry-After` | `"Demasiados intentos. Probá de nuevo en 15 minutos."` |
 | 415 Unsupported Media Type | La foto no es JPG, PNG o WebP según su contenido | `"La foto tiene que ser JPG, PNG o WebP"` |
 | 422 Unprocessable Entity | Datos inválidos: `category` que no existe | lista con `"type": "literal_error"` |
 | 422 Unprocessable Entity | Datos inválidos: `quantity` menor a 1 (por ejemplo `0`) | lista con `"type": "greater_than_equal"` |

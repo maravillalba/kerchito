@@ -22,6 +22,7 @@ KioscoBot es un chat de ayuda dentro de la tienda. Responde preguntas cortas de 
 | Estado del carrito | "¿Qué tengo en el carrito?", "¿Cuánto llevo gastado?" | Productos, cantidades y total del carrito. | El carrito vive solo en el frontend (`CartContext`) y el frontend no lo manda: el bot responde con un texto fijo que indica ir a la sección Carrito. |
 | Horarios | "¿A qué hora abren?", "¿Abren el domingo?" | Los horarios del kiosko. | **No existe en la API.** Texto fijo en el backend (ver §6) |
 | Medios de pago | "¿Aceptan tarjeta?", "¿Puedo pagar con Mercado Pago?" | Los medios de pago del kiosko. | **No existe en la API.** Texto fijo en el backend (ver §6) |
+| Puntos y 15% | "¿Cómo funcionan los puntos?", "¿Qué descuento tiene la primera compra?" | Cómo se suman y se canjean los puntos, y el 15% de la primera compra. No conoce el saldo de cada cliente. | Constantes de `backend/points.py` |
 | Ayuda general | "Hola", "¿Qué podés hacer?", "Gracias" | Saludo y lista corta de lo que puede responder. | Texto fijo |
 
 ## 3. Límites (qué NO hace)

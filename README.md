@@ -1,6 +1,6 @@
 # Kiosko "El Rápido"
 
-Tienda online de un kiosco: catálogo de productos con filtro por categoría, detalle de cada producto, carrito y pedido con control de stock. Incluye KioscoBot, un chat de ayuda que responde preguntas sobre productos, precios, stock, horarios y cómo comprar.
+Tienda online de un kiosco: cuentas de cliente con puntos y 15% en la primera compra, catálogo con filtro por categoría, detalle de cada producto, carrito y pedido con control de stock, y un panel de administración con inventario, fotos, ventas y clientes. Incluye KioscoBot, un chat de ayuda que responde preguntas sobre productos, precios, stock, horarios, puntos y cómo comprar.
 
 **Equipo:** Salica Santiago Emanuel, Lobo Hector Hernan y Villalba Mara Patricia.
 
@@ -131,15 +131,26 @@ El carrito vive en memoria: si recargás la página, se vacía.
 | `FRONTEND_ORIGIN` | `backend/.env` | `http://localhost:5173` | Origen del frontend que CORS deja llamar a la API (además de `http://127.0.0.1:5173`). |
 | `BOT_API_KEY` | `backend/.env` | vacía | Clave de la API de Anthropic. Si está definida, KioscoBot responde con IA. Es secreta. |
 | `BOT_MODEL` | `backend/.env` | `claude-haiku-5-5` | Modelo que usa KioscoBot cuando hay `BOT_API_KEY`. |
+| `ADMIN_EMAIL` | `backend/.env` | vacía | Correo del administrador, que se crea al arrancar. Sin esta variable y `ADMIN_PASSWORD` no se puede entrar al panel. |
+| `ADMIN_PASSWORD` | `backend/.env` | vacía | Contraseña del administrador (8 caracteres o más). Es secreta. |
 | `VITE_API_URL` | `frontend/.env` | `http://localhost:8000` | URL base del backend que usa el frontend. |
 
 Los archivos `.env` están en el `.gitignore`. Al repositorio solo se suben los `.env.example`, con valores de ejemplo. En el backend, las variables definidas en la terminal tienen prioridad sobre las del `.env`.
+
+## Cuentas, puntos y panel
+
+- Sin sesión, la primera pantalla es la Entrada (`/bienvenida`): se crea una cuenta o se ingresa. Esto se decide en una sola constante del frontend, `TIENDA_REQUIERE_SESION`, porque está pendiente de confirmar con el profe.
+- El backend es la autoridad: calcula precios, descuentos, puntos y totales. El carrito solo muestra una vista previa.
+- **15% en la primera compra**, si el cliente no tiene ningún pedido activo. **1 punto cada $ 100** del total final. **100 puntos = $ 500** de descuento. Las reglas están en `backend/points.py`.
+- **Panel:** entrá por "Acceso del personal" con el `ADMIN_EMAIL` y `ADMIN_PASSWORD` de `backend/.env`.
+- **No hay migraciones.** Si cambian las tablas, el servidor avisa al arrancar: frenalo, borrá `backend/kiosco.db` y volvé a levantarlo. Se pierden los pedidos y las cuentas de esa base.
+- El detalle está en [`docs/CONTRATO.md`](docs/CONTRATO.md).
 
 ## KioscoBot
 
 KioscoBot es el chat de ayuda (el botón flotante "Abrir KioscoBot", en todas las páginas). Usa `POST /api/chat`.
 
-- **Sin `BOT_API_KEY`**, responde con reglas: precios, stock, productos por categoría, categorías, horarios, medios de pago y cómo hacer un pedido. Los datos de productos salen de la base.
+- **Sin `BOT_API_KEY`**, responde con reglas: precios, stock, productos por categoría, categorías, horarios, medios de pago, puntos y cómo hacer un pedido. Los datos de productos salen de la base.
 - **Con `BOT_API_KEY`**, la respuesta la genera un modelo de IA con los datos de la tienda. Si la IA falla (error, timeout, respuesta vacía o un error inesperado), vuelve a responder con las reglas, así que el chat sigue respondiendo con 200.
 - Es solo de consulta: no crea pedidos ni modifica el stock.
 
@@ -165,8 +176,8 @@ npm run coverage
 
 | | Tests | Cobertura |
 |---|---|---|
-| Backend | 84 | 93% |
-| Frontend | 127 | 97% (sentencias) |
+| Backend | 335 | 97% |
+| Frontend | 364 | 94% (sentencias) |
 
 Los tests del backend usan una base SQLite en memoria (no tocan `kiosco.db`) y nunca llaman a la API real de IA. Los del frontend reemplazan la API, así que no hace falta tener el backend levantado. `npm run coverage` además deja un reporte HTML en `frontend/coverage/`.
 
