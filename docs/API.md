@@ -10,23 +10,43 @@ Referencia de los endpoints del backend (FastAPI). Los campos y sus reglas está
 | Tema | Regla |
 |---|---|
 | Formato | Pedidos y respuestas en JSON. Los `POST` llevan `Content-Type: application/json`. |
-| Errores | Siempre con la forma `{"detail": ...}`. En 404, 409 y 500 `detail` es un texto; en 422 es una lista con un objeto por cada error de validación (formato de FastAPI). |
+| Errores | Siempre con la forma `{"detail": ...}`. En 401, 403, 404, 409, 413, 415 y 500 `detail` es un texto; en 422 es una lista con un objeto por cada error de validación (formato de FastAPI). |
 | Dinero | Número (`price`, `unit_price`, `total`), por ejemplo `1200.0`. |
 | Fechas | Texto ISO 8601, por ejemplo `2026-10-29T16:07:18.832206`. |
 | Campos | En inglés y en `snake_case`. |
+| Autenticación | Header `Authorization: Bearer <token>`. El token lo devuelven `POST /api/auth/register` y `POST /api/auth/login`, y vence a los 7 días. En Swagger, con el botón **Authorize**. |
 
-Los mensajes de error están en inglés tal cual los devuelve la API.
+Los mensajes de error de productos y stock están en inglés tal cual los devuelve la API; los de cuentas, admin y anulación, en español, porque el frontend los muestra tal cual.
 
 ## 2. Endpoints
 
-| Método | Ruta | Descripción | Respuestas |
-|---|---|---|---|
-| GET | `/health` | Estado del servidor | 200 |
-| GET | `/api/products` | Lista los productos; con `?category=` filtra por categoría | 200, 422 |
-| GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
-| POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
-| GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo | 200 |
-| POST | `/api/chat` | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
+La tabla completa, con el acceso de cada ruta y los campos de cuentas, puntos y panel, está en [`CONTRATO.md`](CONTRATO.md).
+
+| Método | Ruta | Acceso | Descripción | Respuestas |
+|---|---|---|---|---|
+| GET | `/health` | público | Estado del servidor | 200 |
+| GET | `/api/products` | público | Lista los productos; con `?category=` filtra por categoría | 200, 422 |
+| GET | `/api/products/{id}` | público | Un producto | 200, 404, 422 |
+| POST | `/api/chat` | público | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
+| POST | `/api/auth/register` | público | Crea un cliente y devuelve la sesión | 201, 409, 422 |
+| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422 |
+| GET | `/api/auth/me` | sesión | Usuario actual con su saldo | 200, 401 |
+| POST | `/api/auth/logout` | sesión | Cierra la sesión actual | 204, 401 |
+| POST | `/api/orders` | cliente | Crea un pedido, descuenta stock y aplica descuentos y puntos | 201, 401, 403, 404, 409, 422 |
+| GET | `/api/orders/mine` | cliente | Pedidos del cliente | 200, 401, 403 |
+| GET | `/api/orders` | admin | Lista todos los pedidos, del más reciente al más antiguo | 200, 401, 403 |
+| PATCH | `/api/orders/{id}/cancel` | admin | Anula el pedido | 200, 401, 403, 404, 409 |
+| POST | `/api/products` | admin | Crea un producto | 201, 401, 403, 422 |
+| PUT | `/api/products/{id}` | admin | Reemplaza los datos del producto | 200, 401, 403, 404, 422 |
+| DELETE | `/api/products/{id}` | admin | Borra el producto; 409 si ya está en un pedido | 204, 401, 403, 404, 409 |
+| PATCH | `/api/products/{id}/stock` | admin | Fija el stock | 200, 401, 403, 404, 422 |
+| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto (multipart, campo `file`) | 200, 401, 403, 404, 413, 415, 422 |
+| GET | `/api/admin/products` | admin | Productos con `cost` | 200, 401, 403 |
+| GET | `/api/admin/orders` | admin | Pedidos con cliente, medio, ítems, total, puntos y estado | 200, 401, 403 |
+| GET | `/api/admin/summary` | admin | Números del panel | 200, 401, 403 |
+| GET | `/api/admin/customers` | admin | Clientes con puntos, nivel y compras | 200, 401, 403 |
+| GET | `/api/admin/customers/{id}` | admin | Un cliente con sus movimientos | 200, 401, 403, 404 |
+| POST | `/api/admin/customers/{id}/points` | admin | Ajuste manual de puntos | 201, 401, 403, 404, 422 |
 
 ### GET /health
 
@@ -150,7 +170,9 @@ Productos que carga el seed con una base nueva:
 
 Cada producto trae `brand` (marca), `name` (solo el producto, sin la marca ni la presentación) y `unit` (capacidad o presentación). El nombre completo para mostrar es `brand` + `name` + `unit`, por ejemplo `Coca-Cola Original 500 ml`. `offer_price` es el precio de oferta: si no es `null`, es mayor a 0, menor que `price` y es el precio que se cobra en un pedido.
 
-Cada producto del seed trae en `image` la ruta de su foto, por ejemplo `/productos/coca-cola.webp`. Es una ruta del frontend, no del backend: los archivos están en `frontend/public/productos/` y los sirve Vite. Si `image` es `null` o la foto no carga, el frontend muestra la imagen de la categoría.
+Cada producto del seed trae en `image` la ruta de su foto, por ejemplo `/productos/coca-cola.webp`. Es una ruta del frontend, no del backend: los archivos están en `frontend/public/productos/` y los sirve Vite. Las fotos que sube el admin, en cambio, las sirve el backend en `/uploads/products/<uuid>.webp`. Si `image` es `null` o la foto no carga, el frontend muestra la imagen de la categoría.
+
+`cost` nunca sale por estos endpoints públicos: solo por `GET /api/admin/products` y las respuestas de los endpoints de admin.
 
 **Pedido con filtro**
 
@@ -252,15 +274,18 @@ GET /api/products/999
 
 ### POST /api/orders
 
-Crea un pedido y descuenta el stock de cada producto. `items` tiene que tener al menos un elemento y cada `quantity` tiene que ser mayor o igual a 1. El backend toma `unit_price` del precio actual del producto: `offer_price` si el producto tiene oferta, si no `price`. El frontend no manda precios (si manda un campo de más, como `unit_price`, se ignora) y calcula `total` como la suma de `quantity * unit_price`.
+Crea un pedido para el cliente con sesión y descuenta el stock de cada producto. `items` tiene que tener al menos un elemento y cada `quantity` tiene que ser mayor o igual a 1. `payment_method` es obligatorio (`efectivo`, `transferencia`, `tarjeta` o `mercado_pago`) y `use_points` es opcional. El backend toma `unit_price` del precio actual del producto: `offer_price` si el producto tiene oferta, si no `price`. El frontend no manda precios ni montos (si manda un campo de más, como `unit_price` o `total`, se ignora).
 
-El descuento de stock y la creación del pedido se hacen en una sola transacción: si algún item falla (404 o 409), no se guarda el pedido ni se descuenta nada. Si hay varios errores, se responde el del primer item que falle. Si un `product_id` se repite, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
+El backend calcula, en este orden: `subtotal`, 15% de primera compra, canje de puntos, `total` y puntos ganados. Las reglas están en `backend/points.py` y en [`CONTRATO.md`](CONTRATO.md).
+
+Stock, pedido y puntos se guardan en una sola transacción: si algún item falla (404 o 409), no se guarda el pedido ni se descuenta nada. Si hay varios errores, se responde el del primer item que falle. Si un `product_id` se repite, el stock se descuenta de forma acumulada y se guarda un renglón por cada item. Sin sesión responde 401; con la sesión del admin, 403.
 
 **Pedido**
 
 ```
 POST /api/orders
 Content-Type: application/json
+Authorization: Bearer <token>
 ```
 
 ```json
@@ -268,28 +293,42 @@ Content-Type: application/json
   "items": [
     { "product_id": 1, "quantity": 2 },
     { "product_id": 4, "quantity": 1 }
-  ]
+  ],
+  "payment_method": "mercado_pago",
+  "use_points": false
 }
 ```
 
-**201 Created** (el producto 1, Coca-Cola, está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
+**201 Created** (primera compra: 15% sobre 3100. El producto 1, Coca-Cola, está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
 
 ```json
 {
   "id": 1,
   "created_at": "2026-11-05T13:45:39.013674",
-  "total": 3100.0,
+  "status": "active",
+  "payment_method": "mercado_pago",
+  "subtotal": 3100.0,
+  "first_purchase_discount": 465.0,
+  "points_discount": 0.0,
+  "discount_amount": 465.0,
+  "total": 2635.0,
+  "points_used": 0,
+  "points_earned": 26,
   "items": [
-    { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
-    { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
-  ]
+    { "product_id": 1, "product_name": "Coca-Cola Original 500 ml", "quantity": 2, "unit_price": 1000.0 },
+    { "product_id": 4, "product_name": "Jorgito Alfajor 55 g", "quantity": 1, "unit_price": 1100.0 }
+  ],
+  "points_balance": 26
 }
 ```
 
 **404 Not Found** (un producto no existe)
 
 ```json
-{ "items": [{ "product_id": 999, "quantity": 1 }] }
+{
+  "items": [{ "product_id": 999, "quantity": 1 }],
+  "payment_method": "efectivo"
+}
 ```
 
 ```json
@@ -301,7 +340,10 @@ Content-Type: application/json
 **409 Conflict** (no alcanza el stock)
 
 ```json
-{ "items": [{ "product_id": 1, "quantity": 9999 }] }
+{
+  "items": [{ "product_id": 1, "quantity": 9999 }],
+  "payment_method": "efectivo"
+}
 ```
 
 ```json
@@ -313,7 +355,10 @@ Content-Type: application/json
 **422 Unprocessable Entity** (cantidad menor a 1)
 
 ```json
-{ "items": [{ "product_id": 1, "quantity": 0 }] }
+{
+  "items": [{ "product_id": 1, "quantity": 0 }],
+  "payment_method": "efectivo"
+}
 ```
 
 ```json
@@ -333,7 +378,7 @@ Content-Type: application/json
 **422 Unprocessable Entity** (lista de items vacía)
 
 ```json
-{ "items": [] }
+{ "items": [], "payment_method": "efectivo" }
 ```
 
 ```json
@@ -356,28 +401,13 @@ Content-Type: application/json
 
 ### GET /api/orders
 
-Devuelve todos los pedidos, del más reciente al más antiguo (`id` descendente), con el mismo formato que la respuesta de `POST /api/orders`. Si no hay pedidos devuelve `[]`.
+Solo para el admin. Devuelve todos los pedidos, del más reciente al más antiguo (`id` descendente), con el mismo formato que la respuesta de `POST /api/orders`, sin `points_balance`. Si no hay pedidos devuelve `[]`. El panel usa `GET /api/admin/orders`, que además trae `customer`.
 
 **Pedido**
 
 ```
 GET /api/orders
-```
-
-**200 OK** (después de las pruebas de arriba: solo existe el pedido 1, porque los pedidos con error no se guardaron)
-
-```json
-[
-  {
-    "id": 1,
-    "created_at": "2026-11-05T13:45:39.013674",
-    "total": 3100.0,
-    "items": [
-      { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
-      { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
-    ]
-  }
-]
+Authorization: Bearer <token del admin>
 ```
 
 ### POST /api/chat
@@ -488,9 +518,19 @@ Content-Type: application/json
 | Código | Cuándo | `detail` |
 |---|---|---|
 | 200 OK | Lectura correcta (`GET`) o respuesta de KioscoBot (`POST /api/chat`) | — |
-| 201 Created | Pedido creado (`POST /api/orders`) | — |
+| 201 Created | Recurso creado: pedido, cuenta, producto o ajuste de puntos | — |
+| 204 No Content | Sesión cerrada o producto borrado | — |
+| 401 Unauthorized | Sin sesión, o con token inválido o vencido | `"Iniciá sesión para continuar"` |
+| 401 Unauthorized | Login incorrecto, exista o no el correo | `"Correo o contraseña incorrectos"` |
+| 403 Forbidden | La sesión no tiene permiso (un cliente en una ruta de admin, o el admin al crear un pedido) | `"No tenés permiso para hacer esto"` |
 | 404 Not Found | El producto no existe (`GET /api/products/{id}` o un `product_id` de `POST /api/orders`) | `"Product 999 not found"` |
+| 404 Not Found | El pedido o el cliente no existen | `"Pedido no encontrado"`, `"Cliente no encontrado"` |
 | 409 Conflict | No alcanza el stock de un producto del pedido | `"Insufficient stock for product 1"` |
+| 409 Conflict | El correo ya tiene cuenta | `"Ya existe una cuenta con ese correo"` |
+| 409 Conflict | El pedido ya está anulado | `"El pedido ya está anulado"` |
+| 409 Conflict | El producto que se quiere borrar ya está en un pedido | `"No se puede borrar: el producto ya está en un pedido. Podés dejarlo sin stock."` |
+| 413 Content Too Large | La foto pesa más de 2 MB | `"La foto no puede pesar más de 2 MB"` |
+| 415 Unsupported Media Type | La foto no es JPG, PNG o WebP según su contenido | `"La foto tiene que ser JPG, PNG o WebP"` |
 | 422 Unprocessable Entity | Datos inválidos: `category` que no existe | lista con `"type": "literal_error"` |
 | 422 Unprocessable Entity | Datos inválidos: `quantity` menor a 1 (por ejemplo `0`) | lista con `"type": "greater_than_equal"` |
 | 422 Unprocessable Entity | Datos inválidos: `items` vacío (`[]`) | lista con `"type": "too_short"` |
@@ -508,7 +548,7 @@ Content-Type: application/json
    python -m uvicorn main:app --reload
    ```
 
-   Al arrancar crea las tablas y, si la tabla `products` está vacía, carga el seed. No hace falta ningún paso previo.
+   Al arrancar crea las tablas, carga el seed si la tabla `products` está vacía y crea el admin si `backend/.env` tiene `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
 
 2. Abrí `http://localhost:8000/docs`.
 3. Elegí un endpoint, tocá **Try it out**, completá los parámetros o el cuerpo y tocá **Execute**. Debajo aparecen el código de respuesta y el JSON.

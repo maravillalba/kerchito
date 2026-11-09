@@ -190,7 +190,7 @@ Notas de `POST /api/orders`:
 - Si un `product_id` se repite en `items`, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
 - Si hay varios errores, se responde el del primer item que falle, según el orden en que llegaron.
 
-**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - cost) * quantity`, con el `cost` actual del producto y sin restar descuentos), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5). Las ventas cuentan solo pedidos `active`.
+**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - cost) * quantity`, con el `cost` actual del producto y sin restar descuentos), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5, solo con saldo positivo). Las ventas cuentan solo pedidos `active`.
 
 **`GET /api/admin/customers`:** `id`, `first_name`, `last_name`, `email`, `phone`, `points`, `level` (`"Bronce"`, `"Plata"` o `"Oro"`), `orders_count`, `total_spent`, `last_order_at` (`string \| null`). Compras, gasto y última compra cuentan solo pedidos `active`. El detalle agrega `movements[]`: `id`, `order_id` (`number \| null`), `points`, `reason`, `created_at`, del más nuevo al más viejo.
 
