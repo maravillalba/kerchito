@@ -1,9 +1,14 @@
+import os
+
 from sqlalchemy import inspect
 
 from database import Base, SessionLocal, engine
 import models  # noqa: F401  (registra las tablas en Base.metadata)
-from models import Product
+from models import Product, User
 from schemas import ProductIn
+from security import hash_password
+
+MIN_PASSWORD_LENGTH = 8
 
 PRODUCTS = [
     {"brand": "Coca-Cola", "name": "Original", "unit": "500 ml", "category": "bebidas", "price": 1200, "offer_price": 1000, "stock": 25, "description": "Gaseosa clásica", "image": "/productos/coca-cola.webp"},
@@ -93,5 +98,36 @@ def seed() -> None:
         print(f"Se cargaron {len(PRODUCTS)} productos.")
 
 
+def seed_admin() -> None:
+    """Crea el admin desde ADMIN_EMAIL y ADMIN_PASSWORD. Nunca imprime esos valores."""
+    email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    password = os.getenv("ADMIN_PASSWORD", "")
+    if not email or not password:
+        print("Sin ADMIN_EMAIL o ADMIN_PASSWORD en el .env: no se crea el admin.")
+        return
+    if len(password) < MIN_PASSWORD_LENGTH:
+        print(f"ADMIN_PASSWORD tiene menos de {MIN_PASSWORD_LENGTH} caracteres: no se crea el admin.")
+        return
+
+    with SessionLocal() as db:
+        existing = db.query(User).filter(User.email == email).first()
+        if existing is not None:
+            if existing.role != "admin":
+                print("ADMIN_EMAIL ya pertenece a un cliente: no se crea el admin.")
+            return
+        db.add(
+            User(
+                first_name="Admin",
+                last_name="Kiosko",
+                email=email,
+                password_hash=hash_password(password),
+                role="admin",
+            )
+        )
+        db.commit()
+        print("Se creó el usuario administrador.")
+
+
 if __name__ == "__main__":
     seed()
+    seed_admin()

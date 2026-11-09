@@ -5,10 +5,47 @@ from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, St
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
-from schemas import Category
+from schemas import Category, Role
 
 CATEGORIES = get_args(Category)
 _CATEGORIES_SQL = ", ".join(f"'{c}'" for c in CATEGORIES)
+_ROLES_SQL = ", ".join(f"'{r}'" for r in get_args(Role))
+
+
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint("length(trim(first_name)) > 0", name="ck_users_first_name_not_empty"),
+        CheckConstraint("length(trim(last_name)) > 0", name="ck_users_last_name_not_empty"),
+        CheckConstraint("email = lower(email)", name="ck_users_email_lowercase"),
+        CheckConstraint(f"role IN ({_ROLES_SQL})", name="ck_users_role"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str] = mapped_column(String, nullable=False)
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[str] = mapped_column(String, nullable=False, default="customer")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.now
+    )
+
+
+class AuthSession(Base):
+    __tablename__ = "sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    # Solo el hash: quien lea la base no puede usar los tokens.
+    token_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.now
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    user: Mapped["User"] = relationship()
 
 
 class Product(Base):

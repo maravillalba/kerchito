@@ -1,7 +1,14 @@
 from datetime import datetime
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 Category = Literal[
     "bebidas",
@@ -12,9 +19,60 @@ Category = Literal[
     "cigarrillos",
 ]
 
+Role = Literal["customer", "admin"]
+
 
 # Texto obligatorio: sin espacios al principio ni al final, y no vacío.
 NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+# Correo sin espacios y en minúsculas. El formato se revisa por arriba a propósito:
+# la única prueba real de un correo es escribirle.
+Email = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        to_lower=True,
+        max_length=254,
+        pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+    ),
+]
+
+
+class RegisterIn(BaseModel):
+    first_name: NonEmptyStr
+    last_name: NonEmptyStr
+    email: Email
+    phone: str | None = None
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("phone")
+    @classmethod
+    def blank_phone_is_null(cls, phone: str | None) -> str | None:
+        return (phone or "").strip() or None
+
+
+class LoginIn(BaseModel):
+    # Sin validar el formato: un correo mal escrito es un login incorrecto más.
+    email: Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)]
+    password: str = Field(max_length=128)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    phone: str | None
+    role: Role
+    created_at: datetime
+
+
+class AuthOut(BaseModel):
+    token: str
+    expires_at: datetime
+    user: UserOut
 
 
 class ProductIn(BaseModel):

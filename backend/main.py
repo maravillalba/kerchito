@@ -15,8 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from routers import chat, orders, products
-from seed import seed
+from routers import auth, chat, orders, products
+from seed import seed, seed_admin
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -25,8 +25,10 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Al arrancar: crea las tablas y carga el seed si products está vacía.
+    # Al arrancar: crea las tablas, carga el seed si products está vacía y crea
+    # el admin desde el .env.
     seed()
+    seed_admin()
     yield
 
 
@@ -40,6 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(orders.router)
 app.include_router(chat.router)

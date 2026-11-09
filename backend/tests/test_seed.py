@@ -6,7 +6,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import seed
-from models import Product
+from models import Product, User
+from security import verify_password
 
 # frontend/public: las rutas de `image` las sirve el frontend desde acá.
 FRONTEND_PUBLIC = Path(__file__).resolve().parents[2] / "frontend" / "public"
@@ -80,6 +81,56 @@ def test_seed_con_una_base_vieja_avisa_que_hay_que_borrarla(monkeypatch):
     with pytest.raises(seed.OutdatedDatabaseError, match="brand, offer_price, unit"):
         seed.seed()
     engine.dispose()
+
+
+CLAVE_ADMIN = "clave-del-admin-123"
+
+
+def crear_admin(seed_en_memoria, monkeypatch, email="Admin@Test.com", password=CLAVE_ADMIN):
+    monkeypatch.setenv("ADMIN_EMAIL", email)
+    monkeypatch.setenv("ADMIN_PASSWORD", password)
+    seed.seed()
+    seed.seed_admin()
+    with seed_en_memoria() as db:
+        return db.query(User).all()
+
+
+def test_seed_admin_crea_el_admin_desde_el_entorno(seed_en_memoria, monkeypatch):
+    [admin] = crear_admin(seed_en_memoria, monkeypatch)
+    assert admin.email == "admin@test.com"
+    assert admin.role == "admin"
+    assert verify_password(CLAVE_ADMIN, admin.password_hash)
+
+
+def test_seed_admin_nunca_imprime_la_clave_ni_el_correo(seed_en_memoria, monkeypatch, capsys):
+    crear_admin(seed_en_memoria, monkeypatch)
+    salida = capsys.readouterr()
+    assert CLAVE_ADMIN not in salida.out + salida.err
+    assert "admin@test.com" not in salida.out + salida.err
+
+
+def test_seed_admin_no_duplica_ni_cambia_la_clave_si_ya_existe(seed_en_memoria, monkeypatch):
+    crear_admin(seed_en_memoria, monkeypatch)
+    [admin] = crear_admin(seed_en_memoria, monkeypatch, password="otra-clave-distinta")
+    assert verify_password(CLAVE_ADMIN, admin.password_hash)
+
+
+@pytest.mark.parametrize(
+    "email, password",
+    [("", CLAVE_ADMIN), ("admin@test.com", ""), ("admin@test.com", "corta")],
+    ids=["sin-correo", "sin-clave", "clave-corta"],
+)
+def test_seed_admin_no_crea_nada_sin_datos_validos(seed_en_memoria, monkeypatch, email, password):
+    assert crear_admin(seed_en_memoria, monkeypatch, email, password) == []
+
+
+def test_seed_admin_no_convierte_en_admin_a_un_cliente(seed_en_memoria, monkeypatch):
+    seed.seed()
+    with seed_en_memoria() as db:
+        db.add(User(first_name="A", last_name="B", email="admin@test.com", password_hash="x"))
+        db.commit()
+    [usuario] = crear_admin(seed_en_memoria, monkeypatch)
+    assert usuario.role == "customer"
 
 
 def test_las_imagenes_del_seed_son_rutas_validas(seed_en_memoria):
