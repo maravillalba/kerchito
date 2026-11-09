@@ -78,9 +78,14 @@ def test_seed_con_una_base_vieja_avisa_que_hay_que_borrarla(monkeypatch):
     monkeypatch.setattr(seed, "engine", engine)
     monkeypatch.setattr(seed, "SessionLocal", sessionmaker(bind=engine))
 
-    with pytest.raises(seed.OutdatedDatabaseError, match="brand, offer_price, unit"):
+    with pytest.raises(seed.OutdatedDatabaseError, match="brand, cost, offer_price, unit"):
         seed.seed()
     engine.dispose()
+
+
+def test_seed_tiene_costos_que_dejan_ganancia_incluso_en_oferta(seed_en_memoria):
+    for p in cargar_seed(seed_en_memoria):
+        assert 0 < p.cost < p.effective_price, p.full_name
 
 
 CLAVE_ADMIN = "clave-del-admin-123"

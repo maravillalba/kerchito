@@ -75,8 +75,8 @@ class AuthOut(BaseModel):
     user: UserOut
 
 
-class ProductIn(BaseModel):
-    """Datos de un producto. Hoy lo usa el seed para validar el catálogo."""
+class _ProductData(BaseModel):
+    """Los campos de un producto que valen tanto para el catálogo como para el admin."""
 
     brand: NonEmptyStr
     # Solo el producto, sin la marca ni la presentación: "Original", "Yerba mate".
@@ -89,7 +89,6 @@ class ProductIn(BaseModel):
     offer_price: float | None = Field(default=None, gt=0)
     stock: int = Field(ge=0)
     description: str | None = None
-    image: str | None = None
 
     @model_validator(mode="after")
     def offer_below_price(self) -> Self:
@@ -98,13 +97,35 @@ class ProductIn(BaseModel):
         return self
 
 
+class ProductIn(_ProductData):
+    """Producto del catálogo. Lo usa el seed para validar sus datos."""
+
+    image: str | None = None
+
+
 class _ProductId(BaseModel):
     id: int
 
 
 # _ProductId va segundo en la herencia para que "id" quede primero en el JSON.
 class ProductOut(ProductIn, _ProductId):
+    """Lo que ve cualquiera: no incluye cost."""
+
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProductAdminIn(_ProductData):
+    """Lo que manda el admin. La foto no va acá: tiene su propio endpoint."""
+
+    cost: float = Field(ge=0)
+
+
+class ProductAdminOut(ProductOut):
+    cost: float
+
+
+class StockUpdate(BaseModel):
+    stock: int = Field(ge=0)
 
 
 class OrderItemIn(BaseModel):

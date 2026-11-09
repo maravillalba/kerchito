@@ -68,13 +68,29 @@ PRODUCTS = [
 ]
 
 
+# Parte del precio normal que representa el costo de compra, según la categoría.
+COST_RATIO = {
+    "bebidas": 0.62,
+    "golosinas_snacks": 0.60,
+    "lacteos": 0.68,
+    "almacen": 0.65,
+    "limpieza": 0.60,
+    "cigarrillos": 0.80,
+}
+
+
+def seed_cost(product: dict) -> float:
+    """Costo de ejemplo del seed, redondeado a la decena."""
+    return float(round(product["price"] * COST_RATIO[product["category"]], -1))
+
+
 class OutdatedDatabaseError(RuntimeError):
     """La base existente no tiene las columnas que espera el modelo actual."""
 
 
 def _check_products_columns() -> None:
     # create_all no agrega columnas a una tabla que ya existe: una kiosco.db
-    # anterior (sin brand, unit u offer_price) rompería cada consulta.
+    # anterior (por ejemplo, sin cost) rompería cada consulta.
     existing = {c["name"] for c in inspect(engine).get_columns("products")}
     missing = set(Product.__table__.columns.keys()) - existing
     if missing:
@@ -93,7 +109,7 @@ def seed() -> None:
             print("La tabla products ya tiene datos: no se carga nada.")
             return
         # Cada producto pasa por ProductIn: marca, presentación y oferta válidas.
-        db.add_all([Product(**ProductIn(**p).model_dump()) for p in PRODUCTS])
+        db.add_all([Product(**ProductIn(**p).model_dump(), cost=seed_cost(p)) for p in PRODUCTS])
         db.commit()
         print(f"Se cargaron {len(PRODUCTS)} productos.")
 

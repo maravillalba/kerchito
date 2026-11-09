@@ -18,6 +18,9 @@ build/
 *.db
 *.sqlite3
 
+# Fotos subidas por el admin
+backend/uploads/
+
 # Editor / sistema
 .vscode/
 .idea/

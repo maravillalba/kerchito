@@ -47,6 +47,14 @@ def no_bot_api_key(monkeypatch):
     monkeypatch.setenv("BOT_API_KEY", "")
 
 
+@pytest.fixture(autouse=True)
+def carpeta_de_fotos(monkeypatch, tmp_path):
+    # Ningún test escribe en backend/uploads.
+    carpeta = tmp_path / "products"
+    monkeypatch.setattr("uploads.PRODUCT_IMAGES_DIR", carpeta)
+    return carpeta
+
+
 @pytest.fixture()
 def db_session():
     engine = create_engine(

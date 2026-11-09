@@ -13,10 +13,12 @@ load_dotenv(Path(__file__).with_name(".env"), override=False)
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from routers import auth, chat, orders, products
+from routers import admin, auth, chat, orders, products
 from seed import seed, seed_admin
+from uploads import UPLOADS_ROOT
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -46,6 +48,11 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(orders.router)
 app.include_router(chat.router)
+app.include_router(admin.router)
+
+UPLOADS_ROOT.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_ROOT), name="uploads")
+
 
 @app.exception_handler(SQLAlchemyError)
 async def database_error_handler(request: Request, exc: SQLAlchemyError):

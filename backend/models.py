@@ -61,6 +61,7 @@ class Product(Base):
             name="ck_products_offer_price_valid",
         ),
         CheckConstraint("stock >= 0", name="ck_products_stock_non_negative"),
+        CheckConstraint("cost >= 0", name="ck_products_cost_non_negative"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -73,6 +74,7 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False)
     offer_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     stock: Mapped[int] = mapped_column(Integer, nullable=False)
+    cost: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     image: Mapped[str | None] = mapped_column(String, nullable=True)
 
