@@ -184,6 +184,67 @@ class AdminOrderOut(OrderOut):
     customer: OrderCustomerOut
 
 
+class BestSellerOut(BaseModel):
+    product_id: int
+    product_name: str
+    units_sold: int
+
+
+class TopCustomerOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    points: int
+
+
+class SummaryOut(BaseModel):
+    total_revenue: float
+    net_profit: float
+    stock_units: int
+    points_in_circulation: int
+    best_sellers: list[BestSellerOut]
+    top_customers: list[TopCustomerOut]
+
+
+class CustomerOut(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    phone: str | None
+    points: int
+    level: str
+    orders_count: int
+    total_spent: float
+    last_order_at: datetime | None
+
+
+class PointsMovementOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    order_id: int | None
+    points: int
+    reason: str
+    created_at: datetime
+
+
+class CustomerDetailOut(CustomerOut):
+    movements: list[PointsMovementOut]
+
+
+class PointsAdjustment(BaseModel):
+    points: int
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+
+    @field_validator("points")
+    @classmethod
+    def points_not_zero(cls, points: int) -> int:
+        if points == 0:
+            raise ValueError("points must not be 0")
+        return points
+
+
 class ChatRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 

@@ -153,8 +153,8 @@ def test_id_no_numerico_devuelve_422(client, productos):
 
 
 # --- Validación de ProductIn ---------------------------------------------------------
-# Hoy ningún endpoint recibe productos: ProductIn lo usa el seed. Si mañana un
-# endpoint lo recibe como body, FastAPI convierte estos ValidationError en 422.
+# ProductIn lo usa el seed. Los endpoints del admin reciben ProductAdminIn, que
+# comparte estas validaciones (ver test_products_admin.py).
 
 PRODUCTO_VALIDO = {
     "brand": "Coca-Cola",
