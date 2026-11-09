@@ -1,15 +1,30 @@
 import type {
+  AuthResponse,
   Category,
   ChatRequest,
   ChatResponse,
   OrderCreate,
-  OrderResponse,
+  OrderCreatedResponse,
   Product,
+  RegisterData,
+  User,
 } from '../types';
 
 const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 const TIMEOUT_MS = 10_000;
+
+// La sesión la maneja AuthContext; acá solo se guarda lo que necesita cada pedido.
+let authToken: string | null = null;
+let onUnauthorized: (() => void) | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
 
 // http: el servidor respondió con un error; timeout y network: no hubo respuesta.
 export type ApiErrorKind = 'http' | 'timeout' | 'network';
@@ -46,14 +61,26 @@ function messageFromDetail(detail: unknown, status: number): string {
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const usedToken = authToken;
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
+      ...(usedToken && {
+        headers: {
+          ...(init.headers as Record<string, string> | undefined),
+          Authorization: `Bearer ${usedToken}`,
+        },
+      }),
       signal: controller.signal,
     });
 
     if (!response.ok) {
+      // La sesión venció. Un login fallido no entra acá porque no lleva token, y un
+      // 401 que llega tarde de una sesión anterior no cierra la sesión nueva.
+      if (response.status === 401 && usedToken && usedToken === authToken) {
+        onUnauthorized?.();
+      }
       let detail: unknown;
       try {
         detail = ((await response.json()) as { detail?: unknown }).detail;
@@ -66,6 +93,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       );
     }
 
+    if (response.status === 204) {
+      return undefined as T;
+    }
     return (await response.json()) as T;
   } catch (error) {
     if (error instanceof ApiError) {
@@ -98,12 +128,39 @@ export function getProductById(id: number): Promise<Product> {
   return request<Product>(`/api/products/${id}`);
 }
 
-export function createOrder(order: OrderCreate): Promise<OrderResponse> {
-  return request<OrderResponse>('/api/orders', {
+export function createOrder(order: OrderCreate): Promise<OrderCreatedResponse> {
+  return request<OrderCreatedResponse>('/api/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(order),
   });
+}
+
+export function registerUser(data: RegisterData): Promise<AuthResponse> {
+  return request<AuthResponse>('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export function loginUser(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
+  return request<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export function getMe(): Promise<User> {
+  return request<User>('/api/auth/me');
+}
+
+export function logoutUser(): Promise<void> {
+  return request<void>('/api/auth/logout', { method: 'POST' });
 }
 
 export function sendChatMessage(message: string): Promise<ChatResponse> {

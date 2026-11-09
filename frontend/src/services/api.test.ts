@@ -3,9 +3,15 @@ import type { OrderCreate, Product } from '../types';
 import {
   ApiError,
   createOrder,
+  getMe,
   getProductById,
   getProducts,
+  loginUser,
+  logoutUser,
+  registerUser,
   sendChatMessage,
+  setAuthToken,
+  setUnauthorizedHandler,
 } from './api';
 
 // fetch falso: ningún test sale a la red.
@@ -77,6 +83,8 @@ describe('pedidos que arma cada función', () => {
         { product_id: 1, quantity: 2 },
         { product_id: 4, quantity: 1 },
       ],
+      payment_method: 'efectivo',
+      use_points: true,
     };
     fetchMock.mockResolvedValue(
       jsonResponse({ id: 7, created_at: '', total: 3500, items: [] }, 201),
@@ -130,7 +138,10 @@ describe('respuesta ok', () => {
     };
     fetchMock.mockResolvedValue(jsonResponse(created, 201));
     await expect(
-      createOrder({ items: [{ product_id: 1, quantity: 2 }] }),
+      createOrder({
+        items: [{ product_id: 1, quantity: 2 }],
+        payment_method: 'efectivo',
+      }),
     ).resolves.toEqual(created);
   });
 
@@ -193,7 +204,10 @@ describe('errores http', () => {
     );
 
     await expect(
-      createOrder({ items: [{ product_id: 1, quantity: 0 }] }),
+      createOrder({
+        items: [{ product_id: 1, quantity: 0 }],
+        payment_method: 'efectivo',
+      }),
     ).rejects.toMatchObject({
       status: 422,
       kind: 'http',
@@ -282,6 +296,105 @@ describe('sin respuesta del servidor', () => {
       message:
         'No se pudo conectar con el servidor. Revisá que el backend esté funcionando.',
     });
+  });
+});
+
+describe('sesión', () => {
+  afterEach(() => {
+    setAuthToken(null);
+    setUnauthorizedHandler(null);
+  });
+
+  it('sin sesión no manda el header Authorization', async () => {
+    fetchMock.mockResolvedValue(jsonResponse([]));
+    await getProducts();
+    expect(fetchCall().init.headers).toBeUndefined();
+  });
+
+  it('con sesión manda el token y conserva los otros headers', async () => {
+    setAuthToken('abc');
+    fetchMock.mockResolvedValue(jsonResponse({ reply: 'ok' }));
+    await sendChatMessage('Hola');
+    expect(fetchCall().init.headers).toEqual({
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer abc',
+    });
+  });
+
+  it('un 401 con sesión avisa para cerrarla y levanta el error', async () => {
+    const aviso = vi.fn();
+    setAuthToken('abc');
+    setUnauthorizedHandler(aviso);
+    fetchMock.mockResolvedValue(
+      jsonResponse({ detail: 'Iniciá sesión para continuar' }, 401),
+    );
+
+    await expect(getMe()).rejects.toMatchObject({ status: 401 });
+    expect(aviso).toHaveBeenCalledTimes(1);
+  });
+
+  it('un 401 del login (sin sesión) no avisa', async () => {
+    const aviso = vi.fn();
+    setUnauthorizedHandler(aviso);
+    fetchMock.mockResolvedValue(
+      jsonResponse({ detail: 'Correo o contraseña incorrectos' }, 401),
+    );
+
+    await expect(loginUser('a@b.c', 'x')).rejects.toMatchObject({
+      status: 401,
+      message: 'Correo o contraseña incorrectos',
+    });
+    expect(aviso).not.toHaveBeenCalled();
+  });
+
+  it('un 401 tardío de una sesión anterior no cierra la sesión nueva', async () => {
+    const aviso = vi.fn();
+    setAuthToken('vieja');
+    setUnauthorizedHandler(aviso);
+    let responder!: (value: Response) => void;
+    fetchMock.mockReturnValue(
+      new Promise((resolve) => {
+        responder = resolve;
+      }),
+    );
+
+    const pedido = getMe().catch((err: unknown) => err);
+    setAuthToken('nueva');
+    responder(jsonResponse({ detail: 'x' }, 401));
+    await pedido;
+
+    expect(aviso).not.toHaveBeenCalled();
+  });
+
+  it('un 403 no cierra la sesión', async () => {
+    const aviso = vi.fn();
+    setAuthToken('abc');
+    setUnauthorizedHandler(aviso);
+    fetchMock.mockResolvedValue(jsonResponse({ detail: 'x' }, 403));
+    await expect(getMe()).rejects.toMatchObject({ status: 403 });
+    expect(aviso).not.toHaveBeenCalled();
+  });
+
+  it('logoutUser resuelve con un 204 sin cuerpo', async () => {
+    setAuthToken('abc');
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(logoutUser()).resolves.toBeUndefined();
+    expect(fetchCall().url).toBe(`${BASE}/api/auth/logout`);
+    expect(fetchCall().init.method).toBe('POST');
+  });
+
+  it('registerUser hace POST con los datos', async () => {
+    const datos = {
+      first_name: 'Ana',
+      last_name: 'Pérez',
+      email: 'a@b.c',
+      phone: null,
+      password: 'clave-larga',
+    };
+    fetchMock.mockResolvedValue(jsonResponse({ token: 't' }, 201));
+    await registerUser(datos);
+    expect(fetchCall().url).toBe(`${BASE}/api/auth/register`);
+    expect(JSON.parse(fetchCall().init.body as string)).toEqual(datos);
   });
 });
 

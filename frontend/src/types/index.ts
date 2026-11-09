@@ -33,12 +33,20 @@ export interface OrderItemInput {
   quantity: number;
 }
 
+export type PaymentMethod =
+  'efectivo' | 'transferencia' | 'tarjeta' | 'mercado_pago';
+
+export type OrderStatus = 'active' | 'cancelled';
+
 export interface OrderCreate {
   items: OrderItemInput[];
+  payment_method: PaymentMethod;
+  use_points?: boolean;
 }
 
 export interface OrderItemResponse {
   product_id: number;
+  product_name: string;
   quantity: number;
   unit_price: number;
 }
@@ -46,8 +54,49 @@ export interface OrderItemResponse {
 export interface OrderResponse {
   id: number;
   created_at: string;
+  status: OrderStatus;
+  payment_method: PaymentMethod;
+  subtotal: number;
+  first_purchase_discount: number;
+  points_discount: number;
+  discount_amount: number;
   total: number;
+  points_used: number;
+  points_earned: number;
   items: OrderItemResponse[];
+}
+
+// Respuesta de POST /api/orders: el pedido y el saldo después de la compra.
+export interface OrderCreatedResponse extends OrderResponse {
+  points_balance: number;
+}
+
+export type Role = 'customer' | 'admin';
+
+export interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  role: Role;
+  created_at: string;
+  points: number;
+  first_purchase_available: boolean;
+}
+
+export interface RegisterData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  expires_at: string;
+  user: User;
 }
 
 export interface ChatRequest {
