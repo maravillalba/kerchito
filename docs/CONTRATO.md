@@ -9,7 +9,11 @@ Si un campo no está acá, no existe.
 - Todos los campos van en **inglés** (TypeScript, Pydantic y SQLite).
 - `category` es un texto con valores fijos (no una tabla aparte).
 - Los pedidos usan dos tablas: `orders` y `order_items`.
-- No hay `customer_name`: los pedidos no tienen usuario.
+- No hay `customer_name`: cada pedido pertenece a un cliente con cuenta (`user_id`).
+- **El backend es la autoridad:** calcula precios, descuentos, puntos y totales. El frontend solo manda `product_id`, `quantity`, `payment_method` y `use_points`; lo que muestra antes de confirmar es una vista previa.
+- Sin sesión no se entra a la tienda: se redirige a `/bienvenida`. Esto vive en **una sola constante** del frontend (`TIENDA_REQUIERE_SESION`) porque está pendiente de confirmar con el profe.
+- Siguen sin autenticación: `GET /health`, `GET /api/products`, `GET /api/products/{id}` y `POST /api/chat`.
+- `cost` (costo de compra) es un dato interno: **nunca** sale por los endpoints públicos de productos.
 
 ## 2. Convenciones
 
@@ -40,13 +44,24 @@ Valores permitidos para `category`:
 | `offer_price` | `number \| null (opcional)` | `float \| None` | precio de oferta; si viene, mayor a 0 y menor que `price`. `null` = sin oferta |
 | `stock` | `number` | `int` | mayor o igual a 0 |
 | `description` | `string \| null (opcional)` | `str \| None` | |
-| `image` | `string \| null (opcional)` | `str \| None` | ruta de la foto que sirve el frontend desde `frontend/public/` (por ejemplo `/productos/coca-cola.webp`); sin foto, el frontend muestra la imagen de la categoría |
+| `image` | `string \| null (opcional)` | `str \| None` | ruta pública de la foto. Las del seed las sirve el frontend (`/productos/coca-cola.webp`); las subidas por el admin las sirve el backend (`/uploads/products/<uuid>.webp`). Sin foto, el frontend muestra la imagen de la categoría |
 
 El nombre completo para mostrar es `brand` + `name` + `unit`: `"Coca-Cola Original 500 ml"`.
 
-En Pydantic hay dos esquemas: `ProductIn` (todos los campos menos `id`, con las validaciones de arriba; hoy lo usa el seed) y `ProductOut` (`ProductIn` + `id`, lo que devuelve la API). Ningún endpoint recibe productos todavía.
+Esquemas de Pydantic:
+
+- `ProductIn`: los campos de arriba menos `id`, con sus validaciones.
+- `ProductOut`: `ProductIn` + `id`. Es lo que devuelven los endpoints públicos: **no** incluye `cost`.
+- `ProductAdminIn`: lo que manda el admin en `POST` y `PUT`: los campos de arriba menos `id` e `image`, más `cost` (obligatorio). La foto se cambia solo con `POST /api/products/{id}/image`; un `image` en el cuerpo se ignora.
+- `ProductAdminOut`: `ProductOut` + `cost`.
+
+| Campo solo de admin | TypeScript | Pydantic | Regla |
+|---|---|---|---|
+| `cost` | `number` | `float` | costo de compra; mayor o igual a 0 |
 
 **Precio que se cobra:** `offer_price` si existe, si no `price`. Lo calcula siempre el backend al crear el pedido.
+
+**Foto (`POST /api/products/{id}/image`):** multipart con el campo `file`. Se valida el tipo real por el contenido del archivo (JPG, PNG o WebP), máximo 2 MB. Se guarda en `backend/uploads/products/` con nombre UUID y se publica en `/uploads/products/`. Al reemplazar o borrar un producto se borra la foto subida anterior, nunca las del seed.
 
 ## 5. Pedido
 
@@ -57,18 +72,46 @@ En Pydantic hay dos esquemas: `ProductIn` (todos los campos menos `id`, con las 
 | `items` | `OrderItemInput[]` | `list[OrderItemIn]` | al menos 1 elemento |
 | `items[].product_id` | `number` | `int` | |
 | `items[].quantity` | `number` | `int` | mayor o igual a 1 |
+| `payment_method` | `PaymentMethod` | `PaymentMethod` (`Literal`) | `efectivo`, `transferencia`, `tarjeta` o `mercado_pago` |
+| `use_points` | `boolean` | `bool` | opcional, por defecto `false` |
 
-**Lo que responde el backend**
+**Lo que responde el backend (`OrderOut`)**
 
 | Campo | TypeScript | Pydantic | Regla |
 |---|---|---|---|
 | `id` | `number` | `int` | |
 | `created_at` | `string` | `datetime` | ISO 8601 |
-| `total` | `number` | `float` | suma de `quantity * unit_price` |
+| `status` | `OrderStatus` | `OrderStatus` (`Literal`) | `active` o `cancelled` |
+| `payment_method` | `PaymentMethod` | `PaymentMethod` | |
+| `subtotal` | `number` | `float` | suma de `quantity * unit_price` (con ofertas aplicadas, antes de descuentos) |
+| `first_purchase_discount` | `number` | `float` | 15% de primera compra; `0` si no corresponde |
+| `points_discount` | `number` | `float` | descuento por canje de puntos; `0` si no hubo |
+| `discount_amount` | `number` | `float` | `first_purchase_discount + points_discount` |
+| `total` | `number` | `float` | `subtotal - discount_amount`: lo que se cobra. Mayor o igual a 0 |
+| `points_used` | `number` | `int` | puntos canjeados |
+| `points_earned` | `number` | `int` | puntos ganados |
 | `items` | `OrderItemResponse[]` | `list[OrderItemOut]` | |
 | `items[].product_id` | `number` | `int` | |
+| `items[].product_name` | `string` | `str` | nombre completo actual del producto |
 | `items[].quantity` | `number` | `int` | |
 | `items[].unit_price` | `number` | `float` | precio cobrado al momento de comprar: `offer_price` si el producto tenía oferta, si no `price`. Lo calcula el backend; el frontend no manda precios |
+
+`POST /api/orders` agrega `points_balance` (`number`): el saldo del cliente después de la compra. `GET /api/admin/orders` agrega `customer` (`id`, `first_name`, `last_name`, `email`).
+
+### Reglas de puntos
+
+Están en **un solo archivo**, `backend/points.py`, como constantes. El frontend las repite solo para la vista previa.
+
+| Regla | Valor |
+|---|---|
+| Puntos ganados | 1 punto cada $100 del **total final**, redondeando hacia abajo |
+| Canje | 100 puntos = $500. Con `use_points` se canjean **todos los bloques de 100 que alcancen**, sin superar lo que queda por pagar. Si no alcanza para un bloque, no hay canje y el pedido sigue igual (no es un error) |
+| Primera compra | 15% del subtotal (con ofertas ya aplicadas), redondeado al centavo, si el cliente no tiene ningún pedido `active` |
+| Orden del cálculo | subtotal → 15% → canje → total → puntos ganados |
+| Saldo | suma de `points_movements.points` del cliente. **Puede ser negativo** (ver anulación); con saldo negativo no se puede canjear |
+| Niveles (solo informativos) | según el saldo actual: Bronce desde 0, Plata desde 300, Oro desde 1000. Un saldo negativo es Bronce |
+
+**Anulación (`PATCH /api/orders/{id}/cancel`)**, en una sola transacción: el pedido pasa a `cancelled`, se devuelve el stock, se revierten los puntos ganados y se devuelven los usados, con un movimiento por cada cosa. Si el cliente ya gastó los puntos ganados, su saldo queda negativo. Como la primera compra se calcula sobre los pedidos activos, si al cliente no le queda ninguno vuelve a tener el 15%. Anular dos veces da 409. Los campos del pedido anulado se conservan como registro.
 
 ## 6. Tipos que solo existen en el frontend
 
@@ -76,23 +119,84 @@ El backend no los conoce:
 
 - `CartItem = { product: Product; quantity: number }`: un renglón del carrito. Al confirmar la compra se convierte en `OrderItemInput` (`product.id` pasa a `product_id`).
 
-## 7. Endpoints
+## 7. Cuentas y sesiones
 
-| Método | Ruta | Descripción | Respuestas |
+**Lo que envía el frontend en `POST /api/auth/register`**
+
+| Campo | TypeScript | Pydantic | Regla |
 |---|---|---|---|
-| GET | `/health` | Estado del servidor | 200 |
-| GET | `/api/products` | Lista los productos; con `?category=<valor>` filtra por categoría (valor inválido: 422) | 200, 422 |
-| GET | `/api/products/{id}` | Un producto | 200, 404, 422 |
-| POST | `/api/orders` | Crea un pedido y descuenta stock | 201, 404, 409, 422 |
-| POST | `/api/chat` | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
-| GET | `/api/orders` | Lista los pedidos, del más reciente al más antiguo (`id` descendente); si no hay pedidos devuelve `[]` | 200 |
+| `first_name` | `string` | `str` | no vacío |
+| `last_name` | `string` | `str` | no vacío |
+| `email` | `string` | `str` | formato de correo; se guarda en minúsculas y es único |
+| `phone` | `string \| null (opcional)` | `str \| None` | vacío se guarda como `null` |
+| `password` | `string` | `str` | entre 8 y 128 caracteres |
+
+`POST /api/auth/login` recibe `email` y `password`.
+
+**Lo que responde el backend (`AuthOut`, en `register` y `login`)**: `token` (`string`), `expires_at` (`string`, ISO 8601) y `user` (`UserOut`).
+
+**`UserOut`** (también lo devuelve `GET /api/auth/me`)
+
+| Campo | TypeScript | Pydantic | Regla |
+|---|---|---|---|
+| `id` | `number` | `int` | |
+| `first_name` | `string` | `str` | |
+| `last_name` | `string` | `str` | |
+| `email` | `string` | `str` | |
+| `phone` | `string \| null` | `str \| None` | |
+| `role` | `Role` | `Role` (`Literal`) | `customer` o `admin` |
+| `created_at` | `string` | `datetime` | |
+| `points` | `number` | `int` | saldo actual; `0` para el admin |
+| `first_purchase_available` | `boolean` | `bool` | si la próxima compra lleva el 15%; `false` para el admin |
+
+**Reglas**
+
+- Autenticación con el header `Authorization: Bearer <token>`. El token vence a los 7 días y en la base se guarda solo su hash; la contraseña se guarda con hash scrypt y salt aleatorio.
+- `401`: sin token, token inválido o vencido, o login incorrecto. El login siempre dice `"Correo o contraseña incorrectos"`, exista o no el correo.
+- `403`: hay sesión, pero no el permiso. `POST /api/orders` es solo para `customer`: el admin recibe 403.
+- `register` responde `409` si el correo ya tiene cuenta.
+- El admin no se registra: se crea al arrancar desde `ADMIN_EMAIL` y `ADMIN_PASSWORD` de `backend/.env`. Si ya existe, no se le cambia la contraseña.
+
+## 8. Endpoints
+
+| Método | Ruta | Acceso | Descripción | Respuestas |
+|---|---|---|---|---|
+| GET | `/health` | público | Estado del servidor | 200 |
+| GET | `/api/products` | público | Lista los productos; con `?category=<valor>` filtra por categoría (valor inválido: 422) | 200, 422 |
+| GET | `/api/products/{id}` | público | Un producto | 200, 404, 422 |
+| POST | `/api/chat` | público | Consulta a KioscoBot (solo lectura: no crea pedidos ni toca stock) | 200, 422 |
+| POST | `/api/auth/register` | público | Crea un cliente y devuelve la sesión | 201, 409, 422 |
+| POST | `/api/auth/login` | público | Inicia sesión | 200, 401, 422 |
+| GET | `/api/auth/me` | sesión | Usuario actual con su saldo | 200, 401 |
+| POST | `/api/auth/logout` | sesión | Cierra la sesión actual | 204, 401 |
+| POST | `/api/products` | admin | Crea un producto | 201, 401, 403, 422 |
+| PUT | `/api/products/{id}` | admin | Reemplaza los datos del producto (no toca `image`) | 200, 401, 403, 404, 422 |
+| DELETE | `/api/products/{id}` | admin | Borra el producto; 409 si ya está en un pedido | 204, 401, 403, 404, 409 |
+| PATCH | `/api/products/{id}/stock` | admin | Fija el stock: `{ "stock": 10 }` (valor absoluto, mayor o igual a 0) | 200, 401, 403, 404, 422 |
+| POST | `/api/products/{id}/image` | admin | Sube o reemplaza la foto; devuelve `ProductAdminOut` | 200, 401, 403, 404, 413, 415, 422 |
+| POST | `/api/orders` | cliente | Crea un pedido, descuenta stock y aplica descuentos y puntos | 201, 401, 403, 404, 409, 422 |
+| GET | `/api/orders/mine` | cliente | Pedidos del cliente, del más reciente al más antiguo | 200, 401, 403 |
+| GET | `/api/orders` | admin | Lista todos los pedidos, del más reciente al más antiguo (`id` descendente); si no hay devuelve `[]` | 200, 401, 403 |
+| PATCH | `/api/orders/{id}/cancel` | admin | Anula el pedido; 409 si ya estaba anulado | 200, 401, 403, 404, 409 |
+| GET | `/api/admin/products` | admin | Productos con `cost` (para el inventario) | 200, 401, 403 |
+| GET | `/api/admin/orders` | admin | Pedidos con cliente, medio, ítems, total, puntos y estado | 200, 401, 403 |
+| GET | `/api/admin/summary` | admin | Números del panel | 200, 401, 403 |
+| GET | `/api/admin/customers` | admin | Clientes con puntos, nivel y compras | 200, 401, 403 |
+| GET | `/api/admin/customers/{id}` | admin | Un cliente con sus movimientos | 200, 401, 403, 404 |
+| POST | `/api/admin/customers/{id}/points` | admin | Ajuste manual de puntos; devuelve el cliente con sus movimientos | 201, 401, 403, 404, 422 |
 
 Notas de `POST /api/orders`:
 
 - Si un `product_id` se repite en `items`, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
 - Si hay varios errores, se responde el del primer item que falle, según el orden en que llegaron.
 
-`GET /api/orders` devuelve una lista de pedidos con el mismo formato que la respuesta de `POST /api/orders` (`id`, `created_at`, `total`, `items[]` con `product_id`, `quantity`, `unit_price`).
+**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - cost) * quantity`, con el `cost` actual del producto y sin restar descuentos), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5). Las ventas cuentan solo pedidos `active`.
+
+**`GET /api/admin/customers`:** `id`, `first_name`, `last_name`, `email`, `phone`, `points`, `level` (`"Bronce"`, `"Plata"` o `"Oro"`), `orders_count`, `total_spent`, `last_order_at` (`string \| null`). Compras, gasto y última compra cuentan solo pedidos `active`. El detalle agrega `movements[]`: `id`, `order_id` (`number \| null`), `points`, `reason`, `created_at`, del más nuevo al más viejo.
+
+**`POST /api/admin/customers/{id}/points`:** `points` (entero distinto de 0, con signo) y `reason` (texto obligatorio).
+
+Los mensajes de error de los endpoints nuevos van en español porque el frontend los muestra tal cual; los que ya existían (`Product 99 not found`, `Insufficient stock for product 1`) no cambian.
 
 La búsqueda se hace en el frontend. El filtro por categoría puede hacerse en el frontend o con el parámetro opcional `?category=`.
 
@@ -122,7 +226,7 @@ Notas de `POST /api/chat`:
 - Horarios y medios de pago son texto fijo del backend.
 - Todavía no hay límite de mensajes por minuto (no existe el 429).
 
-## 8. Ejemplos JSON
+## 9. Ejemplos JSON
 
 **POST /api/orders (pedido)**
 ```json
@@ -130,21 +234,42 @@ Notas de `POST /api/chat`:
   "items": [
     { "product_id": 1, "quantity": 2 },
     { "product_id": 4, "quantity": 1 }
-  ]
+  ],
+  "payment_method": "mercado_pago",
+  "use_points": false
 }
 ```
 
-**201 Created** (el producto 1 está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
+**201 Created** (primera compra: 15% sobre 3100. El producto 1 está en oferta: se cobra `offer_price` 1000 en lugar de `price` 1200)
 ```json
 {
   "id": 7,
   "created_at": "2026-11-02T15:30:00",
-  "total": 3100.0,
+  "status": "active",
+  "payment_method": "mercado_pago",
+  "subtotal": 3100.0,
+  "first_purchase_discount": 465.0,
+  "points_discount": 0.0,
+  "discount_amount": 465.0,
+  "total": 2635.0,
+  "points_used": 0,
+  "points_earned": 26,
+  "points_balance": 26,
   "items": [
-    { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
-    { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
+    { "product_id": 1, "product_name": "Coca-Cola Original 500 ml", "quantity": 2, "unit_price": 1000.0 },
+    { "product_id": 4, "product_name": "Jorgito Alfajor 55 g", "quantity": 1, "unit_price": 1100.0 }
   ]
 }
+```
+
+**401 Unauthorized** (sin sesión, o sesión vencida)
+```json
+{ "detail": "Iniciá sesión para continuar" }
+```
+
+**403 Forbidden** (la sesión no tiene permiso)
+```json
+{ "detail": "No tenés permiso para hacer esto" }
 ```
 
 **404 Not Found** (el producto no existe)
@@ -169,29 +294,6 @@ Notas de `POST /api/chat`:
     }
   ]
 }
-```
-
-**GET /api/orders – 200 OK** (del más reciente al más antiguo; `[]` si no hay pedidos)
-```json
-[
-  {
-    "id": 7,
-    "created_at": "2026-11-02T15:30:00",
-    "total": 3100.0,
-    "items": [
-      { "product_id": 1, "quantity": 2, "unit_price": 1000.0 },
-      { "product_id": 4, "quantity": 1, "unit_price": 1100.0 }
-    ]
-  },
-  {
-    "id": 6,
-    "created_at": "2026-11-02T12:10:00",
-    "total": 2400.0,
-    "items": [
-      { "product_id": 2, "quantity": 3, "unit_price": 800.0 }
-    ]
-  }
-]
 ```
 
 **POST /api/chat (pregunta)**
@@ -220,16 +322,19 @@ Notas de `POST /api/chat`:
 }
 ```
 
-## 9. Base de datos
+## 10. Base de datos
 
-- `products`: `id`, `brand`, `name`, `unit`, `category`, `price`, `offer_price`, `stock`, `description`, `image`. Restricciones: `brand`, `name` y `unit` no vacíos; `offer_price` nulo o mayor a 0 y menor que `price`.
-- Una `kiosco.db` creada antes de `brand`, `unit` y `offer_price` no se migra sola: al arrancar, el servidor avisa que hay que borrarla para que se cargue el seed nuevo.
-- `orders`: `id`, `created_at`, `total`.
+- `users`: `id`, `first_name`, `last_name`, `email` (único, en minúsculas), `phone`, `password_hash`, `role` (`customer` o `admin`), `created_at`.
+- `sessions`: `id`, `user_id` (FK a `users`), `token_hash` (único), `created_at`, `expires_at`.
+- `products`: `id`, `brand`, `name`, `unit`, `category`, `price`, `offer_price`, `stock`, `cost`, `description`, `image`. Restricciones: `brand`, `name` y `unit` no vacíos; `offer_price` nulo o mayor a 0 y menor que `price`; `cost` mayor o igual a 0.
+- `orders`: `id`, `created_at`, `user_id` (FK a `users`), `payment_method`, `status`, `discount_amount`, `points_used`, `points_earned`, `total`.
 - `order_items`: `id`, `order_id` (FK a `orders`), `product_id` (FK a `products`), `quantity`, `unit_price`.
+- `points_movements`: `id`, `user_id` (FK a `users`), `order_id` (FK a `orders`, nulo en ajustes manuales), `points` (con signo, distinto de 0), `reason` (no vacío), `created_at`.
 - SQLite con `PRAGMA foreign_keys=ON`.
-- El descuento de stock y la creación del pedido se hacen en **una sola transacción**: o se guarda todo, o nada.
+- Crear un pedido y anularlo se hacen cada uno en **una sola transacción**: o se guarda todo (stock, pedido y puntos), o nada.
+- **No hay migraciones.** Una `kiosco.db` vieja no se actualiza sola: al arrancar, el servidor avisa que hay que borrarla. Para regenerarla: cortá el servidor, borrá `backend/kiosco.db` y volvé a levantarlo; se crean las tablas, el seed y el admin. Se pierden los pedidos y las cuentas de esa base.
 
-## 10. Regla de cambios
+## 11. Regla de cambios
 
 1. Si hay que cambiar un campo, primero se avisa al grupo.
 2. Se cambia este archivo en un PR.
