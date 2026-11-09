@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, createOrder } from '../services/api';
-import type { CartItem, OrderResponse, Product } from '../types';
+import type { CartItem, OrderCreatedResponse, Product } from '../types';
 import { useCheckout } from './useCheckout';
 
 vi.mock('../services/api', async (importOriginal) => {
@@ -38,15 +38,36 @@ const items: CartItem[] = [
   { product: alfajor, quantity: 3 },
 ];
 
-const order: OrderResponse = {
+const order: OrderCreatedResponse = {
   id: 7,
   created_at: '2026-11-03T10:00:00',
+  status: 'active',
+  payment_method: 'tarjeta',
+  subtotal: 5700,
+  first_purchase_discount: 0,
+  points_discount: 0,
+  discount_amount: 0,
   total: 5700,
+  points_used: 0,
+  points_earned: 57,
+  points_balance: 157,
   items: [
-    { product_id: 1, quantity: 2, unit_price: 1200 },
-    { product_id: 4, quantity: 3, unit_price: 1100 },
+    {
+      product_id: 1,
+      product_name: 'Coca-Cola Original 500 ml',
+      quantity: 2,
+      unit_price: 1200,
+    },
+    {
+      product_id: 4,
+      product_name: 'Jorgito Alfajor 55 g',
+      quantity: 3,
+      unit_price: 1100,
+    },
   ],
 };
+
+const opciones = { paymentMethod: 'tarjeta', usePoints: true } as const;
 
 describe('useCheckout', () => {
   beforeEach(() => {
@@ -60,18 +81,53 @@ describe('useCheckout', () => {
     expect(result.current.success).toBeNull();
   });
 
-  it('manda a createOrder solo product_id y quantity de cada ítem', async () => {
+  it('manda a createOrder solo ids, cantidades, medio de pago y use_points', async () => {
     vi.mocked(createOrder).mockResolvedValue(order);
     const { result } = renderHook(() => useCheckout());
 
-    await act(() => result.current.submit(items));
+    await act(() => result.current.submit(items, opciones));
 
     expect(createOrder).toHaveBeenCalledWith({
       items: [
         { product_id: 1, quantity: 2 },
         { product_id: 4, quantity: 3 },
       ],
+      payment_method: 'tarjeta',
+      use_points: true,
     });
+  });
+
+  it('avisa a onCreated con el pedido confirmado', async () => {
+    vi.mocked(createOrder).mockResolvedValue(order);
+    const onCreated = vi.fn();
+    const { result } = renderHook(() => useCheckout(onCreated));
+
+    await act(() => result.current.submit(items, opciones));
+
+    expect(onCreated).toHaveBeenCalledWith(order);
+  });
+
+  it('si el pedido falla no avisa a onCreated', async () => {
+    vi.mocked(createOrder).mockRejectedValue(new ApiError(500, 'error'));
+    const onCreated = vi.fn();
+    const { result } = renderHook(() => useCheckout(onCreated));
+
+    await act(() => result.current.submit(items, opciones));
+
+    expect(onCreated).not.toHaveBeenCalled();
+  });
+
+  it('un 403 explica que se necesita una cuenta de cliente', async () => {
+    vi.mocked(createOrder).mockRejectedValue(
+      new ApiError(403, 'No tenés permiso'),
+    );
+    const { result } = renderHook(() => useCheckout());
+
+    await act(() => result.current.submit(items, opciones));
+
+    expect(result.current.error).toBe(
+      'Solo las cuentas de cliente pueden hacer pedidos.',
+    );
   });
 
   it('con éxito devuelve "success" y el resumen con orderId, totalItems y total', async () => {
@@ -80,7 +136,7 @@ describe('useCheckout', () => {
 
     let outcome: string | undefined;
     await act(async () => {
-      outcome = await result.current.submit(items);
+      outcome = await result.current.submit(items, opciones);
     });
 
     expect(outcome).toBe('success');
@@ -88,13 +144,15 @@ describe('useCheckout', () => {
       orderId: 7,
       totalItems: 5,
       total: 5700,
+      pointsEarned: 57,
+      pointsBalance: 157,
     });
     expect(result.current.error).toBeNull();
     expect(result.current.submitting).toBe(false);
   });
 
   it('mientras espera la respuesta marca submitting y después lo apaga', async () => {
-    let resolveOrder!: (value: OrderResponse) => void;
+    let resolveOrder!: (value: OrderCreatedResponse) => void;
     vi.mocked(createOrder).mockReturnValue(
       new Promise((resolve) => {
         resolveOrder = resolve;
@@ -104,7 +162,7 @@ describe('useCheckout', () => {
 
     let pending!: Promise<unknown>;
     act(() => {
-      pending = result.current.submit(items);
+      pending = result.current.submit(items, opciones);
     });
     expect(result.current.submitting).toBe(true);
 
@@ -121,7 +179,7 @@ describe('useCheckout', () => {
 
     await act(async () => {
       const submit = result.current.submit;
-      await Promise.all([submit(items), submit(items)]);
+      await Promise.all([submit(items, opciones), submit(items, opciones)]);
     });
 
     expect(createOrder).toHaveBeenCalledTimes(1);
@@ -130,7 +188,7 @@ describe('useCheckout', () => {
   it('con el carrito vacío no manda ningún pedido', async () => {
     const { result } = renderHook(() => useCheckout());
 
-    await act(() => result.current.submit([]));
+    await act(() => result.current.submit([], opciones));
 
     expect(createOrder).not.toHaveBeenCalled();
   });
@@ -154,7 +212,7 @@ describe('useCheckout', () => {
 
       let outcome: string | undefined;
       await act(async () => {
-        outcome = await result.current.submit(items);
+        outcome = await result.current.submit(items, opciones);
       });
 
       expect(outcome).toBe('outdated');
@@ -180,7 +238,7 @@ describe('useCheckout', () => {
       vi.mocked(createOrder).mockRejectedValue(new ApiError(status, detail));
       const { result } = renderHook(() => useCheckout());
 
-      await act(() => result.current.submit(items));
+      await act(() => result.current.submit(items, opciones));
 
       expect(result.current.error).toBe(expected);
     },
@@ -228,7 +286,7 @@ describe('useCheckout', () => {
 
       let outcome: string | undefined;
       await act(async () => {
-        outcome = await result.current.submit(items);
+        outcome = await result.current.submit(items, opciones);
       });
 
       expect(outcome).toBe('error');
@@ -244,10 +302,10 @@ describe('useCheckout', () => {
       .mockResolvedValueOnce(order);
     const { result } = renderHook(() => useCheckout());
 
-    await act(() => result.current.submit(items));
+    await act(() => result.current.submit(items, opciones));
     expect(result.current.error).not.toBeNull();
 
-    await act(() => result.current.submit(items));
+    await act(() => result.current.submit(items, opciones));
     expect(result.current.error).toBeNull();
     expect(result.current.success?.orderId).toBe(7);
   });
@@ -257,7 +315,7 @@ describe('useCheckout', () => {
       new ApiError(500, 'Internal server error'),
     );
     const { result } = renderHook(() => useCheckout());
-    await act(() => result.current.submit(items));
+    await act(() => result.current.submit(items, opciones));
 
     act(() => result.current.reset());
 

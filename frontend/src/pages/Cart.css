@@ -33,14 +33,248 @@
   margin: 0;
 }
 
-.cart__count {
+/* Títulos chicos de cada parte del resumen: "Cliente" y "Medio de pago". */
+.cart__section-title {
+  margin: 0 0 var(--espacio-2);
+  padding: 0;
+  font-size: var(--texto-chico);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-marca);
+  text-transform: uppercase;
+}
+
+.cart__customer {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-3);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: 16px;
+}
+
+.cart__initials {
+  display: grid;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  font-weight: 800;
+  color: var(--color-marca-oscuro);
+  place-items: center;
+  background: var(--color-acento);
+  border-radius: 50%;
+}
+
+.cart__customer-data {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart__customer-name {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  overflow-wrap: anywhere;
+}
+
+.cart__customer-since {
+  font-size: var(--texto-chico);
   color: var(--color-texto-suave);
 }
 
-.cart__total {
-  font-size: 1.5rem;
+.cart__customer-points {
+  flex-shrink: 0;
+  padding: var(--espacio-1) var(--espacio-2);
+  font-size: var(--texto-chico);
   font-weight: 800;
   color: var(--color-marca-oscuro);
+  white-space: nowrap;
+  background: #fff3bf;
+  border-radius: 999px;
+}
+
+.cart__payment {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cart__payment-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-2);
+}
+
+.cart__payment-option {
+  position: relative;
+  cursor: pointer;
+}
+
+/* El radio real sigue ahí, invisible: mantiene el teclado y los lectores de pantalla. */
+.cart__payment-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.cart__payment-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-1);
+  height: 100%;
+  min-height: 72px;
+  padding: var(--espacio-2) var(--espacio-1);
+  font-size: var(--texto-chico);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-marca-oscuro);
+  text-align: center;
+  background: var(--color-superficie);
+  border: 2px solid var(--color-borde);
+  border-radius: 14px;
+}
+
+.cart__payment-option input:checked + .cart__payment-card {
+  color: #fff;
+  background: var(--color-marca);
+  border-color: var(--color-marca);
+}
+
+.cart__payment-option input:focus-visible + .cart__payment-card {
+  outline: 3px solid var(--color-foco);
+  outline-offset: 2px;
+}
+
+.cart__payment:disabled .cart__payment-option,
+.cart__payment:disabled .cart__payment-option input {
+  cursor: not-allowed;
+}
+
+.cart__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  color: var(--color-texto-suave);
+}
+
+.cart__row strong {
+  color: var(--color-texto);
+  white-space: nowrap;
+}
+
+.cart__row--discount {
+  padding: var(--espacio-2) var(--espacio-3);
+  color: var(--color-alerta);
+  background: #fdecea;
+  border-radius: 12px;
+}
+
+.cart__row--discount strong {
+  color: var(--color-alerta);
+}
+
+.cart__points {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-2) var(--espacio-3);
+  background: #fff9e0;
+  border: 2px dashed #c9a400;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.cart__points-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart__points-title {
+  font-weight: 600;
+  color: var(--color-marca-oscuro);
+}
+
+.cart__points-hint {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+/* Interruptor: un checkbox real con el aspecto del mockup. */
+.cart__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 30px;
+  margin: 0;
+  background: #8c9486;
+  border-radius: 999px;
+  cursor: pointer;
+  appearance: none;
+}
+
+.cart__switch::before {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  content: '';
+  background: #fff;
+  border-radius: 50%;
+}
+
+.cart__switch:checked {
+  background: var(--color-marca);
+}
+
+.cart__switch:checked::before {
+  transform: translateX(22px);
+}
+
+.cart__switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cart__switch::before {
+    transition: transform 0.15s ease;
+  }
+}
+
+.cart__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-marca-oscuro);
+  border-radius: 14px;
+}
+
+.cart__total-amount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cart__earn {
+  padding: var(--espacio-2) var(--espacio-3);
+  color: var(--color-marca-oscuro);
+  background: var(--color-marca-suave);
+  border-radius: 12px;
 }
 
 .cart__actions {
@@ -76,7 +310,16 @@
 /* Escritorio: resumen al costado y fijo al scrollear (debajo del header). */
 @media (min-width: 900px) {
   .cart__layout {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+
+  .cart__payment-options {
+    /* Cada columna según su texto: "Transferencia" necesita más que "Tarjeta". */
+    grid-template-columns: repeat(4, auto);
+  }
+
+  .cart__payment-card {
+    padding-inline: var(--espacio-2);
   }
 
   .cart__summary {
