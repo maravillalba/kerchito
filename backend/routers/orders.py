@@ -60,7 +60,12 @@ def create_order(
             # El precio lo decide siempre el backend: el de oferta si existe, si no el normal.
             unit_price = product.effective_price
             items.append(
-                OrderItem(product_id=product.id, quantity=item.quantity, unit_price=unit_price)
+                OrderItem(
+                    product_id=product.id,
+                    quantity=item.quantity,
+                    unit_price=unit_price,
+                    unit_cost=product.cost,
+                )
             )
             subtotal += item.quantity * unit_price
 

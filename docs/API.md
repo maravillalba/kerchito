@@ -280,6 +280,10 @@ El backend calcula, en este orden: `subtotal`, 15% de primera compra, canje de p
 
 Stock, pedido y puntos se guardan en una sola transacción: si algún item falla (404 o 409), no se guarda el pedido ni se descuenta nada. Si hay varios errores, se responde el del primer item que falle. Si un `product_id` se repite, el stock se descuenta de forma acumulada y se guarda un renglón por cada item. Sin sesión responde 401; con la sesión del admin, 403.
 
+Cada renglón guarda también `unit_cost`, el costo del producto al comprar. Es interno: no aparece en ninguna respuesta. Con él, `net_profit` de `GET /api/admin/summary` es la suma de `(unit_price - unit_cost) * quantity` menos la suma de `discount_amount` de los pedidos activos, y editar un costo no cambia la ganancia de ventas pasadas.
+
+El 15% de primera compra vuelve solo si al cliente no le queda ningún pedido activo.
+
 **Pedido**
 
 ```

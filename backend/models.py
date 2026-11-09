@@ -139,6 +139,7 @@ class OrderItem(Base):
     __table_args__ = (
         CheckConstraint("quantity >= 1", name="ck_order_items_quantity_min"),
         CheckConstraint("unit_price > 0", name="ck_order_items_unit_price_positive"),
+        CheckConstraint("unit_cost >= 0", name="ck_order_items_unit_cost_non_negative"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -146,6 +147,8 @@ class OrderItem(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+    # Costo del producto al comprar: editar el costo no cambia la ganancia de ventas pasadas.
+    unit_cost: Mapped[float] = mapped_column(Float, nullable=False)
 
     order: Mapped["Order"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship()

@@ -111,7 +111,10 @@ Están en **un solo archivo**, `backend/points.py`, como constantes. El frontend
 | Saldo | suma de `points_movements.points` del cliente. **Puede ser negativo** (ver anulación); con saldo negativo no se puede canjear |
 | Niveles (solo informativos) | según el saldo actual: Bronce desde 0, Plata desde 300, Oro desde 1000. Un saldo negativo es Bronce |
 
-**Anulación (`PATCH /api/orders/{id}/cancel`)**, en una sola transacción: el pedido pasa a `cancelled`, se devuelve el stock, se revierten los puntos ganados y se devuelven los usados, con un movimiento por cada cosa. Si el cliente ya gastó los puntos ganados, su saldo queda negativo. Como la primera compra se calcula sobre los pedidos activos, si al cliente no le queda ninguno vuelve a tener el 15%. Anular dos veces da 409. Los campos del pedido anulado se conservan como registro.
+**Anulación (`PATCH /api/orders/{id}/cancel`)**, en una sola transacción: el pedido pasa a `cancelled`, se devuelve el stock, se revierten los puntos ganados y se devuelven los usados, con un movimiento por cada cosa. Si el cliente ya gastó los puntos ganados, su saldo queda negativo. Anular dos veces da 409.
+
+**Cuándo vuelve el 15%:** solo si al cliente no le queda **ningún** pedido `active`. Si anula su primera compra pero ya hizo otra que sigue activa, el 15% no vuelve; si después se anula también esa, sí.
+ Los campos del pedido anulado se conservan como registro.
 
 ## 6. Tipos que solo existen en el frontend
 
@@ -190,7 +193,7 @@ Notas de `POST /api/orders`:
 - Si un `product_id` se repite en `items`, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
 - Si hay varios errores, se responde el del primer item que falle, según el orden en que llegaron.
 
-**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - cost) * quantity`, con el `cost` actual del producto y sin restar descuentos), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5, solo con saldo positivo). Las ventas cuentan solo pedidos `active`.
+**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - unit_cost) * quantity` menos la suma de `discount_amount`, que ya incluye el 15% y el valor de los puntos canjeados: el canje se resta una sola vez. Es lo cobrado menos el costo de lo vendido, y puede ser negativa), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5, solo con saldo positivo). Las ventas cuentan solo pedidos `active`.
 
 **`GET /api/admin/customers`:** `id`, `first_name`, `last_name`, `email`, `phone`, `points`, `level` (`"Bronce"`, `"Plata"` o `"Oro"`), `orders_count`, `total_spent`, `last_order_at` (`string \| null`). Compras, gasto y última compra cuentan solo pedidos `active`. El detalle agrega `movements[]`: `id`, `order_id` (`number \| null`), `points`, `reason`, `created_at`, del más nuevo al más viejo.
 
@@ -328,7 +331,7 @@ Notas de `POST /api/chat`:
 - `sessions`: `id`, `user_id` (FK a `users`), `token_hash` (único), `created_at`, `expires_at`.
 - `products`: `id`, `brand`, `name`, `unit`, `category`, `price`, `offer_price`, `stock`, `cost`, `description`, `image`. Restricciones: `brand`, `name` y `unit` no vacíos; `offer_price` nulo o mayor a 0 y menor que `price`; `cost` mayor o igual a 0.
 - `orders`: `id`, `created_at`, `user_id` (FK a `users`), `payment_method`, `status`, `discount_amount`, `points_used`, `points_earned`, `total`.
-- `order_items`: `id`, `order_id` (FK a `orders`), `product_id` (FK a `products`), `quantity`, `unit_price`.
+- `order_items`: `id`, `order_id` (FK a `orders`), `product_id` (FK a `products`), `quantity`, `unit_price`, `unit_cost` (mayor o igual a 0). `unit_cost` es el `cost` del producto al comprar: es un dato interno, no sale por ningún endpoint, y editar el costo de un producto no cambia la ganancia de las ventas pasadas.
 - `points_movements`: `id`, `user_id` (FK a `users`), `order_id` (FK a `orders`, nulo en ajustes manuales), `points` (con signo, distinto de 0), `reason` (no vacío), `created_at`.
 - SQLite con `PRAGMA foreign_keys=ON`.
 - Crear un pedido y anularlo se hacen cada uno en **una sola transacción**: o se guarda todo (stock, pedido y puntos), o nada.

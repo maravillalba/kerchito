@@ -88,22 +88,24 @@ class OutdatedDatabaseError(RuntimeError):
     """La base existente no tiene las columnas que espera el modelo actual."""
 
 
-def _check_products_columns() -> None:
+def _check_columns() -> None:
     # create_all no agrega columnas a una tabla que ya existe: una kiosco.db
     # anterior (por ejemplo, sin cost) rompería cada consulta.
-    existing = {c["name"] for c in inspect(engine).get_columns("products")}
-    missing = set(Product.__table__.columns.keys()) - existing
-    if missing:
-        raise OutdatedDatabaseError(
-            "La base de datos es de una versión anterior: a la tabla products le "
-            f"faltan las columnas {', '.join(sorted(missing))}. Frená el servidor, "
-            "borrá backend/kiosco.db y volvé a arrancarlo para cargar el seed nuevo."
-        )
+    inspector = inspect(engine)
+    for table in Base.metadata.sorted_tables:
+        existing = {c["name"] for c in inspector.get_columns(table.name)}
+        missing = set(table.columns.keys()) - existing
+        if missing:
+            raise OutdatedDatabaseError(
+                f"La base de datos es de una versión anterior: a la tabla {table.name} le "
+                f"faltan las columnas {', '.join(sorted(missing))}. Frená el servidor, "
+                "borrá backend/kiosco.db y volvé a arrancarlo para cargar el seed nuevo."
+            )
 
 
 def seed() -> None:
     Base.metadata.create_all(bind=engine)
-    _check_products_columns()
+    _check_columns()
     with SessionLocal() as db:
         if db.query(Product).count() > 0:
             print("La tabla products ya tiene datos: no se carga nada.")

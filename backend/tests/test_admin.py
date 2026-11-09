@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from conftest import crear_usuario, headers_de
-from models import PointsMovement, Product
+from models import OrderItem, PointsMovement, Product
 
 RUTAS = [
     ("get", "/api/admin/summary"),
@@ -81,10 +81,71 @@ def test_resumen_cobrado_y_ganancia(client, comprar, admin_headers, customer_hea
     comprar(customer_headers, [(1, 2), (2, 1)])
     data = resumen(client, admin_headers)
     assert data["total_revenue"] == 2380
-    # (1000 - 600) x 2 + (800 - 500) x 1. La ganancia no resta descuentos.
-    assert data["net_profit"] == 1100
+    # (1000 - 600) x 2 + (800 - 500) x 1 = 1100, menos los 420 del 15%.
+    assert data["net_profit"] == 680
     assert data["stock_units"] == 32
     assert data["points_in_circulation"] == 23
+
+
+def test_la_ganancia_resta_el_canje_una_sola_vez(
+    client, db_session, comprar, cliente, admin_headers, customer_headers
+):
+    comprar(customer_headers, [(3, 1)])  # 1000 - 15% = 850. Ganancia 900 - 150 = 750.
+    db_session.add(PointsMovement(user_id=cliente.id, points=92, reason="Prueba"))  # Saldo: 100.
+    db_session.commit()
+    pedido = comprar(customer_headers, [(3, 1)], use_points=True)
+    assert pedido["points_discount"] == 500
+    assert pedido["discount_amount"] == 500
+    # 750 + (900 - 500). Si el canje se restara dos veces, daría 650.
+    assert resumen(client, admin_headers)["net_profit"] == 1150
+
+
+def test_la_ganancia_coincide_con_lo_cobrado_menos_el_costo(
+    client, comprar, admin_headers, customer_headers
+):
+    comprar(customer_headers, [(1, 2), (2, 1)])
+    data = resumen(client, admin_headers)
+    assert data["net_profit"] == data["total_revenue"] - (600 * 2 + 500)
+
+
+def test_la_ganancia_puede_ser_negativa(client, db_session, comprar, cliente, admin_headers, customer_headers):
+    comprar(customer_headers, [(3, 1)])  # Consume el 15%.
+    db_session.add(PointsMovement(user_id=cliente.id, points=200, reason="Prueba"))
+    db_session.commit()
+    comprar(customer_headers, [(1, 1)], use_points=True)  # 1000 con 1000 de canje: cobra 0.
+    # 750 de la primera, más (400 - 1000) de la segunda.
+    assert resumen(client, admin_headers)["net_profit"] == 150
+
+
+def test_editar_el_costo_no_cambia_la_ganancia_de_ventas_pasadas(
+    client, comprar, admin_headers, customer_headers
+):
+    comprar(customer_headers, [(1, 1)])  # (1000 - 600) - 150 = 250.
+    assert resumen(client, admin_headers)["net_profit"] == 250
+    client.put(
+        "/api/products/1",
+        json={"brand": "A", "name": "Uno", "unit": "1 u.", "category": "almacen",
+              "price": 1000, "stock": 9, "cost": 999},
+        headers=admin_headers,
+    )
+    assert resumen(client, admin_headers)["net_profit"] == 250
+    # Una venta nueva sí usa el costo nuevo: 250 + (1000 - 999).
+    comprar(customer_headers, [(1, 1)])
+    assert resumen(client, admin_headers)["net_profit"] == 251
+
+
+def test_el_renglon_guarda_el_costo_pero_no_lo_muestra(
+    client, db_session, comprar, admin_headers, customer_headers
+):
+    pedido = comprar(customer_headers, [(1, 1)])
+    assert db_session.query(OrderItem).one().unit_cost == 600
+    assert "unit_cost" not in pedido["items"][0]
+    for ruta, headers in [
+        ("/api/orders/mine", customer_headers),
+        ("/api/orders", admin_headers),
+        ("/api/admin/orders", admin_headers),
+    ]:
+        assert "unit_cost" not in client.get(ruta, headers=headers).json()[0]["items"][0]
 
 
 def test_resumen_no_cuenta_las_ventas_anuladas(client, comprar, admin_headers, customer_headers):

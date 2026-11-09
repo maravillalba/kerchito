@@ -48,14 +48,18 @@ def summary(db: Session = Depends(get_db)):
     active = Order.status == "active"
 
     total_revenue = db.scalar(select(func.coalesce(func.sum(Order.total), 0)).where(active))
-    net_profit = db.scalar(
+    gross_profit = db.scalar(
         select(
-            func.coalesce(func.sum((OrderItem.unit_price - Product.cost) * OrderItem.quantity), 0)
+            func.coalesce(
+                func.sum((OrderItem.unit_price - OrderItem.unit_cost) * OrderItem.quantity), 0
+            )
         )
         .join(OrderItem.order)
-        .join(OrderItem.product)
         .where(active)
     )
+    # Consulta aparte: en el JOIN de arriba, cada pedido se repetiría una vez por renglón.
+    # discount_amount ya incluye el 15% y el valor de los puntos canjeados.
+    discounts = db.scalar(select(func.coalesce(func.sum(Order.discount_amount), 0)).where(active))
     stock_units = db.scalar(select(func.coalesce(func.sum(Product.stock), 0)))
     points_in_circulation = db.scalar(select(func.coalesce(func.sum(PointsMovement.points), 0)))
 
@@ -83,7 +87,7 @@ def summary(db: Session = Depends(get_db)):
 
     return SummaryOut(
         total_revenue=round(total_revenue, 2),
-        net_profit=round(net_profit, 2),
+        net_profit=round(gross_profit - discounts, 2),
         stock_units=stock_units,
         points_in_circulation=points_in_circulation,
         best_sellers=[

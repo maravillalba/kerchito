@@ -83,6 +83,24 @@ def test_seed_con_una_base_vieja_avisa_que_hay_que_borrarla(monkeypatch):
     engine.dispose()
 
 
+def test_seed_avisa_tambien_si_la_columna_falta_en_otra_tabla(monkeypatch):
+    # products está al día, pero order_items es de antes de unit_cost.
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    with engine.begin() as conn:
+        conn.execute(text(
+            "CREATE TABLE order_items (id INTEGER PRIMARY KEY, order_id INTEGER NOT NULL, "
+            "product_id INTEGER NOT NULL, quantity INTEGER NOT NULL, unit_price FLOAT NOT NULL)"
+        ))
+    monkeypatch.setattr(seed, "engine", engine)
+    monkeypatch.setattr(seed, "SessionLocal", sessionmaker(bind=engine))
+
+    with pytest.raises(seed.OutdatedDatabaseError, match="order_items le faltan las columnas unit_cost"):
+        seed.seed()
+    engine.dispose()
+
+
 def test_seed_tiene_costos_que_dejan_ganancia_incluso_en_oferta(seed_en_memoria):
     for p in cargar_seed(seed_en_memoria):
         assert 0 < p.cost < p.effective_price, p.full_name

@@ -181,7 +181,7 @@ def test_borrar_producto_que_esta_en_un_pedido_devuelve_409(
             user_id=cliente.id,
             payment_method="efectivo",
             total=1200,
-            items=[OrderItem(product_id=1, quantity=1, unit_price=1200)],
+            items=[OrderItem(product_id=1, quantity=1, unit_price=1200, unit_cost=700)],
         )
     )
     db_session.commit()
