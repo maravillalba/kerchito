@@ -4,6 +4,12 @@ export const PESOS_POR_PUNTO = 100;
 export const PUNTOS_POR_BLOQUE = 100;
 export const PESOS_POR_BLOQUE = 500;
 export const DESCUENTO_PRIMERA_COMPRA = 15;
+// Solo informativos: saldo mínimo de cada nivel, de menor a mayor.
+export const NIVELES = [
+  { nombre: 'Bronce', desde: 0 },
+  { nombre: 'Plata', desde: 300 },
+  { nombre: 'Oro', desde: 1000 },
+];
 
 export interface ResumenCompra {
   subtotal: number;

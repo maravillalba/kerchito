@@ -14,6 +14,7 @@ import Ingresar from './pages/Ingresar';
 import NotFound from './pages/NotFound';
 import ProductDetail from './pages/ProductDetail';
 import Products from './pages/Products';
+import Puntos from './pages/Puntos';
 import Registro from './pages/Registro';
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
           <Route path="products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
+          <Route path="puntos" element={<Puntos />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

@@ -34,10 +34,12 @@ function Ingresar() {
       // Al quedar con sesión, RutaSinSesion lleva a cada uno a su inicio.
       await login(email.trim(), password);
     } catch (error) {
-      // El 401 trae "Correo o contraseña incorrectos"; sin conexión, el motivo.
+      // El 401 y el 429 traen el motivo en español; sin conexión, también.
       setErrorGeneral(
         error instanceof ApiError &&
-          (error.status === 401 || error.kind !== 'http')
+          (error.status === 401 ||
+            error.status === 429 ||
+            error.kind !== 'http')
           ? error.message
           : 'No se pudo ingresar. Intentá de nuevo.',
       );

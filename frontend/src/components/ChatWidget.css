@@ -63,11 +63,16 @@
   outline-offset: 3px;
 }
 
-/* En pantallas muy angostas el globito se oculta para no tapar contenido. */
-@media (max-width: 379px) {
+/* En pantallas chicas el globito tapaba contenido, y en el carrito, los medios de
+   pago y el total. Queda el botón con Kerchi, que abre el chat igual. */
+@media (max-width: 767px) {
   .chat-widget__bubble {
     display: none;
   }
+}
+
+body:has(.cart) .chat-widget__bubble {
+  display: none;
 }
 
 /* Kerchi pensando, chico, junto al título del chat abierto. */

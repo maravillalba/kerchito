@@ -36,10 +36,14 @@ export default function Header() {
             Productos
           </NavLink>
           {usuario?.role === 'customer' && (
-            <p className="header__saludo">
+            <Link
+              to="/puntos"
+              className="header__saludo"
+              title="Cómo funcionan los puntos"
+            >
               <span aria-hidden="true">⭐</span> Hola, {usuario.first_name} ·{' '}
               {usuario.points} pts
-            </p>
+            </Link>
           )}
           {usuario?.role === 'admin' && (
             <Link to="/admin" className="header__link">

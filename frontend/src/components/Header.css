@@ -91,10 +91,15 @@
   font-size: var(--texto-chico);
   font-weight: 700;
   color: var(--color-marca-oscuro);
+  text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
   background: #fff3bf;
   border-radius: 999px;
+}
+
+.header__saludo:hover {
+  text-decoration: underline;
 }
 
 .header__saludo + .header__cart--con-sesion {

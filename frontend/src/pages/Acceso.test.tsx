@@ -230,12 +230,62 @@ describe('Ingresar', () => {
     expect(rutaActual()).toBe('/ingresar');
   });
 
+  it('con demasiados intentos muestra cuándo volver a probar', async () => {
+    vi.mocked(loginUser).mockRejectedValue(
+      new ApiError(429, 'Demasiados intentos. Probá de nuevo en 15 minutos.'),
+    );
+    const user = renderApp('/ingresar');
+    await ingresar(user);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Demasiados intentos. Probá de nuevo en 15 minutos.',
+    );
+    expect(screen.getByRole('button', { name: 'Ingresar' })).toBeEnabled();
+  });
+
   it('sin completar no llama al backend', async () => {
     const user = renderApp('/ingresar');
     await user.click(screen.getByRole('button', { name: 'Ingresar' }));
     expect(screen.getByText('Ingresá tu correo.')).toBeInTheDocument();
     expect(screen.getByText('Ingresá tu contraseña.')).toBeInTheDocument();
     expect(loginUser).not.toHaveBeenCalled();
+  });
+});
+
+describe('Cómo funcionan los puntos', () => {
+  it('explica las reglas con los valores reales y muestra el saldo', async () => {
+    guardarSesion(usuarioDePrueba({ points: 120 }));
+    vi.mocked(getMe).mockResolvedValue(usuarioDePrueba({ points: 120 }));
+    renderApp('/puntos');
+
+    expect(
+      screen.getByRole('heading', { name: 'Cómo funcionan los puntos' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(/120 puntos/, { selector: 'strong' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('15% en tu primera compra')).toBeInTheDocument();
+    expect(screen.getByText(/1 punto cada \$\s100/)).toBeInTheDocument();
+    expect(screen.getByText(/100 puntos valen \$\s500/)).toBeInTheDocument();
+    expect(screen.getByText(/desde 300 puntos/)).toBeInTheDocument();
+    expect(screen.getByText(/desde 1000 puntos/)).toBeInTheDocument();
+  });
+
+  it('el saludo del header y el pie llevan a esta pantalla', async () => {
+    guardarSesion();
+    vi.mocked(getMe).mockResolvedValue(cliente);
+    renderApp('/');
+    expect(
+      screen.getByRole('link', { name: /Hola, Ana · 0 pts/ }),
+    ).toHaveAttribute('href', '/puntos');
+    expect(
+      screen.getByRole('link', { name: 'Cómo funcionan los puntos' }),
+    ).toHaveAttribute('href', '/puntos');
+    await waitFor(() => expect(getMe).toHaveBeenCalled());
+  });
+
+  it('sin sesión lleva a la Entrada, como el resto de la tienda', () => {
+    renderApp('/puntos');
+    expect(rutaActual()).toBe('/bienvenida');
   });
 });
 

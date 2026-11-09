@@ -56,8 +56,8 @@ describe('Footer', () => {
     expect(
       within(nav).getByRole('link', { name: 'Golosinas y snacks' }),
     ).toHaveAttribute('href', '/products?category=golosinas_snacks');
-    // Inicio, Productos, Carrito y las 6 categorías.
-    expect(within(nav).getAllByRole('link')).toHaveLength(9);
+    // Inicio, Productos, Carrito, Cómo funcionan los puntos y las 6 categorías.
+    expect(within(nav).getAllByRole('link')).toHaveLength(10);
   });
 
   it('"Atención" muestra los mismos horarios y medios de pago que KioscoBot', () => {

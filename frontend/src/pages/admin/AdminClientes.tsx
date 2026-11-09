@@ -278,6 +278,11 @@ function AdminClientes() {
         <span className="panel-pildora">
           {clientes.length} {clientes.length === 1 ? 'cliente' : 'clientes'}
         </span>
+        <div className="panel-acciones">
+          <Link className="panel-boton" to="/puntos">
+            Reglas de puntos
+          </Link>
+        </div>
       </div>
 
       <div className="panel-tarjetas">

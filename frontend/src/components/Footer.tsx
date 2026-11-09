@@ -38,6 +38,9 @@ export default function Footer() {
               <li>
                 <Link to="/cart">Carrito</Link>
               </li>
+              <li>
+                <Link to="/puntos">Cómo funcionan los puntos</Link>
+              </li>
             </ul>
           </div>
 
