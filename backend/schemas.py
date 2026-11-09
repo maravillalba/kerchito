@@ -20,6 +20,8 @@ Category = Literal[
 ]
 
 Role = Literal["customer", "admin"]
+PaymentMethod = Literal["efectivo", "transferencia", "tarjeta", "mercado_pago"]
+OrderStatus = Literal["active", "cancelled"]
 
 
 # Texto obligatorio: sin espacios al principio ni al final, y no vacío.
@@ -58,8 +60,6 @@ class LoginIn(BaseModel):
 
 
 class UserOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     first_name: str
     last_name: str
@@ -67,6 +67,8 @@ class UserOut(BaseModel):
     phone: str | None
     role: Role
     created_at: datetime
+    points: int
+    first_purchase_available: bool
 
 
 class AuthOut(BaseModel):
@@ -135,12 +137,15 @@ class OrderItemIn(BaseModel):
 
 class OrderCreate(BaseModel):
     items: list[OrderItemIn] = Field(min_length=1)
+    payment_method: PaymentMethod
+    use_points: bool = False
 
 
 class OrderItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     product_id: int
+    product_name: str
     quantity: int
     unit_price: float
 
@@ -150,9 +155,35 @@ class OrderOut(BaseModel):
 
     id: int
     created_at: datetime
+    status: OrderStatus
+    payment_method: PaymentMethod
+    subtotal: float
+    first_purchase_discount: float
+    points_discount: float
+    discount_amount: float
     total: float
+    points_used: int
+    points_earned: int
     items: list[OrderItemOut]
-    
+
+
+class OrderCreatedOut(OrderOut):
+    points_balance: int
+
+
+class OrderCustomerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+
+
+class AdminOrderOut(OrderOut):
+    customer: OrderCustomerOut
+
+
 class ChatRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 

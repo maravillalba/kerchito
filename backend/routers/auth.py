@@ -5,6 +5,7 @@ from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from accounts import user_out
 from database import get_db
 from deps import get_current_session, get_current_user
 from models import AuthSession, User
@@ -29,7 +30,7 @@ def _open_session(db: Session, user: User) -> AuthOut:
     expires_at = datetime.now() + SESSION_DURATION
     db.add(AuthSession(user=user, token_hash=hash_token(token), expires_at=expires_at))
     db.commit()
-    return AuthOut(token=token, expires_at=expires_at, user=UserOut.model_validate(user))
+    return AuthOut(token=token, expires_at=expires_at, user=user_out(db, user))
 
 
 @router.post("/register", response_model=AuthOut, status_code=201)
@@ -74,8 +75,8 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserOut)
-def me(user: User = Depends(get_current_user)):
-    return user
+def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return user_out(db, user)
 
 
 @router.post("/logout", status_code=204)

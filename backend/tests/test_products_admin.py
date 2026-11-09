@@ -174,9 +174,16 @@ def test_borrar_producto_inexistente_devuelve_404(client, admin_headers):
 
 
 def test_borrar_producto_que_esta_en_un_pedido_devuelve_409(
-    client, db_session, producto, admin_headers
+    client, db_session, producto, admin_headers, cliente
 ):
-    db_session.add(Order(total=1200, items=[OrderItem(product_id=1, quantity=1, unit_price=1200)]))
+    db_session.add(
+        Order(
+            user_id=cliente.id,
+            payment_method="efectivo",
+            total=1200,
+            items=[OrderItem(product_id=1, quantity=1, unit_price=1200)],
+        )
+    )
     db_session.commit()
     respuesta = client.delete("/api/products/1", headers=admin_headers)
     assert respuesta.status_code == 409

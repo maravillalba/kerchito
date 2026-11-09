@@ -5,11 +5,14 @@ from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, St
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
-from schemas import Category, Role
+from points import points_value
+from schemas import Category, OrderStatus, PaymentMethod, Role
 
 CATEGORIES = get_args(Category)
 _CATEGORIES_SQL = ", ".join(f"'{c}'" for c in CATEGORIES)
 _ROLES_SQL = ", ".join(f"'{r}'" for r in get_args(Role))
+_PAYMENT_METHODS_SQL = ", ".join(f"'{m}'" for m in get_args(PaymentMethod))
+_ORDER_STATUSES_SQL = ", ".join(f"'{s}'" for s in get_args(OrderStatus))
 
 
 class User(Base):
@@ -91,16 +94,44 @@ class Product(Base):
 
 class Order(Base):
     __tablename__ = "orders"
+    __table_args__ = (
+        CheckConstraint(f"payment_method IN ({_PAYMENT_METHODS_SQL})", name="ck_orders_payment_method"),
+        CheckConstraint(f"status IN ({_ORDER_STATUSES_SQL})", name="ck_orders_status"),
+        CheckConstraint("total >= 0", name="ck_orders_total_non_negative"),
+        CheckConstraint("discount_amount >= 0", name="ck_orders_discount_non_negative"),
+        CheckConstraint("points_used >= 0", name="ck_orders_points_used_non_negative"),
+        CheckConstraint("points_earned >= 0", name="ck_orders_points_earned_non_negative"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.now
     )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    payment_method: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="active")
+    # first_purchase_discount + points_discount.
+    discount_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    points_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    points_earned: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total: Mapped[float] = mapped_column(Float, nullable=False)
 
+    customer: Mapped["User"] = relationship()
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )
+
+    @property
+    def subtotal(self) -> float:
+        return round(sum(item.quantity * item.unit_price for item in self.items), 2)
+
+    @property
+    def points_discount(self) -> float:
+        return points_value(self.points_used)
+
+    @property
+    def first_purchase_discount(self) -> float:
+        return round(self.discount_amount - self.points_discount, 2)
 
 
 class OrderItem(Base):
@@ -118,3 +149,26 @@ class OrderItem(Base):
 
     order: Mapped["Order"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship()
+
+    @property
+    def product_name(self) -> str:
+        return self.product.full_name
+
+
+class PointsMovement(Base):
+    __tablename__ = "points_movements"
+    __table_args__ = (
+        CheckConstraint("points <> 0", name="ck_points_movements_points_not_zero"),
+        CheckConstraint("length(trim(reason)) > 0", name="ck_points_movements_reason_not_empty"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    # Nulo en los ajustes manuales del admin.
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id"), nullable=True)
+    # Con signo: positivo suma, negativo resta.
+    points: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.now
+    )
