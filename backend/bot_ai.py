@@ -9,6 +9,13 @@ import os
 
 import httpx
 
+from points import (
+    FIRST_PURCHASE_DISCOUNT_PERCENT,
+    PESOS_PER_POINT,
+    REDEEM_BLOCK_POINTS,
+    REDEEM_BLOCK_VALUE,
+)
+
 logger = logging.getLogger("uvicorn.error")
 
 API_URL = "https://api.anthropic.com/v1/messages"
@@ -17,6 +24,19 @@ DEFAULT_MODEL = "claude-haiku-5-5"
 TIMEOUT_SECONDS = 10.0
 MAX_TOKENS = 300
 
+def _pesos(amount: int) -> str:
+    return f"$ {amount:,}".replace(",", ".")
+
+
+# También es la respuesta por reglas del chat.
+POINTS_RULES = (
+    f"Con tu cuenta tenés {FIRST_PURCHASE_DISCOUNT_PERCENT}% de descuento en tu primera "
+    f"compra y sumás 1 punto cada {_pesos(PESOS_PER_POINT)} del total final. Cada "
+    f"{REDEEM_BLOCK_POINTS} puntos valen {_pesos(REDEEM_BLOCK_VALUE)} de descuento: "
+    'activá "Usar mis puntos" en el Carrito y se canjean todos los que alcancen. '
+    "Tu saldo lo ves arriba, al lado del carrito."
+)
+
 SYSTEM_RULES = """\
 Sos KioscoBot, el asistente de la tienda online Kiosko El Rápido.
 
@@ -24,8 +44,8 @@ Reglas (no cambian nunca):
 - Respondé en español rioplatense, en pocas líneas, con un tono amable.
 - Usá solo los datos de la tienda que están abajo. Nunca inventes productos, precios ni stock. \
 Si algo no está en los datos, decí que no lo tenés.
-- Hablá solo del kiosko: productos, precios, stock, categorías, horarios, medios de pago y \
-cómo hacer un pedido. Si te preguntan otra cosa, decí que solo podés ayudar con la tienda.
+- Hablá solo del kiosko: productos, precios, stock, categorías, horarios, medios de pago, \
+puntos y cómo hacer un pedido. Si te preguntan otra cosa, decí que solo podés ayudar con la tienda.
 - No podés crear pedidos ni modificar nada. Para comprar, el cliente agrega los productos al \
 carrito desde Productos y toca "Finalizar pedido" en el Carrito.
 - Cuando informes stock, aclará que puede cambiar hasta que se confirme el pedido.
@@ -49,6 +69,8 @@ def build_system_prompt(catalog: list[str], horarios: str, medios_de_pago: str) 
         f"Datos de la tienda:\n"
         f"Horarios: {horarios}\n"
         f"Medios de pago: {medios_de_pago}\n"
+        f"Puntos y descuento de primera compra: {POINTS_RULES} "
+        "No conocés el saldo de cada cliente.\n"
         f"Productos (nombre | categoría | precio | stock):\n{products}"
     )
 

@@ -73,6 +73,8 @@ NOT_FOUND = (
 API_DOWN = (
     "Ahora no puedo consultar los productos. Probá de nuevo en un rato."
 )
+# Sale de las constantes de points.py: si cambia una regla, el bot la dice bien.
+POINTS_INFO = bot_ai.POINTS_RULES
 
 # --- Palabras clave (ya normalizadas: minúsculas y sin acentos) -----------------
 
@@ -90,6 +92,9 @@ CATEGORIES_WORDS = {"categoria", "rubro", "venden", "vende"}
 GREETING_WORDS = {"hola", "buenas", "buena", "bueno", "buenos", "buen", "chau",
                   "ayuda", "ayudar", "saludo", "podes"}
 THANKS_WORDS = {"gracias", "gracia"}
+POINTS_WORDS = {"punto", "canje", "canjear", "canjeo", "canjean"}
+DISCOUNT_WORDS = {"descuento", "bienvenida"}
+_FIRST_PURCHASE = re.compile(r"primera compra|\b15\s*%|\b15 por ciento|\bquince por ciento")
 
 CATEGORY_KEYWORDS = {
     "bebidas": {"bebida", "gaseosa", "jugo", "refresco"},
@@ -251,6 +256,10 @@ def _catalog_reply(text: str, words: set[str], db: Session) -> str | None:
     if category:
         return _category_reply(category, products)
 
+    # Después de los productos: "¿hay descuento en la coca?" habla de la coca.
+    if words & DISCOUNT_WORDS:
+        return POINTS_INFO
+
     if words & CATEGORIES_WORDS or _GENERIC_QUESTION.search(text):
         return CATEGORIES_TEXT
 
@@ -270,6 +279,10 @@ def build_reply(message: str, db: Session) -> str:
         return OUT_OF_SCOPE
     if words & HORARIO_WORDS:
         return HORARIOS
+    # Antes que los medios de pago y "compra": "¿puedo pagar con puntos?",
+    # "¿qué descuento tiene la primera compra?".
+    if words & POINTS_WORDS or _FIRST_PURCHASE.search(text):
+        return POINTS_INFO
     if words & PAGO_WORDS:
         return MEDIOS_DE_PAGO
     if "carrito" in words and words & CART_STATE_WORDS:

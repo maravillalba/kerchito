@@ -3,6 +3,7 @@ import logging
 import pytest
 
 import bot_ai
+import points
 from models import Product
 from routers.chat import (
     CART_INFO,
@@ -133,6 +134,40 @@ def test_estado_del_carrito(client, productos, ia_sin_clave):
 
 def test_horarios(client, productos, ia_sin_clave):
     assert preguntar(client, "¿A qué hora abren?") == HORARIOS
+
+
+@pytest.mark.parametrize(
+    "mensaje",
+    [
+        "¿Cómo funcionan los puntos?",
+        "¿Puedo pagar con mis puntos?",
+        "¿Cómo canjeo?",
+        "¿Qué descuento tiene la primera compra?",
+        "¿Cómo es lo del 15%?",
+        "¿Tienen descuentos?",
+    ],
+)
+def test_explica_los_puntos_y_el_15(client, productos, ia_sin_clave, mensaje):
+    respuesta = preguntar(client, mensaje)
+    assert "15% de descuento en tu primera compra" in respuesta
+    assert "1 punto cada $ 100" in respuesta
+    assert "100 puntos valen $ 500" in respuesta
+    assert "Usar mis puntos" in respuesta
+
+
+def test_los_puntos_salen_de_las_constantes(ia_sin_clave):
+    assert str(points.FIRST_PURCHASE_DISCOUNT_PERCENT) in bot_ai.POINTS_RULES
+    assert f"$ {points.REDEEM_BLOCK_VALUE}" in bot_ai.POINTS_RULES
+
+
+def test_descuento_de_un_producto_habla_del_producto(client, productos, ia_sin_clave):
+    assert "Coca-Cola Original" in preguntar(client, "¿Hay descuento en la coca?")
+
+
+def test_la_ia_recibe_las_reglas_de_puntos():
+    prompt = bot_ai.build_system_prompt([], "horarios", "medios")
+    assert bot_ai.POINTS_RULES in prompt
+    assert "No conocés el saldo" in prompt
 
 
 def test_medios_de_pago(client, productos, ia_sin_clave):
