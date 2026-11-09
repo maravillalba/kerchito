@@ -1,0 +1,244 @@
+/* Celular: el panel amarillo arriba y el contenido debajo. Escritorio: mitad y mitad. */
+.entrada {
+  display: grid;
+  flex: 1;
+  min-height: 100vh;
+}
+
+.entrada__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 300px;
+  padding: var(--espacio-3);
+  overflow: hidden;
+  background: var(--color-acento);
+}
+
+/* Círculos decorativos del fondo, con el contenido por encima. */
+.entrada__panel::before,
+.entrada__panel::after {
+  position: absolute;
+  content: '';
+  border-radius: 50%;
+}
+
+.entrada__panel::before {
+  top: -22%;
+  right: -12%;
+  width: 60%;
+  aspect-ratio: 1;
+  background: #ffc400;
+}
+
+.entrada__panel::after {
+  bottom: -30%;
+  left: -18%;
+  width: 70%;
+  aspect-ratio: 1;
+  background: #ffe263;
+}
+
+.entrada__panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.entrada__logo {
+  position: absolute;
+  top: var(--espacio-3);
+  left: var(--espacio-3);
+  width: auto;
+  height: 52px;
+  padding: var(--espacio-1) var(--espacio-2);
+  background: var(--color-superficie);
+  border-radius: 16px;
+}
+
+.entrada__sello {
+  position: absolute;
+  top: 84px;
+  left: var(--espacio-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 104px;
+  margin: 0;
+  color: #fff;
+  text-align: center;
+  background: var(--color-primario-oscuro);
+  border: 4px solid #fff;
+  border-radius: 50%;
+  box-shadow: var(--sombra-media);
+  transform: rotate(-8deg);
+}
+
+.entrada__sello-numero {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.entrada__sello-texto {
+  padding-inline: var(--espacio-2);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.entrada__globo {
+  position: absolute;
+  top: var(--espacio-3);
+  right: var(--espacio-3);
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  font-weight: 800;
+  color: var(--color-marca-oscuro);
+  white-space: nowrap;
+  background: var(--color-superficie);
+  border-radius: 20px;
+  box-shadow: var(--sombra-media);
+}
+
+.entrada__kerchi .mascota {
+  width: 190px;
+}
+
+.entrada__contenido {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--espacio-5) var(--espacio-3);
+}
+
+.entrada__marca {
+  margin: 0;
+  font-size: var(--texto-chico);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-marca);
+}
+
+.entrada__titulo {
+  margin: var(--espacio-2) 0 var(--espacio-3);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 800;
+}
+
+.entrada__texto {
+  margin: 0 0 var(--espacio-4);
+  font-size: 1.125rem;
+  color: var(--color-texto-suave);
+}
+
+/* Naranja oscuro: el del logo no llega a AA como texto chico sobre el crema. */
+.entrada__texto strong {
+  color: var(--color-primario-oscuro);
+}
+
+.entrada__boton {
+  width: 100%;
+}
+
+.entrada__beneficios {
+  display: grid;
+  gap: var(--espacio-2);
+  margin: var(--espacio-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entrada__beneficio {
+  display: flex;
+  flex-direction: column;
+  padding: var(--espacio-3);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 16px;
+}
+
+.entrada__icono {
+  font-size: 1.75rem;
+  line-height: 1.3;
+}
+
+.entrada__beneficio-titulo {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+}
+
+.entrada__beneficio-texto {
+  font-size: var(--texto-chico);
+  color: var(--color-texto-suave);
+}
+
+.entrada__cliente,
+.entrada__personal {
+  margin: 0 0 var(--espacio-2);
+  text-align: center;
+  color: var(--color-texto-suave);
+}
+
+.entrada__cliente a,
+.entrada__personal a {
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+}
+
+.entrada__personal {
+  font-size: var(--texto-chico);
+}
+
+@media (min-width: 560px) {
+  .entrada__beneficios {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .entrada {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .entrada__logo {
+    top: var(--espacio-5);
+    left: var(--espacio-5);
+    height: 76px;
+  }
+
+  .entrada__sello {
+    top: 22%;
+    left: var(--espacio-5);
+    width: 170px;
+    height: 170px;
+  }
+
+  .entrada__sello-numero {
+    font-size: 3rem;
+  }
+
+  .entrada__sello-texto {
+    font-size: 0.9375rem;
+  }
+
+  .entrada__globo {
+    top: 18%;
+    right: 8%;
+    padding: var(--espacio-3) var(--espacio-4);
+    font-size: 1.375rem;
+  }
+
+  .entrada__kerchi .mascota {
+    width: min(520px, 42vw);
+  }
+
+  .entrada__contenido {
+    padding: var(--espacio-5) clamp(var(--espacio-5), 6vw, 7rem);
+  }
+}

@@ -160,6 +160,13 @@ El backend no los conoce:
 - `register` responde `409` si el correo ya tiene cuenta.
 - El admin no se registra: se crea al arrancar desde `ADMIN_EMAIL` y `ADMIN_PASSWORD` de `backend/.env`. Si ya existe, no se le cambia la contraseña.
 
+**En el frontend**
+
+- Rutas: `/bienvenida` (Entrada), `/registro`, `/ingresar`, la tienda en `/`, y `/admin/*` solo para el admin. Con sesión, las tres primeras llevan a la tienda o al panel según el rol.
+- La sesión (`token` y `UserOut`) se guarda en `localStorage`. Al abrir la app se confirma con `GET /api/auth/me`: lo guardado se puede editar a mano, y quien protege los datos es el backend.
+- Si una respuesta da 401 con sesión, se cierra y se vuelve a la Entrada.
+- "Repetir contraseña" y aceptar los términos se validan solo en el frontend. No viajan al backend ni se guardan.
+
 ## 8. Endpoints
 
 | Método | Ruta | Acceso | Descripción | Respuestas |

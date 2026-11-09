@@ -3,9 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../App';
+import { guardarSesion, usuarioDePrueba } from '../test-utils';
+import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import {
   ApiError,
+  getMe,
   getProductById,
   getProducts,
   sendChatMessage,
@@ -23,6 +26,7 @@ vi.mock('../services/api', async (importOriginal) => {
     getProducts: vi.fn(),
     getProductById: vi.fn(),
     createOrder: vi.fn(),
+    getMe: vi.fn(),
   };
 });
 
@@ -62,9 +66,11 @@ function renderApp(path = '/') {
   const user = userEvent.setup();
   render(
     <MemoryRouter initialEntries={[path]}>
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
     </MemoryRouter>,
   );
   return user;
@@ -295,6 +301,9 @@ describe('ChatWidget', () => {
 
 describe('ChatWidget en el Layout', () => {
   beforeEach(() => {
+    // La tienda pide una sesión: estos tests entran como cliente.
+    guardarSesion();
+    vi.mocked(getMe).mockReset().mockResolvedValue(usuarioDePrueba());
     vi.mocked(sendChatMessage).mockReset();
     vi.mocked(getProducts).mockReset().mockResolvedValue([coca]);
     vi.mocked(getProductById).mockReset().mockResolvedValue(coca);

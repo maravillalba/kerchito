@@ -1,5 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import logo from '../assets/logo-ker.png';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext.tsx';
 import SearchBar from './SearchBar';
 import './Header.css';
@@ -8,6 +9,7 @@ import './Header.css';
 // queda siempre a la vista al scrollear.
 export default function Header() {
   const { totalItems } = useCart();
+  const { usuario, logout } = useAuth();
   const location = useLocation();
   // En /products el buscador muestra lo que se está buscando (?q=); en otras
   // páginas arranca vacío.
@@ -33,9 +35,30 @@ export default function Header() {
           <NavLink to="/products" className="header__link">
             Productos
           </NavLink>
-          <NavLink to="/cart" className="header__cart">
+          {usuario?.role === 'customer' && (
+            <p className="header__saludo">
+              <span aria-hidden="true">⭐</span> Hola, {usuario.first_name} ·{' '}
+              {usuario.points} pts
+            </p>
+          )}
+          {usuario?.role === 'admin' && (
+            <Link to="/admin" className="header__link">
+              Panel
+            </Link>
+          )}
+          <NavLink
+            to="/cart"
+            className={
+              usuario ? 'header__cart header__cart--con-sesion' : 'header__cart'
+            }
+          >
             Carrito ({totalItems})
           </NavLink>
+          {usuario && (
+            <button type="button" className="header__salir" onClick={logout}>
+              Cerrar sesión
+            </button>
+          )}
         </nav>
       </div>
     </header>

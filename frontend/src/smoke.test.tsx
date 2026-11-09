@@ -1,8 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { describe, it, expect, vi } from 'vitest';
-import App from './App';
-import { CartProvider } from './context/CartContext';
+import { screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { getMe } from './services/api';
+import { guardarSesion, renderApp, usuarioDePrueba } from './test-utils';
 import type { Product } from './types';
 
 // El Inicio pide los productos para "Ofertas de la semana": sin backend en los tests.
@@ -35,31 +34,30 @@ const PRODUCTOS: Product[] = [
 
 vi.mock('./services/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./services/api')>();
-  return { ...actual, getProducts: vi.fn(() => Promise.resolve(PRODUCTOS)) };
+  return {
+    ...actual,
+    getMe: vi.fn(),
+    getProducts: vi.fn(() => Promise.resolve(PRODUCTOS)),
+  };
 });
 
 describe('App', () => {
-  it('muestra el título del kiosko en la ruta /', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </MemoryRouter>,
-    );
+  beforeEach(() => {
+    // La tienda pide una sesión: estos tests entran como cliente.
+    guardarSesion();
+    vi.mocked(getMe).mockResolvedValue(usuarioDePrueba());
+  });
+
+  it('muestra el título del kiosko en la ruta /', async () => {
+    renderApp('/');
     expect(
       screen.getByRole('link', { name: 'Kiosko El Rápido' }),
     ).toBeInTheDocument();
+    await waitFor(() => expect(getMe).toHaveBeenCalled());
   });
 
   it('en / muestra las ofertas con el precio de oferta y el normal tachado', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </MemoryRouter>,
-    );
+    renderApp('/');
     const section = (
       await screen.findByRole('heading', { name: 'Ofertas de la semana' })
     ).closest('section') as HTMLElement;
@@ -72,14 +70,9 @@ describe('App', () => {
     expect(cards[0].querySelector('del')).toHaveTextContent('$ 1.200');
   });
 
-  it('muestra la página 404 en una ruta inexistente', () => {
-    render(
-      <MemoryRouter initialEntries={['/no-existe']}>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </MemoryRouter>,
-    );
+  it('muestra la página 404 en una ruta inexistente', async () => {
+    renderApp('/no-existe');
     expect(screen.getByText(/Página no encontrada/i)).toBeInTheDocument();
+    await waitFor(() => expect(getMe).toHaveBeenCalled());
   });
 });

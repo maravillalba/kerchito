@@ -82,6 +82,43 @@
   background: var(--color-marca);
 }
 
+/* Saludo y saldo: la píldora empuja el carrito y "Cerrar sesión" a la derecha. */
+.header__saludo {
+  max-width: 14rem;
+  margin: 0 0 0 auto;
+  padding: var(--espacio-1) var(--espacio-3);
+  overflow: hidden;
+  font-size: var(--texto-chico);
+  font-weight: 700;
+  color: var(--color-marca-oscuro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #fff3bf;
+  border-radius: 999px;
+}
+
+.header__saludo + .header__cart--con-sesion {
+  margin-left: 0;
+}
+
+.header__salir {
+  min-height: 44px;
+  padding: var(--espacio-1) var(--espacio-2);
+  font-size: var(--texto-chico);
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radio);
+  cursor: pointer;
+}
+
+.header__salir:hover {
+  color: var(--color-marca-oscuro);
+}
+
 .header__nav a:focus-visible {
   outline-offset: 3px;
 }
@@ -115,9 +152,25 @@
     height: 34px;
   }
 
+  /* Con sesión no entra todo en una línea. Los items de la navegación se ordenan
+     como hijos del header: logo, links y carrito arriba; saludo y "Cerrar sesión"
+     en una segunda línea; el buscador debajo. */
   .header__nav {
-    flex-wrap: nowrap;
-    gap: var(--espacio-2);
+    display: contents;
+  }
+
+  .header__saludo {
+    order: 1;
+    margin-left: 0;
+  }
+
+  .header__salir {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .header__saludo + .header__cart--con-sesion {
+    margin-left: auto;
   }
 
   .header__link {

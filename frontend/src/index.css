@@ -7,6 +7,7 @@
   /* El mismo naranja, más oscuro: para texto blanco chico (5,2:1, pasa AA). */
   --color-primario-oscuro: #c2410c;
   --color-primario-oscuro-hover: #a8380a;
+  --color-alerta: #b3261e; /* errores: texto y bordes */
   --color-acento: #ffd700; /* amarillo: solo fondos */
   --color-marca: #247a16; /* verde: texto, bordes y fondos */
   --color-marca-oscuro: #143d0c; /* texto sobre amarillo y crema */
