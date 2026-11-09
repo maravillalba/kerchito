@@ -182,6 +182,15 @@ def test_top_clientes_por_puntos(client, db_session, admin_headers):
     assert top[0]["first_name"] == "C6"
 
 
+def test_top_clientes_cuenta_solo_compras_activas(client, comprar, admin_headers, customer_headers):
+    primero = comprar(customer_headers, [(1, 1)])
+    comprar(customer_headers, [(3, 1)])
+    comprar(customer_headers, [(3, 1)])
+    client.patch(f"/api/orders/{primero['id']}/cancel", headers=admin_headers)
+    [top] = resumen(client, admin_headers)["top_customers"]
+    assert top["orders_count"] == 2
+
+
 # --- Clientes ---------------------------------------------------------------------
 
 
@@ -197,6 +206,7 @@ def test_cliente_sin_compras(client, cliente, admin_headers):
         "last_name": "Pérez",
         "email": "cliente@test.com",
         "phone": None,
+        "created_at": cliente.created_at.isoformat(),
         "points": 0,
         "level": "Bronce",
         "orders_count": 0,

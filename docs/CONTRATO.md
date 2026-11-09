@@ -165,7 +165,9 @@ El backend no los conoce:
 - Rutas: `/bienvenida` (Entrada), `/registro`, `/ingresar`, la tienda en `/`, y `/admin/*` solo para el admin. Con sesión, las tres primeras llevan a la tienda o al panel según el rol.
 - La sesión (`token` y `UserOut`) se guarda en `localStorage`. Al abrir la app se confirma con `GET /api/auth/me`: lo guardado se puede editar a mano, y quien protege los datos es el backend.
 - Si una respuesta da 401 con sesión, se cierra y se vuelve a la Entrada.
-- "Repetir contraseña" y aceptar los términos se validan solo en el frontend. No viajan al backend ni se guardan.
+- "Repetir contraseña" y la casilla "Acepto que usen mis datos para el programa de puntos" se validan solo en el frontend. No viajan al backend ni se guardan.
+- El panel usa `/admin` (Resumen), `/admin/inventario`, `/admin/ventas`, `/admin/clientes` y `/admin/ofertas`.
+- El frontend agrega la URL del backend a las fotos que empiezan con `/uploads/`; las del seed (`/productos/`) las sirve él mismo.
 
 ## 8. Endpoints
 
@@ -200,9 +202,9 @@ Notas de `POST /api/orders`:
 - Si un `product_id` se repite en `items`, el stock se descuenta de forma acumulada y se guarda un renglón por cada item.
 - Si hay varios errores, se responde el del primer item que falle, según el orden en que llegaron.
 
-**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - unit_cost) * quantity` menos la suma de `discount_amount`, que ya incluye el 15% y el valor de los puntos canjeados: el canje se resta una sola vez. Es lo cobrado menos el costo de lo vendido, y puede ser negativa), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`; hasta 5, solo con saldo positivo). Las ventas cuentan solo pedidos `active`.
+**`GET /api/admin/summary`:** `total_revenue` (suma de `total`), `net_profit` (suma de `(unit_price - unit_cost) * quantity` menos la suma de `discount_amount`, que ya incluye el 15% y el valor de los puntos canjeados: el canje se resta una sola vez. Es lo cobrado menos el costo de lo vendido, y puede ser negativa), `stock_units`, `points_in_circulation` (suma de todos los movimientos), `best_sellers[]` (`product_id`, `product_name`, `units_sold`; hasta 5) y `top_customers[]` (`id`, `first_name`, `last_name`, `points`, `orders_count`; hasta 5, solo con saldo positivo). Las ventas cuentan solo pedidos `active`.
 
-**`GET /api/admin/customers`:** `id`, `first_name`, `last_name`, `email`, `phone`, `points`, `level` (`"Bronce"`, `"Plata"` o `"Oro"`), `orders_count`, `total_spent`, `last_order_at` (`string \| null`). Compras, gasto y última compra cuentan solo pedidos `active`. El detalle agrega `movements[]`: `id`, `order_id` (`number \| null`), `points`, `reason`, `created_at`, del más nuevo al más viejo.
+**`GET /api/admin/customers`:** `id`, `first_name`, `last_name`, `email`, `phone`, `created_at`, `points`, `level` (`"Bronce"`, `"Plata"` o `"Oro"`), `orders_count`, `total_spent`, `last_order_at` (`string \| null`). Compras, gasto y última compra cuentan solo pedidos `active`. El detalle agrega `movements[]`: `id`, `order_id` (`number \| null`), `points`, `reason`, `created_at`, del más nuevo al más viejo.
 
 **`POST /api/admin/customers/{id}/points`:** `points` (entero distinto de 0, con signo) y `reason` (texto obligatorio).
 

@@ -195,6 +195,7 @@ class TopCustomerOut(BaseModel):
     first_name: str
     last_name: str
     points: int
+    orders_count: int
 
 
 class SummaryOut(BaseModel):
@@ -212,6 +213,7 @@ class CustomerOut(BaseModel):
     last_name: str
     email: str
     phone: str | None
+    created_at: datetime
     points: int
     level: str
     orders_count: int

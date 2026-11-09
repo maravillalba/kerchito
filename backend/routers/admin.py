@@ -84,6 +84,11 @@ def summary(db: Session = Depends(get_db)):
         .order_by(points.desc(), User.id)
         .limit(_TOP_SIZE)
     ).all()
+    orders_by_customer = dict(
+        db.execute(
+            select(Order.user_id, func.count(Order.id)).where(active).group_by(Order.user_id)
+        ).all()
+    )
 
     return SummaryOut(
         total_revenue=round(total_revenue, 2),
@@ -95,7 +100,13 @@ def summary(db: Session = Depends(get_db)):
             for p, units in best_sellers
         ],
         top_customers=[
-            TopCustomerOut(id=u.id, first_name=u.first_name, last_name=u.last_name, points=balance)
+            TopCustomerOut(
+                id=u.id,
+                first_name=u.first_name,
+                last_name=u.last_name,
+                points=balance,
+                orders_count=orders_by_customer.get(u.id, 0),
+            )
             for u, balance in top_customers
         ],
     )
@@ -108,6 +119,7 @@ def _customer_out(user: User, points: int, orders_count: int, total_spent, last_
         last_name=user.last_name,
         email=user.email,
         phone=user.phone,
+        created_at=user.created_at,
         points=points,
         level=level_for(points),
         orders_count=orders_count,
