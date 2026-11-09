@@ -94,7 +94,9 @@ button {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+[tabindex='0']:focus-visible {
   outline: 3px solid var(--color-foco);
   outline-offset: 2px;
 }

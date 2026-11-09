@@ -194,8 +194,7 @@ function Registro() {
                     errores.terms ? 'registro-terminos-error' : undefined
                   }
                 />
-                Acepto los términos y el uso de mis datos para el programa de
-                puntos
+                Acepto que usen mis datos para el programa de puntos
               </label>
               {errores.terms && (
                 <p id="registro-terminos-error" className="campo__error">

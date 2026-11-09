@@ -10,15 +10,20 @@ export function normalizeText(text: string): string {
     .trim();
 }
 
-// Todas las palabras de la búsqueda tienen que aparecer en la marca, el nombre o
-// la categoría del producto, en cualquier orden. Una búsqueda vacía no filtra.
+// Todas las palabras de la búsqueda tienen que aparecer en el texto, en cualquier
+// orden, sin distinguir mayúsculas ni tildes. Una búsqueda vacía no filtra.
+export function matchesWords(text: string, query: string): boolean {
+  const normalized = normalizeText(text);
+  return normalizeText(query)
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => normalized.includes(word));
+}
+
+// Busca en la marca, el nombre y la categoría del producto.
 export function matchesSearch(product: Product, query: string): boolean {
-  const words = normalizeText(query).split(/\s+/).filter(Boolean);
-  if (words.length === 0) {
-    return true;
-  }
-  const text = normalizeText(
+  return matchesWords(
     `${product.brand} ${product.name} ${CATEGORY_LABELS[product.category]}`,
+    query,
   );
-  return words.every((word) => text.includes(word));
 }

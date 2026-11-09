@@ -6,12 +6,14 @@ import {
   getMe,
   getProductById,
   getProducts,
+  imageUrl,
   loginUser,
   logoutUser,
   registerUser,
   sendChatMessage,
   setAuthToken,
   setUnauthorizedHandler,
+  uploadProductImage,
 } from './api';
 
 // fetch falso: ningún test sale a la red.
@@ -381,6 +383,27 @@ describe('sesión', () => {
     await expect(logoutUser()).resolves.toBeUndefined();
     expect(fetchCall().url).toBe(`${BASE}/api/auth/logout`);
     expect(fetchCall().init.method).toBe('POST');
+  });
+
+  it('uploadProductImage manda FormData sin Content-Type', async () => {
+    setAuthToken('abc');
+    const foto = new File(['x'], 'foto.png', { type: 'image/png' });
+    fetchMock.mockResolvedValue(jsonResponse({ id: 1 }));
+
+    await uploadProductImage(1, foto);
+
+    const { url, init } = fetchCall();
+    expect(url).toBe(`${BASE}/api/products/1/image`);
+    expect(init.method).toBe('POST');
+    expect((init.body as FormData).get('file')).toBeInstanceOf(File);
+    expect(init.headers).toEqual({ Authorization: 'Bearer abc' });
+  });
+
+  it('imageUrl agrega el backend solo a las fotos subidas', () => {
+    expect(imageUrl('/uploads/products/a.webp')).toBe(
+      `${BASE}/uploads/products/a.webp`,
+    );
+    expect(imageUrl('/productos/coca.webp')).toBe('/productos/coca.webp');
   });
 
   it('registerUser hace POST con los datos', async () => {

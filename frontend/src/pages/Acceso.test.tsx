@@ -109,9 +109,12 @@ describe('Registro', () => {
     });
   });
 
-  it('los términos no vienen aceptados de antemano', () => {
+  it('la casilla de datos dice el texto acordado y no viene marcada', () => {
     renderApp('/registro');
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    const casilla = screen.getByRole('checkbox', {
+      name: 'Acepto que usen mis datos para el programa de puntos',
+    });
+    expect(casilla).not.toBeChecked();
   });
 
   it('sin completar nada marca los campos y lleva el foco al primero', async () => {
@@ -123,7 +126,7 @@ describe('Registro', () => {
     expect(screen.getByText('Ingresá tu apellido.')).toBeInTheDocument();
     expect(screen.getByText(/Ingresá un correo válido/)).toBeInTheDocument();
     expect(screen.getByText(/al menos 8 caracteres/)).toBeInTheDocument();
-    expect(screen.getByText(/aceptar los términos/)).toBeInTheDocument();
+    expect(screen.getByText(/aceptar el uso de tus datos/)).toBeInTheDocument();
     expect(screen.getByLabelText('Nombre')).toHaveFocus();
     expect(screen.getByLabelText('Nombre')).toHaveAttribute(
       'aria-invalid',
@@ -142,11 +145,11 @@ describe('Registro', () => {
     expect(registerUser).not.toHaveBeenCalled();
   });
 
-  it('sin aceptar los términos no envía', async () => {
+  it('sin aceptar el uso de los datos no envía', async () => {
     const user = renderApp('/registro');
     await completar(user, { terminos: false });
     await enviar(user);
-    expect(screen.getByText(/aceptar los términos/)).toBeInTheDocument();
+    expect(screen.getByText(/aceptar el uso de tus datos/)).toBeInTheDocument();
     expect(registerUser).not.toHaveBeenCalled();
   });
 

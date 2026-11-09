@@ -12,9 +12,13 @@ import type {
   CartItem as CartItemType,
   PaymentMethod,
   Product,
-  User,
 } from '../types';
-import { formatMonthYear, formatPrice, PAYMENT_LABELS } from '../utils/format';
+import {
+  formatMonthYear,
+  formatPrice,
+  initials,
+  PAYMENT_LABELS,
+} from '../utils/format';
 import {
   calcularResumen,
   DESCUENTO_PRIMERA_COMPRA,
@@ -47,10 +51,6 @@ function describeStockChanges(
     }
   }
   return changes.length > 0 ? changes.join(' ') : null;
-}
-
-function iniciales(usuario: User) {
-  return `${usuario.first_name[0] ?? ''}${usuario.last_name[0] ?? ''}`.toUpperCase();
 }
 
 // Por qué no se puede usar el interruptor de puntos todavía.
@@ -211,7 +211,7 @@ function Cart() {
               <h3 className="cart__section-title">Cliente</h3>
               <div className="cart__customer">
                 <span className="cart__initials" aria-hidden="true">
-                  {iniciales(usuario)}
+                  {initials(usuario)}
                 </span>
                 <div className="cart__customer-data">
                   <p className="cart__customer-name">

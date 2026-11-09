@@ -28,6 +28,14 @@ export function formatPrice(price: number): string {
   });
 }
 
+// "Ana Pérez" -> "AP".
+export function initials(person: {
+  first_name: string;
+  last_name: string;
+}): string {
+  return `${person.first_name[0] ?? ''}${person.last_name[0] ?? ''}`.toUpperCase();
+}
+
 // "nov 2026": sin el punto que agrega el mes abreviado en español.
 export function formatMonthYear(isoDate: string): string {
   const date = new Date(isoDate);

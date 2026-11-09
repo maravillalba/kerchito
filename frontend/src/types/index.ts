@@ -71,6 +71,78 @@ export interface OrderCreatedResponse extends OrderResponse {
   points_balance: number;
 }
 
+export interface AdminOrder extends OrderResponse {
+  customer: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+}
+
+// Producto con su costo: solo lo ve el admin.
+export interface ProductAdmin extends Product {
+  cost: number;
+}
+
+// Lo que manda el admin al crear o editar. La foto va por su propio endpoint.
+export interface ProductAdminInput {
+  brand: string;
+  name: string;
+  unit: string;
+  category: Category;
+  price: number;
+  offer_price: number | null;
+  stock: number;
+  cost: number;
+  description: string | null;
+}
+
+export interface Summary {
+  total_revenue: number;
+  net_profit: number;
+  stock_units: number;
+  points_in_circulation: number;
+  best_sellers: {
+    product_id: number;
+    product_name: string;
+    units_sold: number;
+  }[];
+  top_customers: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    points: number;
+    orders_count: number;
+  }[];
+}
+
+export interface Customer {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  points: number;
+  level: string;
+  orders_count: number;
+  total_spent: number;
+  last_order_at: string | null;
+}
+
+export interface PointsMovement {
+  id: number;
+  order_id: number | null;
+  points: number;
+  reason: string;
+  created_at: string;
+}
+
+export interface CustomerDetail extends Customer {
+  movements: PointsMovement[];
+}
+
 export type Role = 'customer' | 'admin';
 
 export interface User {

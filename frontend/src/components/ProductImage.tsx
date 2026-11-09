@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { imageUrl } from '../services/api';
 import type { Product } from '../types';
 import { CATEGORY_ICONS } from '../utils/categoryIcons';
 import './ProductImage.css';
@@ -19,7 +20,7 @@ function ProductImage({ product, size }: ProductImageProps) {
   if (photo) {
     return (
       <img
-        src={photo}
+        src={imageUrl(photo)}
         alt=""
         className={`product-image product-image--product product-image--${size}`}
         onError={() => setFailedSrc(photo)}
